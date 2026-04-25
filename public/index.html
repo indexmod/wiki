@@ -1,19 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Wiki</title>
-  <link rel="stylesheet" href="/styles.css">
+<meta charset="UTF-8">
+<title>Wiki</title>
+
+<style>
+/* =========================
+   BASE
+========================= */
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fafafa;
+  color: #111;
+}
+
+/* =========================
+   HEADER
+========================= */
+header {
+  padding: 60px;
+}
+
+.logo {
+  width: 80px;
+  display: block;
+  animation: pulse 2.5s infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* =========================
+   MAIN
+========================= */
+main {
+  padding: 60px;
+  max-width: 900px;
+}
+
+/* =========================
+   LIST
+========================= */
+.page {
+  margin-bottom: 40px;
+  font-size: 28px;
+  letter-spacing: 0.5px;
+}
+
+.page a {
+  text-decoration: none;
+  color: #111;
+}
+
+.page a:hover {
+  opacity: 0.5;
+}
+
+/* =========================
+   NEW PAGE
+========================= */
+.new {
+  margin-top: 80px;
+  font-size: 18px;
+}
+
+.new a {
+  text-decoration: none;
+  color: #666;
+}
+
+.new a:hover {
+  color: #000;
+}
+</style>
+
 </head>
 <body>
 
-<h1>Wiki Index</h1>
+  <header>
+    <img src="/logo.png" class="logo" />
+  </header>
 
-<div id="list"></div>
+<main>
+  <div id="list"></div>
 
-<a href="/editor.html">+ New page</a>
+  <div class="new">
+    <a href="/editor.html">+ New page</a>
+  </div>
+</main>
 
-<script src="/js/app.js"></script>
+<script>
+async function load() {
+  const res = await fetch("/api/pages");
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+
+  list.innerHTML = data.map((p, i) =>
+    `<div class="page">
+       ${String(i + 1).padStart(2, "0")} —
+       <a href="/view.html?slug=${p.slug}">
+         ${p.title || p.slug}
+       </a>
+     </div>`
+  ).join("");
+}
+
+load();
+</script>
 
 </body>
 </html>
