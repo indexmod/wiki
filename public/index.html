@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
 <title>Indexmod Fashion and Art</title>
 
 <style>
-/* =========================
-   BASE
-========================= */
 body {
   margin: 0;
   font-family: Georgia, serif;
@@ -16,9 +13,6 @@ body {
   color: #111;
 }
 
-/* =========================
-   HEADER
-========================= */
 header {
   padding: 60px;
   position: relative;
@@ -36,9 +30,7 @@ header {
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* =========================
-   NEW PAGE (TOP RIGHT)
-========================= */
+/* NEW PAGE */
 .new {
   position: absolute;
   top: 60px;
@@ -55,19 +47,22 @@ header {
   color: #000;
 }
 
-/* =========================
-   MAIN
-========================= */
+/* MAIN */
 main {
   padding: 60px;
   max-width: 900px;
 }
 
-/* =========================
-   LIST
-========================= */
+/* LETTER SECTION */
+.letter {
+  margin-top: 60px;
+  font-size: 18px;
+  color: #888;
+}
+
+/* PAGE */
 .page {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   font-size: 28px;
   letter-spacing: 0.5px;
 }
@@ -81,9 +76,7 @@ main {
   opacity: 0.5;
 }
 
-/* =========================
-   DROP CAP (буквица)
-========================= */
+/* DROP CAP */
 .page a::first-letter {
   font-size: 30px;
 }
@@ -111,21 +104,35 @@ async function load() {
 
   const list = document.getElementById("list");
 
-  // 🔤 сортировка по алфавиту (title -> slug fallback)
+  // 🔤 сортировка
   const sorted = data.sort((a, b) => {
     const A = (a.title || a.slug).toLowerCase();
     const B = (b.title || b.slug).toLowerCase();
     return A.localeCompare(B);
   });
 
-  // ❌ без нумерации
-  list.innerHTML = sorted.map(p =>
-    `<div class="page">
-       <a href="/view.html?slug=${p.slug}">
-         ${p.title || p.slug}
-       </a>
-     </div>`
-  ).join("");
+  // 📚 группировка по первой букве
+  const groups = {};
+
+  sorted.forEach(p => {
+    const name = (p.title || p.slug).trim();
+    const letter = name[0].toUpperCase();
+
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push(p);
+  });
+
+  // 🔡 рендер
+  list.innerHTML = Object.keys(groups).sort().map(letter => `
+    <div class="letter">${letter}</div>
+    ${groups[letter].map(p => `
+      <div class="page">
+        <a href="/view.html?slug=${p.slug}">
+          ${p.title || p.slug}
+        </a>
+      </div>
+    `).join("")}
+  `).join("");
 }
 
 load();
