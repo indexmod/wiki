@@ -1,4 +1,6 @@
-<script>
+<script type="module">
+import { markdownToHTML } from "/js/core/schema.js";
+
 const slug = new URLSearchParams(location.search).get("slug");
 
 async function load() {
@@ -12,7 +14,10 @@ async function load() {
   const page = await res.json();
 
   document.getElementById("title").innerText = page.title;
-  document.getElementById("content").innerText = page.content;
+
+  const html = markdownToHTML(page.content || "");
+
+  document.getElementById("content").innerHTML = html;
 }
 
 load();

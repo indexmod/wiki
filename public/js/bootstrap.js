@@ -1,110 +1,126 @@
-async function getPages() {
-  const res = await fetch("/api/pages");
-  if (!res.ok) throw new Error("Failed to load pages");
-  return res.json();
-}
-
-async function getPage(slug) {
-  const res = await fetch(`/api/page/${slug}`);
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function savePage(slug, data) {
-  const res = await fetch(`/api/page/${slug}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  return res.json();
-}
-
-// =========================
-// UI
-// =========================
-const listEl = document.getElementById("allList");
-const editor = document.getElementById("editor");
+import { markdownToHTML } from "./core/schema.js";
 
 let currentSlug = null;
+let isEdit = false;
 
-// =========================
-// RENDER INDEX
-// =========================
-async function renderIndex() {
-  const pages = await getPages();
+const editor = document.getElementById("editor");
+const list = document.getElementById("allList");
 
-  listEl.innerHTML = "";
+// --------------------
+// LOAD INDEX
+// --------------------
+async function loadIndex() {
+  const res = await fetch("/api/pages");
+  const pages = await res.json();
+
+  list.innerHTML = "";
 
   pages.forEach((p) => {
     const el = document.createElement("div");
-    el.className = "item";
     el.textContent = p.title || p.slug;
 
     el.onclick = () => openPage(p.slug);
 
-    listEl.appendChild(el);
+    list.appendChild(el);
   });
 
-  // create new button
-  const newBtn = document.createElement("div");
-  newBtn.className = "item";
-  newBtn.textContent = "+ new page";
+  const btn = document.createElement("button");
+  btn.textContent = "+ new page";
+  btn.onclick = createPage;
 
-  newBtn.onclick = createPage;
-
-  listEl.appendChild(newBtn);
+  list.appendChild(btn);
 }
 
-// =========================
-// OPEN PAGE
-// =========================
+// --------------------
+// OPEN PAGE (VIEW)
+// --------------------
 async function openPage(slug) {
-  const page = await getPage(slug);
+  const res = await fetch(`/api/page/${slug}`);
+  const page = await res.json();
+
+  currentSlug = slug;
+  isEdit = false;
+
+  editor.value = page.content || "";
+
+  renderView();
+}
+
+// --------------------
+// VIEW MODE
+// --------------------
+function renderView() {
+  const html = markdownToHTML(editor.value);
+
+  editor.style.display = "none";
+
+  let view = document.getElementById("view");
+
+  if (!view) {
+    view = document.createElement("div");
+    view.id = "view";
+    document.body.appendChild(view);
+  }
+
+  view.innerHTML = html;
+  view.style.display = "block";
+}
+
+// --------------------
+// EDIT MODE
+// --------------------
+function editMode() {
+  isEdit = true;
+
+  const view = document.getElementById("view");
+  if (view) view.style.display = "none";
+
+  editor.style.display = "block";
+}
+
+// --------------------
+// SAVE
+// --------------------
+async function save() {
+  await fetch(`/api/page/${currentSlug}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: currentSlug,
+      content: editor.value,
+    }),
+  });
+
+  renderView();
+}
+
+// --------------------
+// CREATE PAGE
+// --------------------
+async function createPage() {
+  const slug = prompt("slug?");
+  if (!slug) return;
 
   currentSlug = slug;
 
-  document.querySelector(".main").classList.remove("hidden");
-  document.getElementById("allView").classList.add("hidden");
+  editor.value = "# New page\n";
 
-  editor.innerHTML = page?.content || "";
+  await save();
+  await loadIndex();
+  openPage(slug);
 }
 
-// =========================
-// CREATE PAGE
-// =========================
-async function createPage() {
-  const slug = prompt("page slug?");
-  if (!slug) return;
+// --------------------
+// EVENTS
+// --------------------
+document.getElementById("editBtn").onclick = editMode;
+document.getElementById("saveBtn").onclick = save;
 
-  const data = {
-    title: slug,
-    content: "",
-  };
-
-  await savePage(slug, data);
-
-  await renderIndex();
-  await openPage(slug);
-}
-
-// =========================
-// AUTO SAVE
-// =========================
-editor.addEventListener("input", async () => {
-  if (!currentSlug) return;
-
-  await savePage(currentSlug, {
-    title: currentSlug,
-    content: editor.innerHTML,
-  });
-});
-
-// =========================
+// --------------------
 // INIT
-// =========================
+// --------------------
 export function bootstrap() {
-  renderIndex();
+  loadIndex();
 }
