@@ -1,7 +1,13 @@
 export async function onRequestPost({ request, env }) {
-  const body = await request.json();
+  const { slug, title, content } = await request.json();
 
-  await env.WIKI_DB.put(body.key, body.value);
+  const page = {
+    title,
+    content,
+    updated: Date.now()
+  };
+
+  await env.WIKI_DB.put(slug, JSON.stringify(page));
 
   return new Response("saved");
 }

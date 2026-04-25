@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>View</title>
+</head>
+<body>
+
+<h1 id="title"></h1>
+<pre id="content"></pre>
+
+<script>
+const slug = new URLSearchParams(location.search).get("slug");
+
+async function load() {
+  const res = await fetch("/api/page/" + slug);
+  const data = await res.json();
+
+  document.getElementById("title").innerText = data.title || "";
+  document.getElementById("content").innerText = data.content || "";
+}
+
+load();
+</script>
+
+</body>
+</html>

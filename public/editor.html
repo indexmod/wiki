@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Editor</title>
+</head>
+<body>
+
+<h1>Editor</h1>
+
+<input id="slug" placeholder="slug" />
+<input id="title" placeholder="title" />
+<br><br>
+
+<textarea id="content" style="width:100%;height:300px;"></textarea>
+
+<br>
+
+<button onclick="save()">Save</button>
+
+<script>
+async function save() {
+  await fetch("/api/save", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      slug: document.getElementById("slug").value,
+      title: document.getElementById("title").value,
+      content: document.getElementById("content").value
+    })
+  });
+
+  alert("saved");
+}
+</script>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
-  const key = url.searchParams.get("key");
+  const slug = url.searchParams.get("slug");
 
-  const value = await env.WIKI_DB.get(key);
+  const data = await env.WIKI_DB.get(slug);
 
-  return new Response(value || "");
+  return new Response(data || "{}");
 }
