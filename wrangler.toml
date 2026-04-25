@@ -1,0 +1,7 @@
+name = "wiki"
+
+pages_build_output_dir = "public"
+
+[[kv_namespaces]]
+binding = "WIKI_DB"
+id = "5e40f830ea514bb18008eaa72672b77e"
