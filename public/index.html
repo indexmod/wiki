@@ -3,7 +3,7 @@
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
-<title>Wiki</title>
+<title>Indexmod Fashion and Art</title>
 
 <style>
 /* =========================
@@ -21,6 +21,7 @@ body {
 ========================= */
 header {
   padding: 60px;
+  position: relative;
 }
 
 .logo {
@@ -33,6 +34,25 @@ header {
   0%   { opacity: 1; transform: scale(1); }
   50%  { opacity: 0.4; transform: scale(1.05); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+/* =========================
+   NEW PAGE (TOP RIGHT)
+========================= */
+.new {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  font-size: 18px;
+}
+
+.new a {
+  text-decoration: none;
+  color: #666;
+}
+
+.new a:hover {
+  color: #000;
 }
 
 /* =========================
@@ -62,36 +82,26 @@ main {
 }
 
 /* =========================
-   NEW PAGE
+   DROP CAP (буквица)
 ========================= */
-.new {
-  margin-top: 80px;
-  font-size: 18px;
-}
-
-.new a {
-  text-decoration: none;
-  color: #666;
-}
-
-.new a:hover {
-  color: #000;
+.page a::first-letter {
+  font-size: 30px;
 }
 </style>
 
 </head>
 <body>
 
-  <header>
-    <img src="/logo.png" class="logo" />
-  </header>
-
-<main>
-  <div id="list"></div>
+<header>
+  <img src="/logo.png" class="logo" />
 
   <div class="new">
     <a href="/editor.html">+ New page</a>
   </div>
+</header>
+
+<main>
+  <div id="list"></div>
 </main>
 
 <script>
@@ -101,9 +111,16 @@ async function load() {
 
   const list = document.getElementById("list");
 
-  list.innerHTML = data.map((p, i) =>
+  // 🔤 сортировка по алфавиту (title -> slug fallback)
+  const sorted = data.sort((a, b) => {
+    const A = (a.title || a.slug).toLowerCase();
+    const B = (b.title || b.slug).toLowerCase();
+    return A.localeCompare(B);
+  });
+
+  // ❌ без нумерации
+  list.innerHTML = sorted.map(p =>
     `<div class="page">
-       ${String(i + 1).padStart(2, "0")} —
        <a href="/view.html?slug=${p.slug}">
          ${p.title || p.slug}
        </a>
