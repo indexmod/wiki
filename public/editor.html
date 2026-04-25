@@ -19,6 +19,28 @@
 <button onclick="save()">Save</button>
 
 <script>
+const params = new URLSearchParams(location.search);
+const editSlug = params.get("slug");
+
+// =========================
+// LOAD EXISTING PAGE
+// =========================
+async function load() {
+  if (!editSlug) return;
+
+  const res = await fetch("/api/page/" + editSlug);
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  document.getElementById("slug").value = data.slug;
+  document.getElementById("title").value = data.title;
+  document.getElementById("content").value = data.content;
+}
+
+// =========================
+// SAVE PAGE
+// =========================
 async function save() {
   const slug = document.getElementById("slug").value;
   const title = document.getElementById("title").value;
@@ -29,7 +51,7 @@ async function save() {
     return;
   }
 
-  await fetch(`/api/page/${slug}`, {
+  await fetch("/api/page/" + slug, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -39,7 +61,10 @@ async function save() {
   });
 
   alert("saved");
+  location.href = "/view.html?slug=" + slug;
 }
+
+load();
 </script>
 
 </body>

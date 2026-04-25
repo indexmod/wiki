@@ -5,7 +5,11 @@ async function load() {
   const list = document.getElementById("list");
 
   list.innerHTML = data.map(p =>
-    `<div><a href="/view.html?slug=${p.name}">${p.name}</a></div>`
+    `<div>
+      <a href="/view.html?slug=${p.slug}">
+        ${p.title}
+      </a>
+    </div>`
   ).join("");
 }
 

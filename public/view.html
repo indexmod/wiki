@@ -7,7 +7,8 @@
 <body>
 
 <h1 id="title"></h1>
-<pre id="content"></pre>
+
+<div id="content"></div>
 
 <script>
 const slug = new URLSearchParams(location.search).get("slug");
@@ -17,6 +18,8 @@ async function load() {
   const data = await res.json();
 
   document.getElementById("title").innerText = data.title || "";
+
+  // пока без markdown-рендера, но уже НЕ <pre>
   document.getElementById("content").innerText = data.content || "";
 }
 
