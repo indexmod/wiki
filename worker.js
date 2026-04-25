@@ -3,6 +3,8 @@ export default {
     const url = new URL(request.url);
     const { pathname } = url;
 
+    const pageMatch = pathname.match(/^\/api\/page\/(.+)$/);
+
     // =========================
     // LIST PAGES
     // =========================
@@ -17,7 +19,6 @@ export default {
           try {
             return JSON.parse(value);
           } catch {
-            // если KV загрязнён — просто пропускаем
             return null;
           }
         })
@@ -29,8 +30,6 @@ export default {
     // =========================
     // GET PAGE
     // =========================
-    const pageMatch = pathname.match(/^\/api\/page\/(.+)$/);
-
     if (pageMatch && request.method === "GET") {
       const slug = pageMatch[1];
       const value = await env.WIKI_DB.get(slug);
@@ -51,7 +50,6 @@ export default {
     // =========================
     if (pageMatch && request.method === "POST") {
       const slug = pageMatch[1];
-
       const body = await request.json();
 
       const page = {
@@ -68,15 +66,19 @@ export default {
     }
 
     // =========================
+    // DELETE PAGE
+    // =========================
+    if (pageMatch && request.method === "DELETE") {
+      const slug = pageMatch[1];
+
+      await env.WIKI_DB.delete(slug);
+
+      return new Response("deleted", { status: 200 });
+    }
+
+    // =========================
     // STATIC FRONTEND
     // =========================
     return env.ASSETS.fetch(request);
   }
-  if (pageMatch && request.method === "DELETE") {
-  const slug = pageMatch[1];
-
-  await env.WIKI_DB.delete(slug);
-
-  return new Response("deleted");
-}
 };
