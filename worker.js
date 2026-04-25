@@ -72,4 +72,11 @@ export default {
     // =========================
     return env.ASSETS.fetch(request);
   }
+  if (pageMatch && request.method === "DELETE") {
+  const slug = pageMatch[1];
+
+  await env.WIKI_DB.delete(slug);
+
+  return new Response("deleted");
+}
 };

@@ -1,59 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
 <title>Admin</title>
 
 <style>
 body {
   margin: 0;
-  font-family: Georgia, serif;
-  background: #fafafa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  background: white;
   color: #111;
+  font-size: 20px;
 }
 
 header {
-  padding: 80px 60px 40px 60px;
+  padding: 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logo {
-  width: 80px;
+  width: 70px;
   animation: pulse 3s infinite ease-in-out;
 }
 
 @keyframes pulse {
   0% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.3; }
   100% { opacity: 1; }
 }
 
 main {
   padding: 0 60px 80px 60px;
-  max-width: 800px;
+  max-width: 900px;
 }
 
+/* item */
 .item {
   display: flex;
   justify-content: space-between;
-  padding: 16px;
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
-  background: white;
+  align-items: center;
+  padding: 18px 0;
 }
 
-button {
-  border: 1px solid #999;
-  background: white;
-  padding: 6px 10px;
+/* link */
+.item a {
+  text-decoration: none;
+  color: #111;
+}
+
+/* checkbox */
+input[type="checkbox"] {
+  transform: scale(1.3);
+  margin-right: 20px;
+}
+
+/* delete text (top right) */
+.actions {
+  position: fixed;
+  top: 60px;
+  right: 60px;
   cursor: pointer;
-}
-
-button:hover {
-  background: #f0f0f0;
 }
 </style>
 </head>
@@ -65,35 +74,47 @@ button:hover {
     <img src="/logo.png" class="logo" />
   </a>
 
-  <div>ADMIN</div>
+  <div>Admin</div>
 </header>
 
+<div class="actions" onclick="bulkDelete()">
+  delete
+</div>
+
 <main>
-  <h1>Pages</h1>
   <div id="list"></div>
 </main>
 
 <script>
+let pages = [];
+
 async function load() {
   const res = await fetch("/api/pages");
-  const pages = await res.json();
+  pages = await res.json();
 
   const list = document.getElementById("list");
 
   list.innerHTML = pages.map(p => `
     <div class="item">
-      <a href="/view.html?slug=${p.slug}">${p.title}</a>
-      <button onclick="del('${p.slug}')">delete</button>
+      <div>
+        <input type="checkbox" value="${p.slug}">
+        <a href="/view.html?slug=${p.slug}">${p.title}</a>
+      </div>
     </div>
   `).join("");
 }
 
-async function del(slug) {
-  if (!confirm("delete " + slug + "?")) return;
+async function bulkDelete() {
+  const checked = [...document.querySelectorAll("input[type=checkbox]:checked")]
+    .map(i => i.value);
 
-  await fetch("/api/page/" + slug, {
-    method: "DELETE"
-  });
+  if (!checked.length) return;
+
+  if (!confirm("Delete selected pages?")) return;
+
+  for (const slug of checked) {
+    await fetch("/api/page/" + slug, { method: "DELETE" });
+  }
 
   load();
 }
