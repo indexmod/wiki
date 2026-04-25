@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fafafa;
+  color: #111;
+}
+
+header {
+  padding: 80px 60px 40px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  width: 80px;
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+main {
+  padding: 0 60px 80px 60px;
+  max-width: 800px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+  background: white;
+}
+
+button {
+  border: 1px solid #999;
+  background: white;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="/">
+    <img src="/logo.png" class="logo" />
+  </a>
+
+  <div>ADMIN</div>
+</header>
+
+<main>
+  <h1>Pages</h1>
+  <div id="list"></div>
+</main>
+
+<script>
+async function load() {
+  const res = await fetch("/api/pages");
+  const pages = await res.json();
+
+  const list = document.getElementById("list");
+
+  list.innerHTML = pages.map(p => `
+    <div class="item">
+      <a href="/view.html?slug=${p.slug}">${p.title}</a>
+      <button onclick="del('${p.slug}')">delete</button>
+    </div>
+  `).join("");
+}
+
+async function del(slug) {
+  if (!confirm("delete " + slug + "?")) return;
+
+  await fetch("/api/page/" + slug, {
+    method: "DELETE"
+  });
+
+  load();
+}
+
+load();
+</script>
+
+</body>
+</html>
