@@ -1,0 +1,19 @@
+<script>
+const slug = new URLSearchParams(location.search).get("slug");
+
+async function load() {
+  const res = await fetch(`/api/page/${slug}`);
+
+  if (!res.ok) {
+    document.body.innerHTML = "Not found";
+    return;
+  }
+
+  const page = await res.json();
+
+  document.getElementById("title").innerText = page.title;
+  document.getElementById("content").innerText = page.content;
+}
+
+load();
+</script>
