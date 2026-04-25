@@ -1,26 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>View</title>
+<meta charset="UTF-8">
+<title>View</title>
+
+<style>
+/* =========================
+   BASE
+========================= */
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fafafa;
+  color: #111;
+}
+
+/* =========================
+   HEADER
+========================= */
+header {
+  padding: 80px 60px 40px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  width: 80px;
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.edit {
+  font-size: 16px;
+  text-decoration: none;
+  color: #666;
+}
+
+.edit:hover {
+  color: #000;
+}
+
+/* =========================
+   MAIN
+========================= */
+main {
+  padding: 0 60px 80px 60px;
+  max-width: 800px;
+}
+
+/* =========================
+   TYPOGRAPHY
+========================= */
+h1 {
+  font-size: 42px;
+  margin-bottom: 40px;
+}
+
+#content {
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* markdown styles */
+#content h2 {
+  margin-top: 40px;
+  font-size: 28px;
+}
+
+#content h3 {
+  margin-top: 30px;
+  font-size: 22px;
+}
+
+#content p {
+  margin: 20px 0;
+}
+
+#content ul {
+  margin: 20px 0 20px 20px;
+}
+
+#content li {
+  margin-bottom: 8px;
+}
+
+#content code {
+  background: #eee;
+  padding: 2px 6px;
+  font-size: 14px;
+}
+
+#content pre {
+  background: #111;
+  color: #fff;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 30px 0;
+}
+</style>
+
 </head>
 <body>
 
-<h1 id="title"></h1>
+<header>
+  <a href="/">
+    <img src="/logo.png" class="logo" />
+  </a>
 
-<div id="content"></div>
+  <a id="editLink" class="edit">Edit</a>
+</header>
+
+<main>
+  <h1 id="title"></h1>
+  <div id="content"></div>
+</main>
+
+<!-- markdown parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
 const slug = new URLSearchParams(location.search).get("slug");
 
+// =========================
+// LOAD PAGE
+// =========================
 async function load() {
   const res = await fetch("/api/page/" + slug);
+  if (!res.ok) return;
+
   const data = await res.json();
 
   document.getElementById("title").innerText = data.title || "";
 
-  // пока без markdown-рендера, но уже НЕ <pre>
-  document.getElementById("content").innerText = data.content || "";
+  // markdown → html
+  document.getElementById("content").innerHTML =
+    marked.parse(data.content || "");
+
+  // edit link
+  document.getElementById("editLink").href =
+    "/editor.html?slug=" + slug;
 }
 
 load();
