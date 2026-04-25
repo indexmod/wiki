@@ -1,9 +1,15 @@
 name = "wiki"
+main = "src/index.ts"              # Your Worker entry point
 compatibility_date = "2026-04-25"
 
+# Static assets configuration
 [assets]
 directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]      # API routes hit Worker first; everything else tries assets
 
-kv_namespaces = [
-  { binding = "WIKI_DB", id = "5e40f830ea514bb18008eaa72672b77e" }
-]
+# KV binding — TOP LEVEL, not inside [assets]
+[[kv_namespaces]]
+binding = "WIKI_DB"
+id = "5e40f830ea514bb18008eaa72672b77e"
