@@ -4,7 +4,7 @@ export default {
     const { pathname } = url;
 
     // =========================
-    // API: LIST PAGES
+    // LIST PAGES
     // =========================
     if (pathname === "/api/pages" && request.method === "GET") {
       const keys = await env.WIKI_DB.list();
@@ -12,7 +12,14 @@ export default {
       const pages = await Promise.all(
         keys.keys.map(async (k) => {
           const value = await env.WIKI_DB.get(k.name);
-          return value ? JSON.parse(value) : null;
+          if (!value) return null;
+
+          try {
+            return JSON.parse(value);
+          } catch {
+            // если KV загрязнён — просто пропускаем
+            return null;
+          }
         })
       );
 
@@ -20,9 +27,10 @@ export default {
     }
 
     // =========================
-    // API: GET PAGE
+    // GET PAGE
     // =========================
     const pageMatch = pathname.match(/^\/api\/page\/(.+)$/);
+
     if (pageMatch && request.method === "GET") {
       const slug = pageMatch[1];
       const value = await env.WIKI_DB.get(slug);
@@ -31,14 +39,19 @@ export default {
         return new Response("Not found", { status: 404 });
       }
 
-      return Response.json(JSON.parse(value));
+      try {
+        return Response.json(JSON.parse(value));
+      } catch {
+        return new Response("Corrupted page data", { status: 500 });
+      }
     }
 
     // =========================
-    // API: SAVE PAGE
+    // SAVE PAGE
     // =========================
     if (pageMatch && request.method === "POST") {
       const slug = pageMatch[1];
+
       const body = await request.json();
 
       const page = {
