@@ -13,15 +13,17 @@ async function load() {
   // ✔ ЕДИНОЕ МНОЖЕСТВО СЛАГОВ
   // =========================
   const existingSet = new Set(
-    pages.map(p => slugify(p.slug))
+    pages.map(p => smartSlug(p.slug))
   );
 
   // =========================
   // ✔ РЕАЛЬНЫЕ СТРАНИЦЫ
   // =========================
   const real = pages.map(p => ({
-    slug: slugify(p.slug),
-    title: (p.title && p.title.trim()) ? p.title : p.slug,
+    slug: smartSlug(p.slug),
+    title: (p.title && p.title.trim())
+      ? p.title
+      : autoTitle(p.slug),
     exists: true
   }));
 
@@ -38,8 +40,8 @@ async function load() {
   // =========================
   const missing = topics
     .map(raw => ({
-      slug: slugify(raw),
-      title: raw, // 🔥 ВАЖНО: НЕ slugify для отображения
+      slug: smartSlug(raw),
+      title: raw,
       exists: false
     }))
     .filter(p => !existingSet.has(p.slug));
@@ -50,7 +52,9 @@ async function load() {
   // SORT
   // =========================
   all.sort((a, b) =>
-    (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase())
+    (a.title || "")
+      .toLowerCase()
+      .localeCompare((b.title || "").toLowerCase())
   );
 
   // =========================

@@ -3,18 +3,9 @@
  * единая система идентификации
  */
 
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/["'«»()]/g, "")
-    .replace(/[^a-z0-9а-яё\s-]/gi, "-")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-// transliteration (RU → EN)
+// =========================
+// TRANSLIT (RU → EN)
+// =========================
 function translit(str) {
   const map = {
     а:"a", б:"b", в:"v", г:"g", д:"d", е:"e", ё:"e",
@@ -31,23 +22,54 @@ function translit(str) {
     .join("");
 }
 
-// detect person (very simple heuristic)
-function isPerson(text) {
-  return text.trim().split(/\s+/).length === 2;
+// =========================
+// CLEAN SLUG BASE
+// =========================
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/["'«»()]/g, "")
+    .replace(/[^a-z0-9а-яё\s-]/gi, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-// SMART slug (main entry point)
+// =========================
+// PERSON DETECTION (safer)
+// =========================
+function isPerson(text) {
+  const words = text.trim().split(/\s+/);
+
+  // только 2-3 слова (очень мягкое правило)
+  return words.length === 2 || words.length === 3;
+}
+
+// =========================
+// SMART SLUG (FINAL)
+// =========================
 function smartSlug(text) {
   if (!text) return "";
 
-  if (isPerson(text)) {
-    return text
-      .trim()
-      .split(/\s+/)
-      .map(translit)
-      .reverse()
-      .join("-");
+  const clean = text.trim();
+
+  // -------------------------
+  // PERSON CASE
+  // -------------------------
+  if (isPerson(clean)) {
+    const parts = clean.split(/\s+/);
+
+    const transliterated = parts.map(p => translit(p));
+
+    // фамилия-имя (reversed)
+    return transliterated.reverse().join("-");
   }
 
-  return slugify(text);
+  // -------------------------
+  // NORMAL CASE
+  // -------------------------
+  const transliterated = translit(clean);
+
+  return slugify(transliterated);
 }
