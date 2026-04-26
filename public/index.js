@@ -21,28 +21,28 @@ async function load() {
   // =========================
   const real = pages.map(p => ({
     slug: slugify(p.slug),
-    title: p.title || p.slug,
+    title: (p.title && p.title.trim()) ? p.title : p.slug,
     exists: true
   }));
 
   // =========================
-  // ✔ TOPICS (НОРМАЛИЗАЦИЯ)
+  // ✔ TOPICS (RAW → DISPLAY SAFE)
   // =========================
   const topics = topicsText
     .split("\n")
-    .map(t => slugify(t.trim()))
+    .map(t => t.trim())
     .filter(Boolean);
 
   // =========================
   // ✔ ТОЛЬКО НЕСУЩЕСТВУЮЩИЕ
   // =========================
   const missing = topics
-    .filter(slug => !existingSet.has(slug))
-    .map(slug => ({
-      slug,
-      title: slug,
+    .map(raw => ({
+      slug: slugify(raw),
+      title: raw, // 🔥 ВАЖНО: НЕ slugify для отображения
       exists: false
-    }));
+    }))
+    .filter(p => !existingSet.has(p.slug));
 
   const all = [...real, ...missing];
 
@@ -50,7 +50,7 @@ async function load() {
   // SORT
   // =========================
   all.sort((a, b) =>
-    a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+    (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase())
   );
 
   // =========================
@@ -58,7 +58,7 @@ async function load() {
   // =========================
   const groups = {};
   all.forEach(p => {
-    const letter = (p.title[0] || "").toUpperCase();
+    const letter = (p.title?.[0] || "").toUpperCase();
     if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);
   });
