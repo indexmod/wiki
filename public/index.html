@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
-<title>Indexmod</title>
+<title>Indexmod Fashion and Art</title>
 
 <style>
 body {
@@ -12,28 +13,81 @@ body {
   color: #111;
 }
 
+header {
+  padding: 60px;
+  position: relative;
+}
+
+.logo {
+  width: 80px;
+  display: block;
+  animation: pulse 2.5s infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* NEW PAGE */
+.new {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  font-size: 18px;
+}
+
+.new a {
+  text-decoration: none;
+  color: #666;
+}
+
+.new a:hover {
+  color: #000;
+}
+
+/* MAIN */
 main {
   padding: 60px;
-  max-width: 900px;
+}
+
+/* GRID 3 COL */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* LETTER */
 .letter {
-  margin-top: 60px;
-  font-size: 18px;
-  color: #888;
+  margin-bottom: 20px;
+  font-size: 40px;
+  color: black;
 }
 
 /* PAGE */
 .page {
-  margin-bottom: 20px;
-  font-size: 28px;
+  margin-bottom: 14px;
+  font-size: 20px;
 }
 
-/* EXISTING */
 .page a {
   text-decoration: none;
-  color: #111;
+  color: black;
 }
 
 /* MISSING */
@@ -56,8 +110,16 @@ main {
 
 <body>
 
+<header>
+  <img src="/logo.png" class="logo" />
+
+  <div class="new">
+    <a href="/editor.html">+ New page</a>
+  </div>
+</header>
+
 <main>
-  <div id="list"></div>
+  <div id="grid" class="grid"></div>
 </main>
 
 <script>
@@ -70,33 +132,29 @@ async function load() {
   const pages = await pagesRes.json();
   const topicsText = await topicsRes.text();
 
-  const list = document.getElementById("list");
+  const grid = document.getElementById("grid");
 
-  // существующие slug'и
+  // существующие
   const existing = {};
-  pages.forEach(p => {
-    existing[p.slug] = p;
-  });
+  pages.forEach(p => existing[p.slug] = p);
 
-  // темы из txt
+  // темы
   const topics = topicsText
     .split("\n")
     .map(t => t.trim())
     .filter(Boolean);
 
-  // объединяем
-  const all = topics.map(slug => {
-    return {
-      slug,
-      title: existing[slug]?.title || slug,
-      exists: !!existing[slug]
-    };
-  });
+  // объединение
+  const all = topics.map(slug => ({
+    slug,
+    title: existing[slug]?.title || slug,
+    exists: !!existing[slug]
+  }));
 
   // сортировка
-  all.sort((a, b) => {
-    return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
-  });
+  all.sort((a, b) =>
+    a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+  );
 
   // группировка
   const groups = {};
@@ -106,20 +164,21 @@ async function load() {
     groups[letter].push(p);
   });
 
-  // рендер
-  list.innerHTML = Object.keys(groups).sort().map(letter => `
-    <div class="letter">${letter}</div>
+  // рендер в 3 колонки
+  grid.innerHTML = Object.keys(groups).sort().map(letter => `
+    <div>
+      <div class="letter">${letter}</div>
 
-    ${groups[letter].map(p => `
-      <div class="page">
-        ${
-          p.exists
-            ? `<a href="/view.html?slug=${p.slug}">${p.title}</a>`
-            : `<a class="missing" href="/editor.html?slug=${p.slug}">${p.title}</a>`
-        }
-      </div>
-    `).join("")}
-
+      ${groups[letter].map(p => `
+        <div class="page">
+          ${
+            p.exists
+              ? `<a href="/view.html?slug=${p.slug}">${p.title}</a>`
+              : `<a class="missing" href="/editor.html?slug=${p.slug}">${p.title}</a>`
+          }
+        </div>
+      `).join("")}
+    </div>
   `).join("");
 }
 
