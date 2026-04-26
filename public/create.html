@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<title>Indexmod Fashion and Art</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fafafa;
+  color: #111;
+}
+
+header {
+  padding: 60px;
+  position: relative;
+}
+
+.logo {
+  width: 80px;
+  display: block;
+  animation: pulse 2.5s infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* NEW PAGE */
+.new {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  font-size: 18px;
+}
+
+.new a {
+  text-decoration: none;
+  color: #666;
+}
+
+.new a:hover {
+  color: #000;
+}
+
+/* MAIN */
+main {
+  padding: 60px;
+  max-width: 900px;
+}
+
+/* LETTER SECTION */
+.letter {
+  margin-top: 60px;
+  margin-bottom: 60px;
+  font-size: 40px;
+  color: black;
+}
+
+/* PAGE */
+.page {
+  margin-bottom: 20px;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+.page a {
+  text-decoration: none;
+  color: black;
+}
+
+</style>
+
+</head>
+<body>
+
+<header>
+  <img src="/logo.png" class="logo" />
+
+  <div class="new">
+    <a href="/editor.html">+ New page</a>
+  </div>
+</header>
+
+<main>
+  <div id="list"></div>
+</main>
+
+<script>
+async function load() {
+  const res = await fetch("/api/pages");
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+
+  // 🔤 сортировка
+  const sorted = data.sort((a, b) => {
+    const A = (a.title || a.slug).toLowerCase();
+    const B = (b.title || b.slug).toLowerCase();
+    return A.localeCompare(B);
+  });
+
+  // 📚 группировка по первой букве
+  const groups = {};
+
+  sorted.forEach(p => {
+    const name = (p.title || p.slug).trim();
+    const letter = name[0].toUpperCase();
+
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push(p);
+  });
+
+  // 🔡 рендер
+  list.innerHTML = Object.keys(groups).sort().map(letter => `
+    <div class="letter">${letter}</div>
+    ${groups[letter].map(p => `
+      <div class="page">
+        <a href="/view.html?slug=${p.slug}">
+          ${p.title || p.slug}
+        </a>
+      </div>
+    `).join("")}
+  `).join("");
+}
+
+load();
+</script>
+
+</body>
+</html>
