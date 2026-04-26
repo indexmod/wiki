@@ -20,6 +20,7 @@ header {
   display: flex;
   align-items: center;
   gap: 20px;
+  position: relative;
 }
 
 /* LOGO */
@@ -34,10 +35,20 @@ header {
   100% { opacity: 1; }
 }
 
-/* SAVE LABEL */
+/* SAVE BUTTON (top right) */
 .save {
-  font-size: 14px;
-  letter-spacing: 1px;
+  position: absolute;
+  top: 40px;
+  right: 60px;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.save:hover {
+  opacity: 0.6;
 }
 
 /* MAIN */
@@ -70,7 +81,7 @@ textarea {
     <img src="/logo.png" class="logo">
   </a>
 
-  <div class="save">Save</div>
+  <div class="save" onclick="forceSave()">SAVE</div>
 </header>
 
 <main>
@@ -80,14 +91,16 @@ textarea {
 <script>
 let timeout;
 
+// load
 async function load() {
   const res = await fetch("/topics.txt");
   const text = await res.text();
   document.getElementById("editor").value = text;
 }
 
+// save
 async function save(value) {
-  fetch("/api/topics", {
+  await fetch("/api/topics", {
     method: "POST",
     headers: {
       "Content-Type": "text/plain"
@@ -96,6 +109,13 @@ async function save(value) {
   });
 }
 
+// manual force save
+function forceSave() {
+  const value = document.getElementById("editor").value;
+  save(value);
+}
+
+// autosave
 document.addEventListener("input", (e) => {
   if (e.target.id !== "editor") return;
 
