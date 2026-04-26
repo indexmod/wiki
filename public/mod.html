@@ -14,7 +14,6 @@ body {
   font-size: 18px;
 }
 
-/* HEADER */
 header {
   padding: 40px 60px;
   display: flex;
@@ -23,7 +22,6 @@ header {
   position: relative;
 }
 
-/* LOGO */
 .logo {
   width: 70px;
   animation: pulse 3s infinite ease-in-out;
@@ -35,31 +33,27 @@ header {
   100% { opacity: 1; }
 }
 
-/* SAVE BUTTON */
 .save {
   position: absolute;
   top: 40px;
   right: 60px;
   font-size: 20px;
-  font-weight: bold;
   letter-spacing: 2px;
   cursor: pointer;
   user-select: none;
 }
 
-/* MAIN */
 main {
   padding: 0 60px 80px 60px;
   max-width: 900px;
 }
 
-/* TEXTAREA */
 textarea {
   width: 100%;
   height: 500px;
   font-family: inherit;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 18px; /* 🔥 увеличили */
+  line-height: 1.6;
   border: none;
   outline: none;
   resize: vertical;
@@ -69,7 +63,6 @@ textarea {
 }
 </style>
 
-<!-- 🔥 slugify core -->
 <script src="/slugify.js"></script>
 
 </head>
@@ -95,15 +88,23 @@ let timeout;
 // LOAD
 // =========================
 async function load() {
-  const res = await fetch("/topics.txt");
-  const text = await res.text();
+  try {
+    const res = await fetch("/topics.txt");
 
-  document.getElementById("editor").value = text;
+    if (!res.ok) {
+      console.error("LOAD ERROR", res.status);
+      return;
+    }
+
+    const text = await res.text();
+    document.getElementById("editor").value = text;
+  } catch (e) {
+    console.error("LOAD FAIL", e);
+  }
 }
 
 // =========================
-// NORMALIZE TOPICS (🔥 NEW)
-// убирает дубли ДО сохранения
+// NORMALIZE
 // =========================
 function normalizeTopics(text) {
   const seen = new Set();
@@ -113,7 +114,7 @@ function normalizeTopics(text) {
     .map(t => t.trim())
     .filter(Boolean)
     .filter(line => {
-      const key = slugify(line); // 🔥 единая идентичность
+      const key = smartSlug(line); // 🔥 ВАЖНО (не slugify)
 
       if (seen.has(key)) return false;
       seen.add(key);
@@ -124,22 +125,36 @@ function normalizeTopics(text) {
 }
 
 // =========================
-// SAVE
+// SAVE CORE
 // =========================
 async function save(value) {
-  const cleaned = normalizeTopics(value); // 🔥 защита от дублей
+  const cleaned = normalizeTopics(value);
 
-  await fetch("/api/topics", {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: cleaned
-  });
+  try {
+    const res = await fetch("/api/topics", {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: cleaned
+    });
+
+    if (!res.ok) {
+      console.error("SAVE ERROR", res.status);
+      return;
+    }
+
+    // 🔥 ОБНОВЛЯЕМ UI ПОСЛЕ СОХРАНЕНИЯ
+    document.getElementById("editor").value = cleaned;
+
+    console.log("saved");
+  } catch (e) {
+    console.error("SAVE FAIL", e);
+  }
 }
 
 // =========================
-// MANUAL SAVE
+// FORCE SAVE
 // =========================
 function forceSave() {
   const value = document.getElementById("editor").value;
@@ -149,15 +164,12 @@ function forceSave() {
 // =========================
 // AUTOSAVE
 // =========================
-document.addEventListener("input", (e) => {
-  if (e.target.id !== "editor") return;
-
+document.getElementById("editor").addEventListener("input", (e) => {
   clearTimeout(timeout);
 
   timeout = setTimeout(() => {
-    const value = e.target.value;
-    save(value);
-  }, 400);
+    save(e.target.value);
+  }, 500);
 });
 
 load();
