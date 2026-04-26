@@ -1,7 +1,7 @@
 async function load() {
   const [pagesRes, topicsRes] = await Promise.all([
     fetch("/api/pages"),
-    fetch("/topics.txt")
+    fetch("/api/topics") // 🔥 ВАЖНО: теперь API
   ]);
 
   const pages = await pagesRes.json();
@@ -10,25 +10,29 @@ async function load() {
   const grid = document.getElementById("grid");
 
   // =========================
-  // ✔ ЕДИНОЕ МНОЖЕСТВО СЛАГОВ
+  // ✔ SLUG МНОЖЕСТВО (ЕДИНОЕ)
   // =========================
   const existingSet = new Set(
     pages.map(p => smartSlug(p.slug))
   );
 
   // =========================
-  // ✔ РЕАЛЬНЫЕ СТРАНИЦЫ
+  // ✔ REAL PAGES
   // =========================
-  const real = pages.map(p => ({
-    slug: smartSlug(p.slug),
-    title: (p.title && p.title.trim())
-      ? p.title
-      : autoTitle(p.slug),
-    exists: true
-  }));
+  const real = pages.map(p => {
+    const slug = smartSlug(p.slug);
+
+    return {
+      slug,
+      title: (p.title && p.title.trim())
+        ? p.title
+        : autoTitle(slug), // 🔥 авто-тайтл
+      exists: true
+    };
+  });
 
   // =========================
-  // ✔ TOPICS (RAW → DISPLAY SAFE)
+  // ✔ TOPICS RAW
   // =========================
   const topics = topicsText
     .split("\n")
@@ -36,15 +40,31 @@ async function load() {
     .filter(Boolean);
 
   // =========================
-  // ✔ ТОЛЬКО НЕСУЩЕСТВУЮЩИЕ
+  // ✔ MISSING (без дублей)
   // =========================
-  const missing = topics
-    .map(raw => ({
-      slug: smartSlug(raw),
-      title: raw,
+  const missing = [];
+
+  const seen = new Set(); // 🔥 защита от дублей внутри topics
+
+  topics.forEach(raw => {
+    const slug = smartSlug(raw);
+
+    if (!slug) return;
+
+    // уже есть как страница → пропускаем
+    if (existingSet.has(slug)) return;
+
+    // уже добавляли → пропускаем
+    if (seen.has(slug)) return;
+
+    seen.add(slug);
+
+    missing.push({
+      slug,
+      title: raw, // 🔥 сохраняем оригинальный текст
       exists: false
-    }))
-    .filter(p => !existingSet.has(p.slug));
+    });
+  });
 
   const all = [...real, ...missing];
 
@@ -61,8 +81,10 @@ async function load() {
   // GROUP
   // =========================
   const groups = {};
+
   all.forEach(p => {
-    const letter = (p.title?.[0] || "").toUpperCase();
+    const letter = (p.title?.[0] || "#").toUpperCase();
+
     if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);
   });
@@ -79,7 +101,7 @@ async function load() {
           ${
             p.exists
               ? `<a class="exists" href="/view.html?slug=${p.slug}">${p.title}</a>`
-              : `<a class="missing" href="/editor.html?slug=${p.slug}">${p.title}</a>`
+              : `<a class="missing" href="/editor.html?slug=${p.slug}&title=${encodeURIComponent(p.title)}">${p.title}</a>`
           }
         </div>
       `).join("")}

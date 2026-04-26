@@ -52,7 +52,7 @@ textarea {
   width: 100%;
   height: 500px;
   font-family: inherit;
-  font-size: 18px; /* 🔥 увеличили */
+  font-size: 18px;
   line-height: 1.6;
   border: none;
   outline: none;
@@ -85,11 +85,11 @@ textarea {
 let timeout;
 
 // =========================
-// LOAD
+// LOAD (🔥 теперь из API)
 // =========================
 async function load() {
   try {
-    const res = await fetch("/topics.txt");
+    const res = await fetch("/api/topics");
 
     if (!res.ok) {
       console.error("LOAD ERROR", res.status);
@@ -98,13 +98,14 @@ async function load() {
 
     const text = await res.text();
     document.getElementById("editor").value = text;
+
   } catch (e) {
     console.error("LOAD FAIL", e);
   }
 }
 
 // =========================
-// NORMALIZE
+// NORMALIZE (анти-дубли)
 // =========================
 function normalizeTopics(text) {
   const seen = new Set();
@@ -114,7 +115,9 @@ function normalizeTopics(text) {
     .map(t => t.trim())
     .filter(Boolean)
     .filter(line => {
-      const key = smartSlug(line); // 🔥 ВАЖНО (не slugify)
+      const key = smartSlug(line);
+
+      if (!key) return false;
 
       if (seen.has(key)) return false;
       seen.add(key);
@@ -125,7 +128,7 @@ function normalizeTopics(text) {
 }
 
 // =========================
-// SAVE CORE
+// SAVE
 // =========================
 async function save(value) {
   const cleaned = normalizeTopics(value);
@@ -144,17 +147,18 @@ async function save(value) {
       return;
     }
 
-    // 🔥 ОБНОВЛЯЕМ UI ПОСЛЕ СОХРАНЕНИЯ
+    // обновляем textarea → синхронное состояние
     document.getElementById("editor").value = cleaned;
 
     console.log("saved");
+
   } catch (e) {
     console.error("SAVE FAIL", e);
   }
 }
 
 // =========================
-// FORCE SAVE
+// FORCE SAVE (клик)
 // =========================
 function forceSave() {
   const value = document.getElementById("editor").value;

@@ -13,6 +13,9 @@ export default {
 
       const pages = await Promise.all(
         keys.keys.map(async (k) => {
+          // 🔥 исключаем topics.txt из списка страниц
+          if (k.name === "topics.txt") return null;
+
           const value = await env.WIKI_DB.get(k.name);
           if (!value) return null;
 
@@ -32,6 +35,7 @@ export default {
     // =========================
     if (pageMatch && request.method === "GET") {
       const slug = pageMatch[1];
+
       const value = await env.WIKI_DB.get(slug);
 
       if (!value) {
@@ -74,6 +78,33 @@ export default {
       await env.WIKI_DB.delete(slug);
 
       return new Response("deleted", { status: 200 });
+    }
+
+    // =========================
+    // GET TOPICS
+    // =========================
+    if (pathname === "/api/topics" && request.method === "GET") {
+      const text = await env.WIKI_DB.get("topics.txt");
+
+      return new Response(text || "", {
+        headers: { "Content-Type": "text/plain" }
+      });
+    }
+
+    // =========================
+    // SAVE TOPICS
+    // =========================
+    if (pathname === "/api/topics" && request.method === "POST") {
+      const text = await request.text();
+
+      // 🔥 защита от пустого файла
+      if (!text.trim()) {
+        return new Response("Empty topics", { status: 400 });
+      }
+
+      await env.WIKI_DB.put("topics.txt", text);
+
+      return new Response("ok");
     }
 
     // =========================
