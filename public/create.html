@@ -72,10 +72,13 @@ main {
   text-decoration: none;
   color: black;
 }
-
 </style>
 
+<!-- 🔥 slugify core -->
+<script src="/slugify.js"></script>
+
 </head>
+
 <body>
 
 <header>
@@ -97,14 +100,25 @@ async function load() {
 
   const list = document.getElementById("list");
 
-  // 🔤 сортировка
+  // =========================
+  // 🔥 NORMALIZATION SET
+  // =========================
+  const existingSet = new Set(
+    data.map(p => slugify(p.slug))
+  );
+
+  // =========================
+  // SORT
+  // =========================
   const sorted = data.sort((a, b) => {
     const A = (a.title || a.slug).toLowerCase();
     const B = (b.title || b.slug).toLowerCase();
     return A.localeCompare(B);
   });
 
-  // 📚 группировка по первой букве
+  // =========================
+  // GROUP
+  // =========================
   const groups = {};
 
   sorted.forEach(p => {
@@ -115,16 +129,23 @@ async function load() {
     groups[letter].push(p);
   });
 
-  // 🔡 рендер
+  // =========================
+  // RENDER
+  // =========================
   list.innerHTML = Object.keys(groups).sort().map(letter => `
     <div class="letter">${letter}</div>
-    ${groups[letter].map(p => `
-      <div class="page">
-        <a href="/view.html?slug=${p.slug}">
-          ${p.title || p.slug}
-        </a>
-      </div>
-    `).join("")}
+
+    ${groups[letter].map(p => {
+      const slug = slugify(p.slug);
+
+      return `
+        <div class="page">
+          <a href="/view.html?slug=${slug}">
+            ${p.title || p.slug}
+          </a>
+        </div>
+      `;
+    }).join("")}
   `).join("");
 }
 

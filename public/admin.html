@@ -57,7 +57,7 @@ input[type="checkbox"] {
   margin-right: 20px;
 }
 
-/* delete text (top right) */
+/* delete */
 .actions {
   position: fixed;
   top: 60px;
@@ -65,6 +65,10 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 </style>
+
+<!-- 🔥 slugify core -->
+<script src="/slugify.js"></script>
+
 </head>
 
 <body>
@@ -86,25 +90,37 @@ input[type="checkbox"] {
 <script>
 let pages = [];
 
+// =========================
+// LOAD
+// =========================
 async function load() {
   const res = await fetch("/api/pages");
   pages = await res.json();
 
   const list = document.getElementById("list");
 
-  list.innerHTML = pages.map(p => `
-    <div class="item">
-      <div>
-        <input type="checkbox" value="${p.slug}">
-        <a href="/view.html?slug=${p.slug}">${p.title}</a>
+  list.innerHTML = pages.map(p => {
+    const slug = slugify(p.slug); // 🔥 защита от мусора
+
+    return `
+      <div class="item">
+        <div>
+          <input type="checkbox" value="${slug}">
+          <a href="/view.html?slug=${slug}">
+            ${p.title || p.slug}
+          </a>
+        </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
+// =========================
+// BULK DELETE
+// =========================
 async function bulkDelete() {
   const checked = [...document.querySelectorAll("input[type=checkbox]:checked")]
-    .map(i => i.value);
+    .map(i => slugify(i.value)); // 🔥 нормализация
 
   if (!checked.length) return;
 

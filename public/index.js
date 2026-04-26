@@ -9,21 +9,34 @@ async function load() {
 
   const grid = document.getElementById("grid");
 
-  // множество существующих
-  const existingSet = new Set(pages.map(p => p.slug));
+  // =========================
+  // ✔ ЕДИНОЕ МНОЖЕСТВО СЛАГОВ
+  // =========================
+  const existingSet = new Set(
+    pages.map(p => slugify(p.slug))
+  );
 
-  // реальные страницы
+  // =========================
+  // ✔ РЕАЛЬНЫЕ СТРАНИЦЫ
+  // =========================
   const real = pages.map(p => ({
-    slug: p.slug,
+    slug: slugify(p.slug),
     title: p.title || p.slug,
     exists: true
   }));
 
-  // только отсутствующие темы
-  const missing = topicsText
+  // =========================
+  // ✔ TOPICS (НОРМАЛИЗАЦИЯ)
+  // =========================
+  const topics = topicsText
     .split("\n")
-    .map(t => t.trim())
-    .filter(Boolean)
+    .map(t => slugify(t.trim()))
+    .filter(Boolean);
+
+  // =========================
+  // ✔ ТОЛЬКО НЕСУЩЕСТВУЮЩИЕ
+  // =========================
+  const missing = topics
     .filter(slug => !existingSet.has(slug))
     .map(slug => ({
       slug,
@@ -33,20 +46,26 @@ async function load() {
 
   const all = [...real, ...missing];
 
-  // сортировка
+  // =========================
+  // SORT
+  // =========================
   all.sort((a, b) =>
     a.title.toLowerCase().localeCompare(b.title.toLowerCase())
   );
 
-  // группировка
+  // =========================
+  // GROUP
+  // =========================
   const groups = {};
   all.forEach(p => {
-    const letter = p.title[0].toUpperCase();
+    const letter = (p.title[0] || "").toUpperCase();
     if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);
   });
 
-  // рендер
+  // =========================
+  // RENDER
+  // =========================
   grid.innerHTML = Object.keys(groups).sort().map(letter => `
     <div>
       <div class="letter">${letter}</div>

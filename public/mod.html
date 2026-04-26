@@ -35,7 +35,7 @@ header {
   100% { opacity: 1; }
 }
 
-/* SAVE BUTTON (top right) */
+/* SAVE BUTTON */
 .save {
   position: absolute;
   top: 40px;
@@ -46,7 +46,6 @@ header {
   cursor: pointer;
   user-select: none;
 }
-
 
 /* MAIN */
 main {
@@ -69,6 +68,10 @@ textarea {
   margin-top: 20px;
 }
 </style>
+
+<!-- 🔥 slugify core -->
+<script src="/slugify.js"></script>
+
 </head>
 
 <body>
@@ -88,38 +91,72 @@ textarea {
 <script>
 let timeout;
 
-// load
+// =========================
+// LOAD
+// =========================
 async function load() {
   const res = await fetch("/topics.txt");
   const text = await res.text();
+
   document.getElementById("editor").value = text;
 }
 
-// save
+// =========================
+// NORMALIZE TOPICS (🔥 NEW)
+// убирает дубли ДО сохранения
+// =========================
+function normalizeTopics(text) {
+  const seen = new Set();
+
+  return text
+    .split("\n")
+    .map(t => t.trim())
+    .filter(Boolean)
+    .filter(line => {
+      const key = slugify(line); // 🔥 единая идентичность
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      return true;
+    })
+    .join("\n");
+}
+
+// =========================
+// SAVE
+// =========================
 async function save(value) {
+  const cleaned = normalizeTopics(value); // 🔥 защита от дублей
+
   await fetch("/api/topics", {
     method: "POST",
     headers: {
       "Content-Type": "text/plain"
     },
-    body: value
+    body: cleaned
   });
 }
 
-// manual force save
+// =========================
+// MANUAL SAVE
+// =========================
 function forceSave() {
   const value = document.getElementById("editor").value;
   save(value);
 }
 
-// autosave
+// =========================
+// AUTOSAVE
+// =========================
 document.addEventListener("input", (e) => {
   if (e.target.id !== "editor") return;
 
   clearTimeout(timeout);
 
   timeout = setTimeout(() => {
-    save(e.target.value);
+    const value = e.target.value;
+    save(value);
   }, 400);
 });
 

@@ -17,7 +17,7 @@ body {
 }
 
 /* =========================
-   HEADER (как в index)
+   HEADER
 ========================= */
 header {
   padding: 80px 60px 40px 60px;
@@ -101,6 +101,9 @@ button:hover {
 }
 </style>
 
+<!-- ✅ slugify core -->
+<script src="/slugify.js"></script>
+
 </head>
 <body>
 
@@ -128,6 +131,16 @@ const params = new URLSearchParams(location.search);
 const editSlug = params.get("slug");
 
 // =========================
+// AUTO SLUG FROM TITLE
+// =========================
+document.getElementById("title").addEventListener("input", (e) => {
+  const title = e.target.value;
+  const slug = smartSlug(title);   // 🔥 ВАЖНО
+
+  document.getElementById("slug").value = slug;
+});
+
+// =========================
 // LOAD EXISTING PAGE
 // =========================
 async function load() {
@@ -147,7 +160,7 @@ async function load() {
 // SAVE PAGE
 // =========================
 async function save() {
-  const slug = document.getElementById("slug").value;
+  const slug = smartSlug(document.getElementById("slug").value); // 🔥 защита
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
 
