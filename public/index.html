@@ -85,15 +85,17 @@ main {
   font-size: 20px;
 }
 
-.page a {
+/* DEFAULT LINKS (существующие) */
+.page a.exists {
+  color: blue;
   text-decoration: none;
-  color: black;
 }
 
 /* MISSING */
 .page a.missing {
   color: #222;
   border-bottom: 1px dashed #222;
+  text-decoration: none;
 }
 
 /* HOVER */
@@ -134,22 +136,40 @@ async function load() {
 
   const grid = document.getElementById("grid");
 
-  // существующие
+  // существующие страницы
   const existing = {};
   pages.forEach(p => existing[p.slug] = p);
 
-  // темы
+  // темы из txt
   const topics = topicsText
     .split("\n")
     .map(t => t.trim())
     .filter(Boolean);
 
-  // объединение
-  const all = topics.map(slug => ({
-    slug,
-    title: existing[slug]?.title || slug,
-    exists: !!existing[slug]
-  }));
+  // 🔥 ОБЪЕДИНЕНИЕ БЕЗ ПОТЕРЬ
+  const map = {};
+
+  // сначала topics
+  topics.forEach(slug => {
+    map[slug] = {
+      slug,
+      title: existing[slug]?.title || slug,
+      exists: !!existing[slug]
+    };
+  });
+
+  // потом добавляем ВСЕ страницы
+  pages.forEach(p => {
+    if (!map[p.slug]) {
+      map[p.slug] = {
+        slug: p.slug,
+        title: p.title || p.slug,
+        exists: true
+      };
+    }
+  });
+
+  const all = Object.values(map);
 
   // сортировка
   all.sort((a, b) =>
@@ -164,7 +184,7 @@ async function load() {
     groups[letter].push(p);
   });
 
-  // рендер в 3 колонки
+  // рендер
   grid.innerHTML = Object.keys(groups).sort().map(letter => `
     <div>
       <div class="letter">${letter}</div>
@@ -173,7 +193,7 @@ async function load() {
         <div class="page">
           ${
             p.exists
-              ? `<a href="/view.html?slug=${p.slug}">${p.title}</a>`
+              ? `<a class="exists" href="/view.html?slug=${p.slug}">${p.title}</a>`
               : `<a class="missing" href="/editor.html?slug=${p.slug}">${p.title}</a>`
           }
         </div>
