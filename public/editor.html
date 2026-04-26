@@ -6,9 +6,6 @@
 <title>Editor</title>
 
 <style>
-/* =========================
-   BASE
-========================= */
 body {
   margin: 0;
   font-family: Georgia, serif;
@@ -16,9 +13,6 @@ body {
   color: #111;
 }
 
-/* =========================
-   HEADER
-========================= */
 header {
   padding: 80px 60px 40px 60px;
 }
@@ -35,17 +29,11 @@ header {
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* =========================
-   MAIN
-========================= */
 main {
   padding: 0 60px 60px 60px;
   max-width: 900px;
 }
 
-/* =========================
-   INPUTS
-========================= */
 input {
   width: 100%;
   border: none;
@@ -65,9 +53,6 @@ input {
   margin-bottom: 30px;
 }
 
-/* =========================
-   TEXTAREA
-========================= */
 textarea {
   width: 100%;
   height: 400px;
@@ -80,9 +65,6 @@ textarea {
   background: transparent;
 }
 
-/* =========================
-   ACTIONS
-========================= */
 .actions {
   margin-top: 40px;
 }
@@ -101,7 +83,6 @@ button:hover {
 }
 </style>
 
-<!-- ✅ slugify core -->
 <script src="/slugify.js"></script>
 
 </head>
@@ -128,46 +109,70 @@ button:hover {
 
 <script>
 const params = new URLSearchParams(location.search);
-const editSlug = params.get("slug");
+const incomingSlug = params.get("slug");
+
+const slugInput = document.getElementById("slug");
+const titleInput = document.getElementById("title");
+const contentInput = document.getElementById("content");
+
+let locked = false;
 
 // =========================
-// AUTO SLUG FROM TITLE
+// INIT FROM TOPICS
 // =========================
-document.getElementById("title").addEventListener("input", (e) => {
+if (incomingSlug) {
+  const clean = smartSlug(incomingSlug);
+
+  slugInput.value = clean;
+  slugInput.setAttribute("readonly", true); // 🔒 фиксируем slug
+
+  // автотайтл
+  titleInput.value = autoTitle(clean);
+
+  locked = true;
+}
+
+// =========================
+// AUTO SLUG (только если НЕ из topics)
+// =========================
+titleInput.addEventListener("input", (e) => {
+  if (locked) return;
+
   const title = e.target.value;
-  const slug = smartSlug(title);   // 🔥 ВАЖНО
-
-  document.getElementById("slug").value = slug;
+  slugInput.value = smartSlug(title);
 });
 
 // =========================
-// LOAD EXISTING PAGE
+// LOAD EXISTING
 // =========================
 async function load() {
-  if (!editSlug) return;
+  if (!incomingSlug) return;
 
-  const res = await fetch("/api/page/" + editSlug);
+  const slug = smartSlug(incomingSlug);
+
+  const res = await fetch("/api/page/" + slug);
   if (!res.ok) return;
 
   const data = await res.json();
 
-  document.getElementById("slug").value = data.slug;
-  document.getElementById("title").value = data.title;
-  document.getElementById("content").value = data.content;
+  slugInput.value = slug;
+  titleInput.value = data.title || autoTitle(slug);
+  contentInput.value = data.content || "";
 }
 
 // =========================
-// SAVE PAGE
+// SAVE
 // =========================
 async function save() {
-  const slug = smartSlug(document.getElementById("slug").value); // 🔥 защита
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
+  const slug = smartSlug(slugInput.value);
+  let title = titleInput.value.trim();
 
-  if (!slug) {
-    alert("slug is required");
-    return;
+  if (!title) {
+    title = autoTitle(slug); // 🔥 защита от пустых / ошибок
+    titleInput.value = title;
   }
+
+  const content = contentInput.value;
 
   await fetch(`/api/page/${slug}`, {
     method: "POST",
