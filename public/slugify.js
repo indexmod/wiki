@@ -1,87 +1,40 @@
+<!-- FILE: slugify.js -->
+
 /**
- * IndexMod Slug Core (STABLE VERSION)
- * единая система идентификации
+ * IndexMod Slug Core (PERMALINK EDITABLE VERSION)
+ * slug = suggestion only, NOT identity
+ * ID must be used for uniqueness (outside this file)
  */
 
 // =========================
-// TRANSLIT (RU → EN)
+// CLEAN SLUG (SUGGESTION ENGINE)
 // =========================
-function translit(str) {
-  const map = {
-    а:"a", б:"b", в:"v", г:"g", д:"d", е:"e", ё:"e",
-    ж:"zh", з:"z", и:"i", й:"y", к:"k", л:"l", м:"m",
-    н:"n", о:"o", п:"p", р:"r", с:"s", т:"t", у:"u",
-    ф:"f", х:"h", ц:"ts", ч:"ch", ш:"sh", щ:"shch",
-    ъ:"", ы:"y", ь:"", э:"e", ю:"yu", я:"ya"
-  };
-
-  return str
-    .toLowerCase()
-    .split("")
-    .map(c => map[c] ?? c)
-    .join("");
-}
-
-// =========================
-// CLEAN SLUG
-// =========================
-function slugify(text) {
-  if (!text) return "";
-
+function slugify(text = "") {
   return text
     .toString()
     .toLowerCase()
     .trim()
     .replace(/["'«»()]/g, "")
-    .replace(/[^a-z0-9а-яё\s-]/gi, "-")
+    .replace(/[^a-z0-9а-яё\s-]/gi, " ")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
 
 // =========================
-// PERSON DETECTION (SAFE)
+// SMART SLUG (just wrapper)
 // =========================
-// ⚠️ НИКАКИХ "2-3 слова" — это ломало систему
-function isPerson(text) {
-  const words = text.trim().split(/\s+/);
-
-  // строго 2 слова
-  if (words.length !== 2) return false;
-
-  // оба слова должны начинаться с заглавной
-  return words.every(w => /^[A-ZА-ЯЁ]/.test(w));
-}
-
-// =========================
-// SMART SLUG (FINAL)
-// =========================
-function smartSlug(text) {
+// ⚠️ теперь НЕ “умный”, а просто генератор предложения
+function smartSlug(text = "") {
   if (!text) return "";
 
-  const clean = text.trim();
-
-  // -------------------------
-  // PERSON CASE (Иван Иванов → ivanov-ivan)
-  // -------------------------
-  if (isPerson(clean)) {
-    return clean
-      .split(/\s+/)
-      .map(translit)
-      .reverse()
-      .join("-");
-  }
-
-  // -------------------------
-  // NORMAL CASE (ВСЁ ОСТАЛЬНОЕ)
-  // -------------------------
-  return slugify(translit(clean));
+  return slugify(text);
 }
 
 // =========================
-// AUTO TITLE (simple helper)
+// AUTO TITLE (UI helper only)
 // =========================
-function autoTitle(slug) {
+function autoTitle(slug = "") {
   if (!slug) return "";
 
   return slug

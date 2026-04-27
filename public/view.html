@@ -1,3 +1,5 @@
+<!-- FILE: view.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,13 +19,46 @@ body {
   color: #111;
 }
 
+/* =========================
+   LOGO (top-left safe area)
+========================= */
 header {
-  padding: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+  z-index: 10;
 }
 
+header img {
+  width: 70px;
+  opacity: 0.9;
+}
+
+/* =========================
+   EDIT LINK (TOP LEFT)
+========================= */
+#editLink {
+  position: fixed;
+  top: 30px;
+  left: 110px;
+  font-size: 14px;
+  color: #777;
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+
+#editLink:hover {
+  color: #000;
+}
+
+/* =========================
+   CONTENT LAYOUT
+========================= */
 main {
-  padding: 0 60px 80px;
+  padding: 140px 60px 80px;
   max-width: 900px;
+  margin: 0 auto;
 }
 
 .title {
@@ -34,12 +69,11 @@ main {
 .content {
   font-size: 20px;
   line-height: 1.6;
-  white-space: pre-wrap;
 }
 
-a {
-  color: #666;
-  text-decoration: none;
+/* markdown safety */
+.content img {
+  max-width: 100%;
 }
 </style>
 </head>
@@ -48,15 +82,16 @@ a {
 
 <header>
   <a href="/">
-    <img src="/logo.png" style="width:80px">
+    <img src="/logo.png">
   </a>
 </header>
 
+<!-- 🔥 EDIT FIXED TOP-LEFT -->
+<a id="editLink">Edit</a>
+
 <main>
-  <!-- ⚠️ ЭТО ОБЯЗАТЕЛЬНО -->
   <div id="title" class="title"></div>
   <div id="content" class="content"></div>
-  <a id="editLink">Edit</a>
 </main>
 
 <script>
@@ -65,13 +100,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
   const slug = slugify(params.get("slug") || "");
 
-  // ⚠️ ГЛАВНАЯ ЗАЩИТА
   const titleEl = document.getElementById("title");
   const contentEl = document.getElementById("content");
   const editEl = document.getElementById("editLink");
 
   if (!titleEl || !contentEl || !editEl) {
-    console.error("❌ VIEW HTML BROKEN: missing DOM nodes");
+    console.error("VIEW ERROR: missing DOM nodes");
     return;
   }
 
@@ -81,22 +115,30 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const res = await fetch("/api/page/" + slug);
+    try {
+      const res = await fetch("/api/page/" + slug);
 
-    if (!res.ok) {
-      titleEl.textContent = "Not found";
-      return;
+      if (!res.ok) {
+        titleEl.textContent = "Not found";
+        contentEl.textContent = "";
+        return;
+      }
+
+      const data = await res.json();
+
+      titleEl.textContent = data.title || slug;
+
+      // markdown render (safe fallback)
+      contentEl.innerHTML = window.marked
+        ? marked.parse(data.content || "")
+        : (data.content || "");
+
+      editEl.href = "/editor.html?slug=" + slug;
+
+    } catch (e) {
+      console.error("VIEW LOAD ERROR:", e);
+      titleEl.textContent = "Error";
     }
-
-    const data = await res.json();
-
-    titleEl.textContent = data.title || slug;
-
-    contentEl.innerHTML = window.marked
-      ? marked.parse(data.content || "")
-      : (data.content || "");
-
-    editEl.href = "/editor.html?slug=" + slug;
   }
 
   load();

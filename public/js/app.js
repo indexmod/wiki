@@ -1,16 +1,93 @@
+<!-- FILE: app.js -->
+
+// =========================
+// LOAD ALL PAGES
+// =========================
 async function load() {
   const res = await fetch("/api/pages");
-  const data = await res.json();
+  const pages = await res.json();
 
-  const list = document.getElementById("list");
+  const grid = document.getElementById("grid");
 
-  list.innerHTML = data.map(p =>
-    `<div>
-      <a href="/view.html?slug=${p.slug}">
-        ${p.title}
-      </a>
-    </div>`
-  ).join("");
+  if (!grid) {
+    console.error("GRID NOT FOUND");
+    return;
+  }
+
+  // =========================
+  // NORMALIZE + SAFE FALLBACKS
+  // =========================
+  const items = pages.map(p => {
+    return {
+      id: p.id,
+      slug: p.slug || p.id,
+      title: p.title || p.slug || p.id,
+      letter: (p.title?.[0] || "#").toUpperCase()
+    };
+  });
+
+  // =========================
+  // SORT (A-Z by title)
+  // =========================
+  items.sort((a, b) =>
+    (a.title || "")
+      .toLowerCase()
+      .localeCompare((b.title || "").toLowerCase())
+  );
+
+  // =========================
+  // GROUP BY LETTER
+  // =========================
+  const groups = {};
+
+  for (const p of items) {
+    const letter = p.letter;
+
+    if (!groups[letter]) {
+      groups[letter] = [];
+    }
+
+    groups[letter].push(p);
+  }
+
+  // =========================
+  // RENDER
+  // =========================
+  grid.innerHTML = Object.keys(groups)
+    .sort()
+    .map(letter => {
+      return `
+        <div class="group">
+          <div class="letter">${letter}</div>
+
+          ${groups[letter]
+            .map(p => {
+              return `
+                <div class="item">
+                  <a href="/${p.slug}">
+                    ${escapeHtml(p.title)}
+                  </a>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    })
+    .join("");
 }
 
+// =========================
+// SAFE HTML ESCAPE
+// =========================
+function escapeHtml(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// =========================
+// BOOT
+// =========================
 load();
