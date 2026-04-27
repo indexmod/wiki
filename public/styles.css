@@ -2,6 +2,7 @@
    INDEXMOD LAYOUT SYSTEM
    ========================= */
 
+/* BASE */
 body {
   margin: 0;
   font-family: Georgia, serif;
@@ -9,17 +10,16 @@ body {
   color: #000;
 }
 
-/* LINKS */
 a {
   color: #000;
   text-decoration: none;
 }
 
-/* ================= HEADER (GLOBAL FIXED GRID) ================= */
+/* ================= HEADER ================= */
 
 header {
   position: fixed;
-  top: 100px;   /* 👈 УНИФИЦИРОВАННЫЙ ОТСТУП */
+  top: 100px;
   left: 100px;
   right: 100px;
 
@@ -37,25 +37,25 @@ header {
   transform-origin: center;
 }
 
-/* pulse */
 @keyframes pulse {
   0%   { transform: scale(1); }
   50%  { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 
-/* RIGHT ACTIONS */
+/* ACTIONS */
 .new,
 .edit {
   font-size: 34px;
 }
 
-/* ================= GLOBAL CONTENT AREA ================= */
+/* ================= BASE CONTENT WRAPPER ================= */
 
 main {
-  padding: 260px 100px 120px; /* единый safe-zone */
+  padding: 260px 100px 120px;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* ================= INDEX ================= */
@@ -66,23 +66,22 @@ main {
   gap: 60px;
 }
 
-/* sections */
-.section-title {
-  font-size: 44px;
-  letter-spacing: 0.25em;
-  margin-bottom: 25px;
-}
-
-/* items */
+/* INDEX TEXT */
 .title {
   font-size: 26px;
   letter-spacing: 0.05em;
   color: #000;
 }
 
+.section-title {
+  font-size: 44px;
+  letter-spacing: 0.25em;
+  margin-bottom: 25px;
+}
+
 /* ================= PAGE ================= */
 
-.layout-page .page {
+.layout-page main {
   max-width: 800px;
   line-height: 1.6;
 }
@@ -99,6 +98,7 @@ textarea {
   font-size: 22px;
   border: none;
   outline: none;
+  font-family: Georgia, serif;
 }
 
 /* ================= MOBILE ================= */
