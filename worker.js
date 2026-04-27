@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.1 FIXED)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.2 LOCKED ROUTES)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,7 +58,7 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (SAFE FIXED) =================
+// ================= LAYOUT LOADER =================
 async function layout(env, name) {
   const url = new URL("https://dummy");
 
@@ -88,8 +88,23 @@ export default {
 
     try {
 
+      // ================= TEST =================
       if (path === "/__test") {
         return new Response("OK");
+      }
+
+      // ================= 🔒 HARD LOCK: EDITOR ROUTE =================
+      if (path === "/editor" || path === "/editor.html") {
+        const tpl = await layout(env, "editor");
+
+        const html = tpl
+          .replaceAll("{{title}}", "Editor")
+          .replaceAll("{{slug}}", "")
+          .replaceAll("{{content}}", "");
+
+        return new Response(html, {
+          headers: { "Content-Type": "text/html; charset=utf-8" }
+        });
       }
 
       // ================= LIST =================
@@ -164,7 +179,9 @@ ${data.content || ""}`;
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
-        !path.includes(".")
+        !path.includes(".") &&
+        path !== "/editor" &&
+        path !== "/editor.html"
       ) {
         const slug = path === "/" ? "index" : path.slice(1);
 
