@@ -21,6 +21,10 @@ header {
   justify-content: space-between;
 }
 
+.logo {
+  height: 40px;
+}
+
 main {
   padding: 120px 60px;
   max-width: 900px;
@@ -41,7 +45,7 @@ input, textarea {
 
 <header>
   <a href="/">
-    <img src="/logo.png" style="height:40px;">
+    <img src="/logo.png" class="logo">
   </a>
 
   <div>
@@ -57,9 +61,6 @@ input, textarea {
 </main>
 
 <script>
-// =========================
-// SLUG = SOURCE OF TRUTH
-// =========================
 let slug = new URLSearchParams(location.search).get("slug") || "";
 
 const titleEl = document.getElementById("title");
@@ -68,7 +69,7 @@ const contentEl = document.getElementById("content");
 const view = document.getElementById("view");
 
 // =========================
-// LOAD
+// LOAD PAGE
 // =========================
 async function load() {
   if (!slug) return;
@@ -86,14 +87,14 @@ async function load() {
 }
 
 // =========================
-// SAVE (R2 FILE WRITE)
+// SAVE PAGE (OVERWRITE FILE)
 // =========================
 async function save() {
   const newSlug = normalize(slugEl.value || titleEl.value);
 
   const res = await fetch("/api/page/" + newSlug, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({
       title: titleEl.value,
       content: contentEl.value,
@@ -105,21 +106,18 @@ async function save() {
 
   slug = p.slug;
 
-  // 🔥 сразу делаем страницу доступной
   history.replaceState(null, "", "/editor.html?slug=" + p.slug);
 
   view.href = "/" + p.slug;
 }
 
 // =========================
-// SLUG NORMALIZER
-// =========================
 function normalize(s){
-  return String(s || "")
+  return String(s||"")
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
 }
 
 load();
