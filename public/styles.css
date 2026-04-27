@@ -1,9 +1,6 @@
 /* =========================
-   INDEXMOD SYSTEM SKIN v2
-   unified layout engine
+   INDEXMOD LAYOUT SYSTEM
    ========================= */
-
-/* ========== BASE ========== */
 
 body {
   margin: 0;
@@ -12,32 +9,19 @@ body {
   color: #000;
 }
 
+/* LINKS */
 a {
   color: #000;
   text-decoration: none;
 }
 
-/* =========================
-   GLOBAL GRID CONSTRAINTS
-   ========================= */
-
-:root {
-  --side-padding: 100px;
-  --top-padding: 240px;
-  --content-width: 1200px;
-  --page-width: 800px;
-  --header-height-space: 200px;
-}
-
-/* =========================
-   HEADER (shared everywhere)
-   ========================= */
+/* ================= HEADER (GLOBAL FIXED GRID) ================= */
 
 header {
   position: fixed;
-  top: 30px;
-  left: 30px;
-  right: 30px;
+  top: 100px;   /* 👈 УНИФИЦИРОВАННЫЙ ОТСТУП */
+  left: 100px;
+  right: 100px;
 
   display: flex;
   justify-content: space-between;
@@ -53,109 +37,88 @@ header {
   transform-origin: center;
 }
 
-/* pulse (no opacity changes) */
+/* pulse */
 @keyframes pulse {
   0%   { transform: scale(1); }
   50%  { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 
-/* NAV BUTTONS (right side unified) */
+/* RIGHT ACTIONS */
 .new,
 .edit {
   font-size: 34px;
 }
 
-/* =========================
-   LAYOUT 1: INDEX
-   body.index
-   ========================= */
+/* ================= GLOBAL CONTENT AREA ================= */
 
-body.index main {
-  padding: var(--top-padding) var(--side-padding) 100px;
-  max-width: var(--content-width);
+main {
+  padding: 260px 100px 120px; /* единый safe-zone */
+  max-width: 1200px;
   margin: 0 auto;
+}
 
+/* ================= INDEX ================= */
+
+.layout-index main {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 60px;
 }
 
-body.index .section {
-  margin-bottom: 60px;
-}
-
-body.index .section-title {
+/* sections */
+.section-title {
   font-size: 44px;
   letter-spacing: 0.25em;
   margin-bottom: 25px;
 }
 
-body.index .item {
-  margin-bottom: 18px;
-}
-
-body.index .title {
+/* items */
+.title {
   font-size: 26px;
   letter-spacing: 0.05em;
   color: #000;
 }
 
-body.index .empty {
-  grid-column: 1 / -1;
-  opacity: 0.5;
-  font-style: italic;
-}
+/* ================= PAGE ================= */
 
-/* =========================
-   LAYOUT 2: PAGE
-   body.page
-   ========================= */
-
-body.page .page {
-  padding: var(--top-padding) var(--side-padding);
-  max-width: var(--page-width);
-  margin: 0 auto;
+.layout-page .page {
+  max-width: 800px;
   line-height: 1.6;
-  font-size: 20px;
 }
 
-/* =========================
-   LAYOUT 3: EDITOR
-   body.editor
-   ========================= */
+/* ================= EDITOR ================= */
 
-body.editor main {
-  padding: var(--top-padding) var(--side-padding);
-  max-width: var(--page-width);
-  margin: 0 auto;
+.layout-editor main {
+  max-width: 900px;
 }
 
-body.editor input,
-body.editor textarea {
+input,
+textarea {
   width: 100%;
   font-size: 22px;
   border: none;
   outline: none;
-  margin-bottom: 20px;
-  font-family: Georgia, serif;
 }
 
-/* =========================
-   RESPONSIVE
-   ========================= */
+/* ================= MOBILE ================= */
 
 @media (max-width: 900px) {
-  body.index main {
-    grid-template-columns: 1fr;
-    padding: 160px 30px;
+  header {
+    top: 40px;
+    left: 30px;
+    right: 30px;
   }
 
   .logo {
     height: 120px;
   }
 
-  :root {
-    --side-padding: 30px;
+  main {
+    padding: 180px 30px 60px;
+  }
+
+  .layout-index main {
+    grid-template-columns: 1fr;
   }
 }

@@ -182,8 +182,6 @@ export default {
 <head>
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
-
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/styles.css">
 </head>
 

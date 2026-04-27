@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <title>Editor · IndexMod</title>
 
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="shortcut icon" href="/favicon.svg">
-
-<!-- GLOBAL STYLE SYSTEM -->
+<link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/styles.css">
 </head>
 
@@ -18,10 +15,12 @@
     <img src="/logo.png" class="logo">
   </a>
 
-  <a class="edit" onclick="save()">save</a>
+  <div class="actions">
+    <a onclick="save()">save</a>
+  </div>
 </header>
 
-<main class="page">
+<main class="editor">
 
   <input id="title" placeholder="title" />
 
@@ -66,10 +65,7 @@ async function save() {
 
   const p = await res.json();
 
-  // обновляем slug если новая страница
   slug = p.slug;
-
-  // переход в просмотр
   location.href = "/" + p.slug;
 }
 
