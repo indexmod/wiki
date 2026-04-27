@@ -1,4 +1,4 @@
-// FILE: worker.js (SINGLE SOURCE MODEL — NO SLUG INDEX)
+// FILE: worker.js (FIXED ROUTING: /slug ALWAYS WORKS)
 
 import { seoRouter } from "./modules/seo.js";
 
@@ -12,19 +12,7 @@ export default {
     const pathname = url.pathname;
 
     // =========================
-    // SEO ROUTE (/slug → page)
-    // =========================
-    if (
-      req.method === "GET" &&
-      !pathname.startsWith("/api") &&
-      !pathname.includes(".") &&
-      pathname !== "/"
-    ) {
-      return seoRouter(req, env);
-    }
-
-    // =========================
-    // LIST
+    // API: LIST
     // =========================
     if (pathname === "/api/pages" && req.method === "GET") {
       const keys = await env.WIKI_DB.list();
@@ -42,12 +30,17 @@ export default {
     }
 
     // =========================
-    // GET PAGE (ONLY BY ID)
+    // API: GET PAGE
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "GET") {
-      const id = pathname.split("/").pop();
+      const key = pathname.split("/").pop();
 
-      const raw = await env.WIKI_DB.get(id);
+      let raw = await env.WIKI_DB.get(key);
+
+      if (!raw) {
+        const id = await env.WIKI_DB.get("slug:" + key);
+        if (id) raw = await env.WIKI_DB.get(id);
+      }
 
       if (!raw) return new Response("not found", { status: 404 });
 
@@ -55,47 +48,78 @@ export default {
     }
 
     // =========================
-    // SAVE
+    // API: SAVE PAGE
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "POST") {
-      const id = pathname.split("/").pop();
+      const key = pathname.split("/").pop();
       const body = await req.json();
 
-      const isNew = id === "new";
+      const isNew = key === "new";
 
-      const realId = isNew ? genId() : id;
+      let id;
 
-      const existingRaw = await env.WIKI_DB.get(realId);
+      if (isNew) {
+        id = genId();
+      } else {
+        id = (await env.WIKI_DB.get("slug:" + key)) || key;
+      }
+
+      const existingRaw = await env.WIKI_DB.get(id);
       const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
-      // slug теперь ТОЛЬКО поле, без KV индекса
       let slug = (body.slug || existing?.slug || body.title || "page")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
+      if (existing?.slug && existing.slug !== slug) {
+        await env.WIKI_DB.delete("slug:" + existing.slug);
+      }
+
       const page = {
-        id: realId,
+        id,
         slug,
         title: body.title || slug,
         content: body.content || "",
+        html: body.content || "",
         updatedAt: Date.now()
       };
 
-      await env.WIKI_DB.put(realId, JSON.stringify(page));
+      await env.WIKI_DB.put(id, JSON.stringify(page));
+      await env.WIKI_DB.put("slug:" + slug, id);
 
       return Response.json(page);
     }
 
     // =========================
-    // DELETE
+    // API: DELETE
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "DELETE") {
-      const id = pathname.split("/").pop();
+      const key = pathname.split("/").pop();
+
+      const id = (await env.WIKI_DB.get("slug:" + key)) || key;
+      const raw = await env.WIKI_DB.get(id);
+
+      if (!raw) return new Response("not found", { status: 404 });
+
+      const page = JSON.parse(raw);
 
       await env.WIKI_DB.delete(id);
+      await env.WIKI_DB.delete("slug:" + page.slug);
 
       return new Response("deleted");
+    }
+
+    // =========================
+    // 🔥 IMPORTANT: SLUG ROUTING LAST BUT ALWAYS EXECUTES
+    // =========================
+    const isSlugRoute =
+      req.method === "GET" &&
+      !pathname.startsWith("/api") &&
+      !pathname.includes(".");
+
+    if (isSlugRoute) {
+      return seoRouter(req, env);
     }
 
     return new Response("404");
