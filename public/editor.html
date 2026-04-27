@@ -10,12 +10,23 @@ body {
   margin: 0;
   font-family: Georgia, serif;
   padding: 60px;
+  background: #fafafa;
 }
 
 input, textarea {
   width: 100%;
   font-size: 18px;
   margin-bottom: 20px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+button {
+  font-size: 18px;
+  cursor: pointer;
+  background: none;
+  border: none;
 }
 </style>
 </head>
@@ -28,18 +39,27 @@ input, textarea {
 <button onclick="save()">Save</button>
 
 <script>
-const id = new URLSearchParams(location.search).get("id");
+const params = new URLSearchParams(location.search);
+let id = params.get("id");
 
+// =========================
+// LOAD (by ID)
+// =========================
 async function load() {
   if (!id) return;
 
   const res = await fetch("/api/page/" + id);
+  if (!res.ok) return;
+
   const data = await res.json();
 
-  document.getElementById("title").value = data.title;
-  document.getElementById("content").value = data.content;
+  document.getElementById("title").value = data.title || "";
+  document.getElementById("content").value = data.content || "";
 }
 
+// =========================
+// SAVE (ID-FIRST)
+// =========================
 async function save() {
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
@@ -52,6 +72,13 @@ async function save() {
 
   const page = await res.json();
 
+  // 🔥 ВАЖНО: фиксируем ID после создания
+  id = page.id;
+
+  // проверка (в консоль сразу видно архитектуру)
+  console.log("SAVED PAGE:", page);
+
+  // редирект на view через ID (источник истины)
   location.href = "/view.html?id=" + page.id;
 }
 

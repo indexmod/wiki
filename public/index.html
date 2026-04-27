@@ -1,9 +1,11 @@
 <!-- FILE: public/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>IndexMod</title>
+
+<link rel="icon" href="/favicon.svg">
 
 <style>
 body {
@@ -13,46 +15,76 @@ body {
   color: #111;
 }
 
-header {
-  padding: 60px;
-  font-size: 30px;
-}
-
-a {
+/* HEADER BUTTON */
+#add {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  font-size: 16px;
   text-decoration: none;
   color: #111;
+  cursor: pointer;
 }
 
-.grid {
-  padding: 0 60px 80px;
+#add:hover {
+  opacity: 0.6;
+}
+
+/* LIST */
+main {
+  padding: 120px 60px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .item {
   padding: 10px 0;
+  font-size: 20px;
+}
+
+.item a {
+  color: #111;
+  text-decoration: none;
+}
+
+.item a:hover {
+  text-decoration: underline;
 }
 </style>
 </head>
 
 <body>
 
-<header>IndexMod</header>
+<a id="add" href="/editor.html">Add new page</a>
 
-<div class="grid" id="grid"></div>
+<main id="list"></main>
 
 <script>
 async function load() {
   const res = await fetch("/api/pages");
   const pages = await res.json();
 
-  const grid = document.getElementById("grid");
+  const list = document.getElementById("list");
 
-  grid.innerHTML = pages.map(p => `
-    <div class="item">
-      <a href="/view.html?id=${p.id}">
-        ${p.title || p.id}
-      </a>
-    </div>
-  `).join("");
+  list.innerHTML = pages
+    .sort((a,b) => (a.title||"").localeCompare(b.title||""))
+    .map(p => {
+      return `
+        <div class="item">
+          <a href="/${p.slug}">
+            ${escapeHtml(p.title || p.slug)}
+          </a>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function escapeHtml(str="") {
+  return str
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
 }
 
 load();
