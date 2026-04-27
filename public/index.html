@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>IndexMod Fashio and Art</title>
+<title>IndexMod</title>
 
 <link rel="icon" href="/favicon.svg">
 
@@ -25,9 +25,7 @@ header {
   align-items: center;
 }
 
-.logo {
-  height: 40px;
-}
+.logo { height: 40px; }
 
 a {
   color: #000;
@@ -42,32 +40,36 @@ main {
 
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  gap: 60px;
+}
+
+/* SECTION */
+.section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  margin-bottom: 20px;
+  opacity: 0.6;
 }
 
 /* ITEM */
 .item {
-  break-inside: avoid;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
 }
 
 /* TITLE */
 .title {
-  font-size: 26px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  text-transform: capitalize;
 }
 
-/* optional subtle divider */
-.item::after {
-  content: "";
-  display: block;
-  width: 20px;
-  height: 1px;
-  background: #000;
-  margin-top: 10px;
-  opacity: 0.2;
+/* HOVER */
+.title:hover {
+  text-decoration: underline;
 }
 
 .empty {
@@ -91,12 +93,26 @@ main {
     <img src="/logo.png" class="logo">
   </a>
 
-  <a href="/editor.html">+ new</a>
+  <a href="#" onclick="location.href='/editor.html'">+ new</a>
 </header>
 
 <main id="list"></main>
 
 <script>
+function normalizeTitle(s="") {
+  return String(s)
+    .replace(/\//g, " ")
+    .replace(/\bedit\b/gi, "")
+    .replace(/\bnew\b/gi, "")
+    .trim();
+}
+
+function sectionLetter(title="") {
+  const c = (title.trim()[0] || "#").toUpperCase();
+  if (c >= "A" && c <= "Z") return c;
+  return "#";
+}
+
 async function load() {
   const res = await fetch("/api/pages");
   const pages = await res.json();
@@ -111,21 +127,38 @@ async function load() {
     return;
   }
 
-  list.innerHTML = safe
-    .sort((a,b) => (a.title||a.slug).localeCompare(b.title||b.slug))
-    .map(p => {
-      const title = (p.title || p.slug || "")
-        .toUpperCase();
+  // group by A/B/C...
+  const groups = {};
 
-      return `
-        <div class="item">
-          <a href="/${p.slug}">
-            <div class="title">${escapeHtml(title)}</div>
-          </a>
-        </div>
-      `;
-    })
-    .join("");
+  for (const p of safe) {
+    const title = normalizeTitle(p.title || p.slug);
+    const letter = sectionLetter(title);
+
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push({ ...p, title });
+  }
+
+  const letters = Object.keys(groups).sort();
+
+  list.innerHTML = letters.map(letter => {
+    const items = groups[letter]
+      .sort((a,b) => (a.title||"").localeCompare(b.title||""));
+
+    return `
+      <div class="section">
+        <div class="section-title">${letter}</div>
+
+        ${items.map(p => `
+          <div class="item">
+            <a href="/${p.slug}">
+              <div class="title">${escapeHtml(p.title || p.slug)}</div>
+            </a>
+          </div>
+        `).join("")}
+
+      </div>
+    `;
+  }).join("");
 }
 
 function escapeHtml(s="") {

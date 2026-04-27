@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>IndexMod Fashion and Art</title>
-
-<link rel="icon" href="/favicon.svg">
+<title>Editor</title>
 
 <style>
 body {
   margin: 0;
   font-family: Georgia, serif;
-  background: #fff;
-  color: #000;
+  font-size: 22px;
 }
-
-/* HEADER */
 header {
   position: fixed;
   top: 30px;
@@ -22,73 +17,18 @@ header {
   right: 30px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
-
-.logo {
-  height: 40px;
-}
-
-a {
-  color: #000;
-  text-decoration: none;
-}
-
-/* GRID */
 main {
-  padding: 140px 60px 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  padding: 120px 60px;
+  max-width: 900px;
+  margin: auto;
 }
-
-/* ITEM */
-.item {
-  break-inside: avoid;
-  margin-bottom: 30px;
-}
-
-/* TITLE */
-.title {
-  font-size: 26px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-/* SUBTEXT (future markdown preview hook) */
-.preview {
-  font-size: 14px;
-  opacity: 0.6;
-  margin-top: 8px;
-  line-height: 1.4;
-}
-
-/* DIVIDER */
-.item::after {
-  content: "";
-  display: block;
-  width: 20px;
-  height: 1px;
-  background: #000;
-  margin-top: 10px;
-  opacity: 0.15;
-}
-
-.empty {
-  grid-column: 1 / -1;
-  opacity: 0.4;
-  font-style: italic;
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  main {
-    grid-template-columns: 1fr;
-  }
+input, textarea {
+  width: 100%;
+  font-size: 22px;
+  border: none;
+  outline: none;
+  margin-bottom: 20px;
 }
 </style>
 </head>
@@ -97,64 +37,56 @@ main {
 
 <header>
   <a href="/">
-    <img src="/logo.png" class="logo">
+    <img src="/logo.png" style="height:40px;">
   </a>
 
-  <a href="/editor.html">+ new</a>
+  <a onclick="save()">save</a>
 </header>
 
-<main id="list"></main>
+<main>
+  <input id="title" placeholder="title">
+  <textarea id="content" placeholder="content"></textarea>
+</main>
 
 <script>
+let slug = new URLSearchParams(location.search).get("slug");
+
+const titleEl = document.getElementById("title");
+const contentEl = document.getElementById("content");
+
+// ================= LOAD =================
 async function load() {
-  const res = await fetch("/api/pages");
-  const pages = await res.json();
+  if (!slug) return;
 
-  const list = document.getElementById("list");
+  const res = await fetch("/api/page/" + slug);
+  if (!res.ok) return;
 
-  const safe = (pages || [])
-    .filter(p => p && (p.slug || p.title));
+  const p = await res.json();
 
-  if (!safe.length) {
-    list.innerHTML = `<div class="empty">no pages yet</div>`;
-    return;
-  }
-
-  list.innerHTML = safe
-    .sort((a,b) =>
-      (a.title || a.slug).localeCompare(b.title || b.slug)
-    )
-    .map(renderItem)
-    .join("");
+  titleEl.value = p.title || "";
+  contentEl.value = p.content || "";
 }
 
-/* =========================
-   ITEM RENDER (CLEAN CORE)
-========================= */
-function renderItem(p) {
-  const title = safeText(p.title || p.slug);
-  const slug = safeText(p.slug || "");
+// ================= SAVE =================
+async function save() {
+  const base = slug || titleEl.value || "page";
 
-  return `
-    <div class="item">
-      <a href="/${slug}">
-        <div class="title">${title.toUpperCase()}</div>
-      </a>
+  const res = await fetch("/api/page/" + base, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      title: titleEl.value,
+      content: contentEl.value
+    })
+  });
 
-      <!-- markdown preview hook (future) -->
-      <div class="preview" data-slug="${slug}"></div>
-    </div>
-  `;
-}
+  const p = await res.json();
 
-/* =========================
-   SAFE TEXT
-========================= */
-function safeText(s="") {
-  return String(s)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;");
+  // 👉 обновляем slug если это новая страница
+  slug = p.slug;
+
+  // 👉 сразу в просмотр
+  location.href = "/" + p.slug;
 }
 
 load();
