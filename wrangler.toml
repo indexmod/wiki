@@ -9,13 +9,14 @@ compatibility_date = "2026-04-25"
 directory = "./public"
 binding = "ASSETS"
 
-# worker должен обрабатывать ВСЁ (API + /slug + index)
+# ВАЖНО: worker всегда первым обрабатывает ВСЁ
 run_worker_first = ["/*"]
 
-not_found_handling = "single-page-application"
+# ⚠️ УБРАТЬ SPA MODE (он ломает slug routing)
+not_found_handling = "none"
 
 # =========================
-# R2 STORAGE (NEW CORE)
+# R2 STORAGE
 # =========================
 [[r2_buckets]]
 binding = "PAGES"

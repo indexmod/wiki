@@ -1,4 +1,4 @@
-/// FILE: worker.js (R2 FILE-FIRST WIKI)
+// FILE: worker.js (R2 FILE-FIRST WIKI + DEBUG MODE)
 
 function encodePath(slug) {
   return `pages/${slug}.md`;
@@ -22,23 +22,35 @@ function parseFrontmatter(md) {
 }
 
 function buildMarkdown(meta, body) {
-  const fm =
-`---
+  return `---
 id: ${meta.id || ""}
 slug: ${meta.slug || ""}
 title: ${meta.title || ""}
 updatedAt: ${Date.now()}
 ---
 
-`;
-
-  return fm + (body || "");
+${body || ""}`;
 }
 
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const path = url.pathname;
+
+    // =========================
+    // 🧪 TEST ROUTE (CHECK WORKER)
+    // =========================
+    if (path === "/__test") {
+      return new Response("WORKER OK");
+    }
+
+    // =========================
+    // 🧪 LIST RAW FILES (DEBUG R2)
+    // =========================
+    if (path === "/__list") {
+      const list = await env.PAGES.list();
+      return Response.json(list);
+    }
 
     // =========================
     // GET PAGE BY SLUG
@@ -48,7 +60,9 @@ export default {
 
       const file = await env.PAGES.get(encodePath(slug));
 
-      if (!file) return new Response("not found", { status: 404 });
+      if (!file) {
+        return new Response("not found", { status: 404 });
+      }
 
       const { meta, body } = parseFrontmatter(file);
 
@@ -59,7 +73,7 @@ export default {
     }
 
     // =========================
-    // SAVE PAGE (OVERWRITE FILE)
+    // SAVE PAGE
     // =========================
     if (req.method === "POST" && path.startsWith("/api/page/")) {
       const slug = path.split("/").pop();
@@ -87,7 +101,7 @@ export default {
     }
 
     // =========================
-    // INDEX (LIST FILES)
+    // INDEX
     // =========================
     if (req.method === "GET" && path === "/api/pages") {
       const list = await env.PAGES.list();
