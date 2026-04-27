@@ -11,24 +11,31 @@
 body {
   margin: 0;
   font-family: Georgia, serif;
-  background: #fafafa;
-  color: #111;
+  font-size: 25px;
+  color: #000;
 }
 
-#add {
+/* HEADER */
+header {
   position: fixed;
   top: 30px;
+  left: 30px;
   right: 30px;
-  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
+}
+
+.add {
   text-decoration: none;
-  color: #111;
-  cursor: pointer;
+  color: #000;
 }
 
-#add:hover {
-  opacity: 0.6;
-}
-
+/* LIST */
 main {
   padding: 120px 60px;
   max-width: 900px;
@@ -36,30 +43,25 @@ main {
 }
 
 .item {
-  padding: 10px 0;
-  font-size: 20px;
+  margin-bottom: 10px;
 }
 
 .item a {
-  color: #111;
   text-decoration: none;
-}
-
-.item a:hover {
-  text-decoration: underline;
-}
-
-.meta {
-  font-size: 12px;
-  color: #888;
-  margin-left: 10px;
+  color: #000;
 }
 </style>
 </head>
 
 <body>
 
-<a id="add" href="/editor.html">Add new page</a>
+<header>
+  <a href="/">
+    <img src="/logo.png" class="logo">
+  </a>
+
+  <a class="add" href="/editor.html">New page</a>
+</header>
 
 <main id="list"></main>
 
@@ -75,10 +77,9 @@ async function load() {
     .map(p => {
       return `
         <div class="item">
-          <a href="/view.html?id=${p.id}">
-            ${escapeHtml(p.title || p.slug || p.id)}
+          <a href="/${p.slug}">
+            ${escapeHtml(p.title || p.slug)}
           </a>
-          <span class="meta">${p.id}</span>
         </div>
       `;
     })

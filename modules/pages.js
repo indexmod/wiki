@@ -1,9 +1,5 @@
 // FILE: modules/pages.js
 
-function generateId() {
-  return "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-}
-
 // =========================
 // HELPERS
 // =========================
@@ -11,8 +7,16 @@ function isPageKey(key) {
   return key.startsWith("p_");
 }
 
+function normalizeSlug(input) {
+  return (input || "page")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 // =========================
-// PAGES API
+// PAGES API (ID = CORE, SLUG = VIEW)
 // =========================
 export async function pagesAPI(request, env) {
   const url = new URL(request.url);
@@ -42,37 +46,47 @@ export async function pagesAPI(request, env) {
   // GET
   // =========================
   if (match && request.method === "GET") {
-    const id = match[1];
+    const key = match[1];
 
-    const raw = await env.WIKI_DB.get(id);
+    // ID first
+    let raw = await env.WIKI_DB.get(key);
+
+    // fallback slug
+    if (!raw) {
+      const id = await env.WIKI_DB.get("slug:" + key);
+      if (id) raw = await env.WIKI_DB.get(id);
+    }
+
     if (!raw) return new Response("Not found", { status: 404 });
 
     return Response.json(JSON.parse(raw));
   }
 
   // =========================
-  // SAVE (FIXED SLUG RULE)
+  // SAVE
   // =========================
   if (match && request.method === "POST") {
-    const id = match[1];
+    const key = match[1];
     const body = await request.json();
+
+    const isNew = key === "new";
+
+    let id;
+
+    if (isNew) {
+      id = "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    } else {
+      id = (await env.WIKI_DB.get("slug:" + key)) || key;
+    }
 
     const raw = await env.WIKI_DB.get(id);
     const existing = raw ? JSON.parse(raw) : null;
 
-    // =========================
-    // ⚠️ FIX: slug NEVER depends on id
-    // =========================
-    let slug = body.slug?.trim();
+    const slug = normalizeSlug(
+      body.slug || existing?.slug || body.title
+    );
 
-    if (!slug) {
-      slug = (body.title || "page")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-    }
-
-    // remove old slug index if changed
+    // удалить старый slug если изменился
     if (existing?.slug && existing.slug !== slug) {
       await env.WIKI_DB.delete("slug:" + existing.slug);
     }
@@ -96,9 +110,11 @@ export async function pagesAPI(request, env) {
   // DELETE
   // =========================
   if (match && request.method === "DELETE") {
-    const id = match[1];
+    const key = match[1];
 
+    const id = (await env.WIKI_DB.get("slug:" + key)) || key;
     const raw = await env.WIKI_DB.get(id);
+
     if (!raw) return new Response("Not found", { status: 404 });
 
     const page = JSON.parse(raw);

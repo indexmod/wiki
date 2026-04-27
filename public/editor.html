@@ -9,61 +9,77 @@
 body {
   margin: 0;
   font-family: Georgia, serif;
-  padding: 60px;
+  font-size: 25px;
+  color: #000;
+}
+
+/* HEADER */
+header {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
+}
+
+.controls {
+  display: flex;
+  gap: 20px;
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+  cursor: pointer;
+}
+
+/* CONTENT */
+main {
+  padding: 120px 60px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 input, textarea {
   width: 100%;
-  font-size: 18px;
+  font-family: Georgia, serif;
+  font-size: 25px;
+  border: none;
+  outline: none;
   margin-bottom: 20px;
 }
 
-.meta {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 20px;
-  font-family: ui-monospace, monospace;
-}
-
-.topbar {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  gap: 20px;
-  font-size: 14px;
-}
-
-a {
-  color: #111;
-  text-decoration: none;
-}
-
+/* slug строка */
 #slugInput {
-  width: 100%;
-  font-size: 14px;
-  padding: 6px;
-  margin-top: 5px;
+  font-size: 25px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <a href="/" id="viewLink">view</a>
-</div>
+<header>
+  <a href="/">
+    <img src="/logo.png" class="logo">
+  </a>
 
-<div class="meta">
-  ID: <span id="idView">new</span><br>
-  Permalink:
-  <input id="slugInput" placeholder="slug">
-</div>
+  <div class="controls">
+    <a id="viewLink">view</a>
+    <a onclick="save()">save</a>
+  </div>
+</header>
 
-<input id="title" placeholder="title">
-<textarea id="content" placeholder="content"></textarea>
-
-<button onclick="save()">Save</button>
+<main>
+  <input id="title" placeholder="title">
+  <input id="slugInput" placeholder="permalink">
+  <textarea id="content" placeholder="content"></textarea>
+</main>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -71,8 +87,6 @@ let id = params.get("id");
 
 const titleEl = document.getElementById("title");
 const contentEl = document.getElementById("content");
-
-const idView = document.getElementById("idView");
 const slugInput = document.getElementById("slugInput");
 const viewLink = document.getElementById("viewLink");
 
@@ -89,11 +103,9 @@ async function load() {
 
   titleEl.value = data.title || "";
   contentEl.value = data.content || "";
-
-  idView.textContent = data.id;
   slugInput.value = data.slug || "";
 
-  viewLink.href = "/view.html?id=" + data.id;
+  viewLink.href = "/" + data.slug;
 }
 
 // =========================
@@ -102,7 +114,6 @@ async function load() {
 async function save() {
   let slug = slugInput.value.trim();
 
-  // fallback safety
   if (!slug) {
     slug = titleEl.value
       .toLowerCase()
@@ -116,7 +127,7 @@ async function save() {
     body: JSON.stringify({
       title: titleEl.value,
       content: contentEl.value,
-      slug: slug   // 🔥 ключевая фикса
+      slug: slug
     })
   });
 
@@ -124,12 +135,13 @@ async function save() {
 
   id = page.id;
 
-  idView.textContent = page.id;
   slugInput.value = page.slug;
 
+  // фиксируем ID в URL редактора
   history.replaceState(null, "", "/editor.html?id=" + page.id);
 
-  viewLink.href = "/view.html?id=" + page.id;
+  // обновляем view ссылку (чистый slug)
+  viewLink.href = "/" + page.slug;
 }
 
 load();

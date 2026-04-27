@@ -2,48 +2,53 @@
 
 export async function indexRouter(request, env) {
   const url = new URL(request.url);
-  const pathname = url.pathname;
-
-  const slug = pathname.slice(1);
 
   // =========================
-  // SLUG → ID
+  // ONLY ROOT
   // =========================
-  const id = await env.WIKI_DB.get("slug:" + slug);
-
-  if (!id) {
-    return new Response("Not found", { status: 404 });
+  if (url.pathname !== "/") {
+    return null; // важно: не перехватываем всё подряд
   }
-
-  const raw = await env.WIKI_DB.get(id);
-
-  if (!raw) {
-    return new Response("Not found", { status: 404 });
-  }
-
-  const page = JSON.parse(raw);
-
-  const title = page.title || slug;
-  const content = page.html || page.content || "";
-
-  const canonical = `https://${url.host}/${slug}`;
 
   return new Response(`
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${title}</title>
-<link rel="canonical" href="${canonical}">
+<title>IndexMod</title>
+<link rel="icon" href="/favicon.svg">
 </head>
 
-<body style="font-family: Georgia; padding:60px; max-width:900px;">
-  <h1>${title}</h1>
-  <article>${content}</article>
+<body style="margin:0; font-family: Georgia, serif; padding:60px;">
+  <div style="position:fixed; top:20px; right:20px;">
+    <a href="/editor.html">new</a>
+  </div>
 
-  <p>
-    <a href="/editor.html?id=${page.id}">Edit</a>
-  </p>
+  <main id="list"></main>
+
+  <script>
+    async function load() {
+      const res = await fetch("/api/pages");
+      const pages = await res.json();
+
+      const list = document.getElementById("list");
+
+      list.innerHTML = pages
+        .sort((a,b) => (a.title||"").localeCompare(b.title||""))
+        .map(p => {
+          return \`
+            <div style="font-size:25px; margin:10px 0;">
+              <a href="/\${p.slug}">
+                \${p.title || p.slug}
+              </a>
+            </div>
+          \`;
+        })
+        .join("");
+    }
+
+    load();
+  </script>
 </body>
 </html>
   `, {
