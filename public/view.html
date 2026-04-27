@@ -5,16 +5,21 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   const params = new URLSearchParams(location.search);
-  const rawSlug = params.get("slug");
-
-  const slug = slugify(rawSlug || "");
+  const slug = slugify(params.get("slug") || "");
 
   const titleEl = document.getElementById("title");
   const contentEl = document.getElementById("content");
   const editEl = document.getElementById("editLink");
 
+  // =========================
+  // SAFETY CHECK (ВАЖНО)
+  // =========================
   if (!titleEl || !contentEl || !editEl) {
-    console.error("View: missing DOM nodes");
+    console.error("View error: missing DOM nodes", {
+      titleEl,
+      contentEl,
+      editEl
+    });
     return;
   }
 
@@ -27,9 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch("/api/page/" + slug);
 
-      // защита от HTML вместо JSON
-      const contentType = res.headers.get("content-type") || "";
-      if (!res.ok || !contentType.includes("application/json")) {
+      if (!res.ok) {
         titleEl.textContent = "Not found";
         contentEl.textContent = "";
         return;
@@ -40,18 +43,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // title
       titleEl.textContent = data.title || slug;
 
-      // markdown render (safe fallback)
-      if (window.marked && typeof marked.parse === "function") {
-        contentEl.innerHTML = marked.parse(data.content || "");
-      } else {
-        contentEl.textContent = data.content || "";
-      }
+      // markdown
+      const html = window.marked
+        ? marked.parse(data.content || "")
+        : (data.content || "");
+
+      contentEl.innerHTML = html;
 
       // edit link
       editEl.href = "/editor.html?slug=" + slug;
 
-    } catch (err) {
-      console.error("View load error:", err);
+    } catch (e) {
+      console.error("View load error:", e);
       titleEl.textContent = "Error";
       contentEl.textContent = "";
     }
