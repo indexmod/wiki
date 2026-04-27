@@ -1,5 +1,12 @@
+
 /* =========================
-   INDEXMOD LAYOUT SYSTEM v2 FIXED
+   INDEXMOD LAYOUT SYSTEM v2
+   SINGLE FILE ARCHITECTURE
+   ========================= */
+
+
+/* =========================
+   1. BASE SYSTEM
    ========================= */
 
 :root {
@@ -9,14 +16,13 @@
   --radius-pill: 999px;
 }
 
-/* ================= BASE ================= */
-
 body {
   margin: 0;
   font-family: Georgia, serif;
   background: #fff;
   color: #000;
   overflow-x: hidden;
+  font-size: 18px;
 }
 
 a {
@@ -24,13 +30,16 @@ a {
   color: #000;
 }
 
-/* content links */
+/* links inside content only */
 .layout-page a,
 .layout-editor a {
   color: #1a0dab;
 }
 
-/* ================= HEADER (LOCKED SYSTEM) ================= */
+
+/* =========================
+   2. HEADER SYSTEM
+   ========================= */
 
 header {
   position: fixed;
@@ -45,7 +54,10 @@ header {
   z-index: 100;
 }
 
-/* ================= LOGO ================= */
+
+/* =========================
+   3. LOGO SYSTEM
+   ========================= */
 
 .logo {
   height: 200px;
@@ -59,7 +71,11 @@ header {
   100% { transform: scale(1); }
 }
 
-/* ================= UI BUTTON SYSTEM ================= */
+
+/* =========================
+   4. UI BUTTON SYSTEM
+   New / Edit / Save
+   ========================= */
 
 .new,
 .edit,
@@ -100,7 +116,10 @@ header {
   transform: scale(0.98);
 }
 
-/* ================= GLOBAL CONTENT SHIFT ================= */
+
+/* =========================
+   5. GLOBAL SPACING ENGINE
+   ========================= */
 
 main {
   padding: calc(var(--header-space) + 60px) var(--x) 120px;
@@ -109,7 +128,10 @@ main {
   box-sizing: border-box;
 }
 
-/* ================= INDEX ================= */
+
+/* =========================
+   6. INDEX LAYOUT
+   ========================= */
 
 .layout-index main {
   display: grid;
@@ -117,21 +139,47 @@ main {
   gap: 60px;
 }
 
-/* ================= PAGE ================= */
+
+/* =========================
+   7. PAGE LAYOUT
+   ========================= */
 
 .layout-page main {
   max-width: 900px;
   line-height: 1.75;
-  font-size: 19px;
 }
 
-/* ================= EDITOR ================= */
+/* typography (article system) */
+p {
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+h1 {
+  font-size: 52px;
+  line-height: 1.1;
+  margin-bottom: 40px;
+}
+
+h2 {
+  font-size: 34px;
+  margin: 40px 0 20px;
+}
+
+h3 {
+  font-size: 24px;
+  margin: 30px 0 15px;
+}
+
+
+/* =========================
+   8. EDITOR LAYOUT
+   ========================= */
 
 .layout-editor main {
   max-width: 900px;
 }
 
-/* textarea fix */
 textarea {
   min-height: 75vh;
   font-size: 18px;
@@ -139,7 +187,10 @@ textarea {
   font-family: Georgia, serif;
 }
 
-/* ================= MOBILE ================= */
+
+/* =========================
+   9. RESPONSIVE SYSTEM
+   ========================= */
 
 @media (max-width: 900px) {
   header {

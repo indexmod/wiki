@@ -1,5 +1,3 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.3 SAFE ROUTING)
-
 function file(slug) {
   return `pages/${slug}.md`;
 }
@@ -20,14 +18,11 @@ function parse(md = "") {
   if (!match) return { meta: {}, body: md };
 
   const meta = {};
-
   match[1].split("\n").forEach(line => {
     const i = line.indexOf(":");
     if (i === -1) return;
-
     const k = line.slice(0, i).trim();
     const v = line.slice(i + 1).trim();
-
     if (k) meta[k] = v;
   });
 
@@ -58,26 +53,37 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (SAFE LOCAL ONLY) =================
-async function layout(env, name) {
-  try {
-    const res = await env.ASSETS.fetch(
-      new Request(`https://indexmod.press/layouts/${name}.html`)
-    );
-
-    if (!res.ok) throw new Error("missing layout");
-
-    return await res.text();
-  } catch (e) {
-    return `
+// ================= SIMPLE LAYOUT (NO ASSETS DEPENDENCY) =================
+function layoutPage(title, content) {
+  return `
 <!doctype html>
 <html>
-<head><meta charset="utf-8"></head>
-<body style="font-family:sans-serif;padding:40px">
-  <h1>Layout missing: ${name}</h1>
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+
+<body class="layout-page">
+
+<header>
+  <a href="/" class="logo-wrap">
+    <img src="/logo.png" class="logo">
+  </a>
+
+  <a class="edit" href="/editor">
+    edit
+  </a>
+</header>
+
+<main class="page">
+  <h1>${title}</h1>
+  <article>${content}</article>
+</main>
+
 </body>
-</html>`;
-  }
+</html>
+  `;
 }
 
 // ================= WORKER =================
@@ -93,56 +99,41 @@ export default {
         return new Response("OK");
       }
 
-      // ================= EDITOR ROUTING (FIXED) =================
-
-      // redirect legacy
-      if (path === "/editor.html") {
-        return Response.redirect("/editor", 301);
-      }
-
-      if (path === "/editor/") {
-        return Response.redirect("/editor", 301);
-      }
-
-      // canonical editor
+      // ================= EDITOR (SAFE SIMPLE PAGE) =================
       if (path === "/editor") {
-        const tpl = await layout(env, "editor");
+        return new Response(`
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Editor</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body class="layout-editor">
 
-        const html = tpl
-          .replaceAll("{{title}}", "Editor")
-          .replaceAll("{{slug}}", "")
-          .replaceAll("{{content}}", "");
+<header>
+  <a href="/" class="logo-wrap">
+    <img src="/logo.png" class="logo">
+  </a>
 
-        return new Response(html, {
+  <a class="save" href="#">
+    save
+  </a>
+</header>
+
+<main>
+  <textarea style="width:100%;height:70vh;font-size:18px;font-family:Georgia"></textarea>
+</main>
+
+</body>
+</html>
+        `, {
           headers: { "Content-Type": "text/html; charset=utf-8" }
         });
       }
 
-      // ================= LIST =================
-      if (path === "/api/pages") {
-        const list = await env.PAGES.list();
-        const pages = [];
-
-        for (const obj of list.objects || []) {
-          const raw = await env.PAGES.get(obj.key);
-          const md = await read(raw);
-          const { meta } = parse(md);
-
-          const slug =
-            meta.slug ||
-            obj.key.replace("pages/", "").replace(".md", "");
-
-          pages.push({
-            slug,
-            title: meta.title || slug
-          });
-        }
-
-        return Response.json(pages);
-      }
-
-      // ================= GET =================
-      if (path.startsWith("/api/page/") && req.method === "GET") {
+      // ================= GET PAGE =================
+      if (path.startsWith("/api/page/")) {
         const slug = path.split("/").pop();
 
         const raw = await env.PAGES.get(file(slug));
@@ -165,7 +156,7 @@ export default {
         let data = {};
         try { data = await req.json(); } catch {}
 
-        const slug = String(data.slug || data.title || slugRaw || "page")
+        const slug = String(data.slug || slugRaw || "page")
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
@@ -180,19 +171,11 @@ ${data.content || ""}`;
 
         await env.PAGES.put(file(slug), md);
 
-        return Response.json({
-          slug,
-          title: data.title || slug
-        });
+        return Response.json({ slug });
       }
 
       // ================= PAGE ROUTE =================
-      if (
-        !path.startsWith("/api") &&
-        !path.startsWith("/__") &&
-        !path.includes(".") &&
-        path !== "/editor"
-      ) {
+      if (!path.startsWith("/api") && !path.includes(".")) {
         const slug = path === "/" ? "index" : path.slice(1);
 
         const raw = await env.PAGES.get(file(slug));
@@ -201,24 +184,16 @@ ${data.content || ""}`;
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const layoutName = slug === "index" ? "index" : "page";
-
-        const tpl = await layout(env, layoutName);
-
-        const html = tpl
-          .replaceAll("{{title}}", meta.title || slug)
-          .replaceAll("{{slug}}", slug)
-          .replaceAll("{{content}}", render(body));
-
-        return new Response(html, {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
-        });
+        return new Response(
+          layoutPage(meta.title || slug, render(body)),
+          { headers: { "Content-Type": "text/html; charset=utf-8" } }
+        );
       }
 
       return env.ASSETS.fetch(req);
 
     } catch (err) {
-      return new Response("WORKER ERROR: " + (err?.message || err), {
+      return new Response("WORKER ERROR: " + err.message, {
         status: 500
       });
     }
