@@ -1,7 +1,6 @@
-<!-- ← FILE: public/editor.html → -->
-
+<!-- FILE: public/editor.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Editor</title>
@@ -56,7 +55,6 @@ input, textarea {
   margin-bottom: 20px;
 }
 
-/* slug */
 #slugInput {
   opacity: 0.7;
 }
@@ -83,37 +81,54 @@ input, textarea {
 </main>
 
 <script>
-const params = new URLSearchParams(location.search);
-let id = params.get("id");
+// =========================
+// ROUTING: SLUG FROM URL
+// /romashka?edit=1
+// =========================
+const slug = window.location.pathname.slice(1);
+const isEdit = new URLSearchParams(location.search).get("edit") === "1";
 
 const titleEl = document.getElementById("title");
 const contentEl = document.getElementById("content");
 const slugEl = document.getElementById("slugInput");
 const viewLink = document.getElementById("viewLink");
 
+let id = null;
+
 // =========================
-// LOAD BY ID (ONLY SOURCE OF TRUTH)
+// LOAD BY SLUG (NOT ID)
 // =========================
 async function load() {
-  if (!id) return;
+  if (!slug) return;
 
-  const res = await fetch("/api/page/" + id);
+  const res = await fetch("/api/page/" + slug);
   if (!res.ok) return;
 
   const page = await res.json();
+
+  id = page.id;
 
   titleEl.value = page.title || "";
   contentEl.value = page.content || "";
   slugEl.value = page.slug || "";
 
   viewLink.href = "/" + page.slug;
+
+  // optional UX: disable editing if not edit mode
+  if (!isEdit) {
+    titleEl.disabled = true;
+    contentEl.disabled = true;
+    slugEl.disabled = true;
+  }
 }
 
 // =========================
-// SAVE (ID ONLY)
+// SAVE (ID IS INTERNAL ONLY)
 // =========================
 async function save() {
-  const slug = normalizeSlug(slugEl.value || titleEl.value);
+  const slugValue = normalizeSlug(
+    slugEl.value || titleEl.value || "page"
+  );
 
   const res = await fetch("/api/page/" + (id || "new"), {
     method: "POST",
@@ -121,7 +136,7 @@ async function save() {
     body: JSON.stringify({
       title: titleEl.value,
       content: contentEl.value,
-      slug
+      slug: slugValue
     })
   });
 
@@ -129,21 +144,19 @@ async function save() {
 
   id = page.id;
 
-  // sync UI
   slugEl.value = page.slug;
 
-  // update URL (ID-based editor)
-  history.replaceState(null, "", "/editor.html?id=" + page.id);
+  // stay on clean canonical URL
+  history.replaceState(null, "", "/" + page.slug + "?edit=1");
 
-  // update view link (slug-based view)
   viewLink.href = "/" + page.slug;
 }
 
 // =========================
-// LOCAL SLUG NORMALIZER (NO BACKEND DEPENDENCY)
+// SLUG NORMALIZER
 // =========================
 function normalizeSlug(input) {
-  return (input || "")
+  return String(input || "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
