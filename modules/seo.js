@@ -1,32 +1,53 @@
-// FILE: modules/seo.js
+// FILE: modules/seo.js (NO INDEX, SINGLE SOURCE MODEL)
+
+function isPageKey(key) {
+  return key.startsWith("p_");
+}
 
 export async function seoRouter(request, env) {
   const url = new URL(request.url);
   const slug = url.pathname.slice(1);
 
-  const id = await env.WIKI_DB.get("slug:" + slug);
-  if (!id) return new Response("Not found", { status: 404 });
+  // =========================
+  // LOAD ALL PAGES (NO INDEX)
+  // =========================
+  const keys = await env.WIKI_DB.list();
 
-  const raw = await env.WIKI_DB.get(id);
-  if (!raw) return new Response("Not found", { status: 404 });
+  const pagesRaw = await Promise.all(
+    keys.keys
+      .map(k => k.name)
+      .filter(isPageKey)
+      .map(id => env.WIKI_DB.get(id))
+  );
 
-  const page = JSON.parse(raw);
+  const pages = pagesRaw
+    .filter(Boolean)
+    .map(p => JSON.parse(p));
 
-  const title = page.title || slug;
-  const content = page.html || page.content || "";
+  // =========================
+  // FIND BY SLUG (IN MEMORY)
+  // =========================
+  const page = pages.find(p => p.slug === slug);
 
+  if (!page) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  // =========================
+  // RENDER
+  // =========================
   return new Response(`
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>${title}</title>
-<link rel="canonical" href="https://${url.host}/${slug}">
+<title>${page.title}</title>
+<link rel="canonical" href="https://${url.host}/${page.slug}">
 </head>
 
-<body style="font-family: Georgia; padding:60px; max-width:900px;">
-  <h1>${title}</h1>
-  <article>${content}</article>
+<body style="font-family: Georgia; padding:60px; max-width:900px; margin:auto;">
+  <h1>${page.title}</h1>
+  <article>${page.content || page.html || ""}</article>
 
   <p>
     <a href="/editor.html?id=${page.id}">Edit</a>
@@ -34,6 +55,8 @@ export async function seoRouter(request, env) {
 </body>
 </html>
   `, {
-    headers: { "Content-Type": "text/html" }
+    headers: {
+      "Content-Type": "text/html; charset=utf-8"
+    }
   });
 }

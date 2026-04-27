@@ -15,7 +15,6 @@ body {
   color: #000;
 }
 
-/* HEADER */
 header {
   position: fixed;
   top: 30px;
@@ -28,7 +27,6 @@ header {
 
 .logo {
   height: 40px;
-  cursor: pointer;
 }
 
 .add {
@@ -36,7 +34,6 @@ header {
   color: #000;
 }
 
-/* LIST */
 main {
   padding: 120px 60px;
   max-width: 900px;
@@ -44,7 +41,7 @@ main {
 }
 
 .item {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .item a {
@@ -61,11 +58,12 @@ main {
 <body>
 
 <header>
-  <!-- ЛОГО ВСЕГДА В INDEX -->
+  <!-- LOGO всегда ведёт в индекс -->
   <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
+  <!-- создание новой страницы -->
   <a class="add" href="/editor.html">New page</a>
 </header>
 
@@ -73,30 +71,35 @@ main {
 
 <script>
 async function load() {
-  const res = await fetch("/api/pages");
-  const pages = await res.json();
+  try {
+    const res = await fetch("/api/pages");
+    const pages = await res.json();
 
-  const list = document.getElementById("list");
+    const list = document.getElementById("list");
 
-  list.innerHTML = pages
-    .sort((a,b) => (a.title||"").localeCompare(b.title||""))
-    .map(p => {
-      return `
+    const safePages = (pages || []).filter(p => p && p.slug);
+
+    list.innerHTML = safePages
+      .sort((a, b) => (a.title || "").localeCompare(b.title || ""))
+      .map(p => `
         <div class="item">
           <a href="/${p.slug}">
             ${escapeHtml(p.title || p.slug)}
           </a>
         </div>
-      `;
-    })
-    .join("");
+      `)
+      .join("");
+
+  } catch (err) {
+    console.error("Index load error:", err);
+  }
 }
 
-function escapeHtml(str="") {
-  return str
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;");
+function escapeHtml(str = "") {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 load();
