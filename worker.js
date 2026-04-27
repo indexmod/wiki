@@ -1,7 +1,5 @@
-// ================= LAYOUT LOADER =================
-async function layout(env, name) {
-  const raw = await env.ASSETS.fetch(new Request(`/layouts/${name}.html`));
-  return await raw.text();
+function file(slug) {
+  return `pages/${slug}.md`;
 }
 
 // ================= SAFE READ =================
@@ -35,7 +33,7 @@ function parse(md = "") {
   };
 }
 
-// ================= RENDER MARKDOWN =================
+// ================= MARKDOWN =================
 function render(md = "") {
   let html = String(md);
 
@@ -64,7 +62,6 @@ export default {
 
     try {
 
-      // ================= TEST =================
       if (path === "/__test") {
         return new Response("OK");
       }
@@ -92,11 +89,11 @@ export default {
         return Response.json(pages);
       }
 
-      // ================= GET PAGE =================
+      // ================= GET =================
       if (path.startsWith("/api/page/") && req.method === "GET") {
         const slug = path.split("/").pop();
 
-        const raw = await env.PAGES.get(`pages/${slug}.md`);
+        const raw = await env.PAGES.get(file(slug));
         if (!raw) return new Response("not found", { status: 404 });
 
         const md = await read(raw);
@@ -129,12 +126,12 @@ updatedAt: ${Date.now()}
 
 ${data.content || ""}`;
 
-        await env.PAGES.put(`pages/${slug}.md`, md);
+        await env.PAGES.put(file(slug), md);
 
         return Response.json({ slug, title: data.title || slug });
       }
 
-      // ================= PAGE (LAYOUT ENGINE) =================
+      // ================= PAGE =================
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
@@ -142,18 +139,18 @@ ${data.content || ""}`;
       ) {
         const slug = path.slice(1) || "index";
 
-        const raw = await env.PAGES.get(`pages/${slug}.md`);
+        const raw = await env.PAGES.get(file(slug));
         if (!raw) return env.ASSETS.fetch(req);
 
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const layoutHtml = await layout(env, "page");
+        const tpl = await layout(env, "page");
 
-        const html = layoutHtml
-          .replace("{{title}}", meta.title || slug)
-          .replace("{{slug}}", slug)
-          .replace("{{content}}", render(body));
+        const html = tpl
+          .replaceAll("{{title}}", meta.title || slug)
+          .replaceAll("{{slug}}", slug)
+          .replaceAll("{{content}}", render(body));
 
         return new Response(html, {
           headers: { "Content-Type": "text/html; charset=utf-8" }
@@ -163,7 +160,9 @@ ${data.content || ""}`;
       return env.ASSETS.fetch(req);
 
     } catch (err) {
-      return new Response("WORKER ERROR: " + err.message, { status: 500 });
+      return new Response("WORKER ERROR: " + err.message, {
+        status: 500
+      });
     }
   }
 };
