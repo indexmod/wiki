@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.2 LOCKED ROUTES)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.2 FIXED)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,12 +58,10 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER =================
+// ================= LAYOUT LOADER (FIXED SAFE) =================
 async function layout(env, name) {
-  const url = new URL("https://dummy");
-
   const res = await env.ASSETS.fetch(
-    new Request(url.origin + `/layouts/${name}.html`)
+    new Request(`https://indexmod.press/layouts/${name}.html`)
   );
 
   if (!res.ok) {
@@ -93,18 +91,17 @@ export default {
         return new Response("OK");
       }
 
-      // ================= 🔒 HARD LOCK: EDITOR ROUTE =================
+      // ================= 🔒 EDITOR ROUTE LOCK =================
       if (path === "/editor" || path === "/editor.html") {
         const tpl = await layout(env, "editor");
 
-        const html = tpl
-          .replaceAll("{{title}}", "Editor")
-          .replaceAll("{{slug}}", "")
-          .replaceAll("{{content}}", "");
-
-        return new Response(html, {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
-        });
+        return new Response(
+          tpl
+            .replaceAll("{{title}}", "Editor")
+            .replaceAll("{{slug}}", "")
+            .replaceAll("{{content}}", ""),
+          { headers: { "Content-Type": "text/html; charset=utf-8" } }
+        );
       }
 
       // ================= LIST =================

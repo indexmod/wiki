@@ -43,6 +43,42 @@ header {
   z-index: 10;
 }
 
+header {
+  position: fixed;
+  top: 120px;
+  left: 100px;
+  right: 100px;
+  z-index: 10;
+}
+
+main {
+  padding-top: 360px; /* +100 воздуха */
+}
+
+/* LINKS UI (New / Save / Edit) */
+.new,
+.edit,
+.save {
+  font-size: 25px;
+  font-weight: 400;
+  text-transform: none;
+  border: 1px solid #000;
+  border-radius: 999px;
+  padding: 6px 18px;
+}
+
+/* prevent page scrolling under logo illusion */
+body {
+  overflow-x: hidden;
+}
+
+/* editor textarea height FIX */
+textarea {
+  min-height: 70vh;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
 /* ================= LOGO ================= */
 
 .logo {
