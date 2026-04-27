@@ -1,4 +1,4 @@
-// FILE: modules/pages.js (SINGLE SOURCE MODEL)
+// FILE: modules/pages.js (SINGLE SOURCE MODEL - FIXED)
 
 function isPageKey(key) {
   return key.startsWith("p_");
@@ -13,7 +13,27 @@ function normalizeSlug(input) {
 }
 
 // =========================
-// PAGES API (ID ONLY MODEL)
+// HELPERS
+// =========================
+async function getAllPages(env) {
+  const keys = await env.WIKI_DB.list();
+
+  const pages = await Promise.all(
+    keys.keys
+      .map(k => k.name)
+      .filter(isPageKey)
+      .map(id => env.WIKI_DB.get(id))
+  );
+
+  return pages.filter(Boolean).map(p => JSON.parse(p));
+}
+
+function findBySlug(pages, slug) {
+  return pages.find(p => p.slug === slug);
+}
+
+// =========================
+// API
 // =========================
 export async function pagesAPI(request, env) {
   const url = new URL(request.url);
@@ -25,35 +45,33 @@ export async function pagesAPI(request, env) {
   // LIST
   // =========================
   if (pathname === "/api/pages" && request.method === "GET") {
-    const keys = await env.WIKI_DB.list();
-
-    const pages = await Promise.all(
-      keys.keys
-        .map(k => k.name)
-        .filter(isPageKey)
-        .map(id => env.WIKI_DB.get(id))
-    );
-
-    return Response.json(
-      pages.filter(Boolean).map(p => JSON.parse(p))
-    );
+    const pages = await getAllPages(env);
+    return Response.json(pages);
   }
 
   // =========================
-  // GET (ONLY BY ID)
+  // GET (ID OR SLUG)
   // =========================
   if (match && request.method === "GET") {
-    const id = match[1];
+    const key = match[1];
 
-    const raw = await env.WIKI_DB.get(id);
+    const raw = await env.WIKI_DB.get(key);
 
-    if (!raw) return new Response("Not found", { status: 404 });
+    if (raw) {
+      return Response.json(JSON.parse(raw));
+    }
 
-    return Response.json(JSON.parse(raw));
+    // fallback: slug scan
+    const pages = await getAllPages(env);
+    const page = findBySlug(pages, key);
+
+    if (!page) return new Response("Not found", { status: 404 });
+
+    return Response.json(page);
   }
 
   // =========================
-  // SAVE (ID IS SOURCE OF TRUTH)
+  // SAVE (ID ONLY)
   // =========================
   if (match && request.method === "POST") {
     const id = match[1];
@@ -77,7 +95,6 @@ export async function pagesAPI(request, env) {
       slug,
       title: body.title || slug,
       content: body.content || "",
-      html: body.content || "",
       updatedAt: Date.now()
     };
 

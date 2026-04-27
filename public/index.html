@@ -58,18 +58,21 @@ main {
 <body>
 
 <header>
-  <!-- LOGO всегда ведёт в индекс -->
+  <!-- LOGO → index -->
   <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
-  <!-- создание новой страницы -->
-  <a class="add" href="/editor.html">New page</a>
+  <!-- NEW PAGE → editor opens empty page in edit mode -->
+  <a class="add" href="/new?edit=1">New page</a>
 </header>
 
 <main id="list"></main>
 
 <script>
+// =========================
+// LOAD ALL PAGES (ZERO-INDEX MODE)
+// =========================
 async function load() {
   try {
     const res = await fetch("/api/pages");
@@ -83,6 +86,7 @@ async function load() {
       .sort((a, b) => (a.title || "").localeCompare(b.title || ""))
       .map(p => `
         <div class="item">
+          <!-- IMPORTANT: SLUG PAGE ROUTE -->
           <a href="/${p.slug}">
             ${escapeHtml(p.title || p.slug)}
           </a>
@@ -95,6 +99,9 @@ async function load() {
   }
 }
 
+// =========================
+// ESCAPE
+// =========================
 function escapeHtml(str = "") {
   return String(str)
     .replace(/&/g, "&amp;")

@@ -1,4 +1,4 @@
-// FILE: modules/seo.js (NO INDEX, SINGLE SOURCE MODEL)
+// FILE: modules/seo.js (ZERO-INDEX CLEAN VERSION)
 
 function isPageKey(key) {
   return key.startsWith("p_");
@@ -9,7 +9,7 @@ export async function seoRouter(request, env) {
   const slug = url.pathname.slice(1);
 
   // =========================
-  // LOAD ALL PAGES (NO INDEX)
+  // LOAD ALL PAGES (NO INDEX MODE)
   // =========================
   const keys = await env.WIKI_DB.list();
 
@@ -25,7 +25,7 @@ export async function seoRouter(request, env) {
     .map(p => JSON.parse(p));
 
   // =========================
-  // FIND BY SLUG (IN MEMORY)
+  // FIND BY SLUG
   // =========================
   const page = pages.find(p => p.slug === slug);
 
@@ -34,7 +34,7 @@ export async function seoRouter(request, env) {
   }
 
   // =========================
-  // RENDER
+  // RENDER PAGE
   // =========================
   return new Response(`
 <!DOCTYPE html>
@@ -50,7 +50,8 @@ export async function seoRouter(request, env) {
   <article>${page.content || page.html || ""}</article>
 
   <p>
-    <a href="/editor.html?id=${page.id}">Edit</a>
+    <!-- FIXED: new editor model -->
+    <a href="/${page.slug}?edit=1">Edit</a>
   </p>
 </body>
 </html>

@@ -1,18 +1,41 @@
-// FILE: worker.js (FIXED ROUTING: /slug ALWAYS WORKS)
-
-import { seoRouter } from "./modules/seo.js";
+// FILE: worker.js (ZERO-INDEX MODE)
 
 function genId() {
   return "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 12);
 }
 
+// =========================
+// HELPERS
+// =========================
+async function getPageBySlug(env, slug) {
+  const keys = await env.WIKI_DB.list();
+
+  const pages = await Promise.all(
+    keys.keys
+      .map(k => k.name)
+      .filter(k => k.startsWith("p_"))
+      .map(id => env.WIKI_DB.get(id))
+  );
+
+  for (const raw of pages) {
+    if (!raw) continue;
+    const page = JSON.parse(raw);
+    if (page.slug === slug) return page;
+  }
+
+  return null;
+}
+
+// =========================
+// WORKER
+// =========================
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const pathname = url.pathname;
 
     // =========================
-    // API: LIST
+    // LIST (ALL PAGES)
     // =========================
     if (pathname === "/api/pages" && req.method === "GET") {
       const keys = await env.WIKI_DB.list();
@@ -30,7 +53,7 @@ export default {
     }
 
     // =========================
-    // API: GET PAGE
+    // GET BY ID OR SLUG (UNIFIED)
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "GET") {
       const key = pathname.split("/").pop();
@@ -38,17 +61,16 @@ export default {
       let raw = await env.WIKI_DB.get(key);
 
       if (!raw) {
-        const id = await env.WIKI_DB.get("slug:" + key);
-        if (id) raw = await env.WIKI_DB.get(id);
+        const page = await getPageBySlug(env, key);
+        if (!page) return new Response("not found", { status: 404 });
+        return Response.json(page);
       }
-
-      if (!raw) return new Response("not found", { status: 404 });
 
       return Response.json(JSON.parse(raw));
     }
 
     // =========================
-    // API: SAVE PAGE
+    // SAVE (ID ONLY SOURCE OF TRUTH)
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "POST") {
       const key = pathname.split("/").pop();
@@ -56,70 +78,43 @@ export default {
 
       const isNew = key === "new";
 
-      let id;
+      let id = isNew
+        ? genId()
+        : key;
 
-      if (isNew) {
-        id = genId();
-      } else {
-        id = (await env.WIKI_DB.get("slug:" + key)) || key;
-      }
+      const raw = await env.WIKI_DB.get(id);
+      const existing = raw ? JSON.parse(raw) : null;
 
-      const existingRaw = await env.WIKI_DB.get(id);
-      const existing = existingRaw ? JSON.parse(existingRaw) : null;
-
-      let slug = (body.slug || existing?.slug || body.title || "page")
+      const slug = (body.slug || body.title || "page")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
-
-      if (existing?.slug && existing.slug !== slug) {
-        await env.WIKI_DB.delete("slug:" + existing.slug);
-      }
 
       const page = {
         id,
         slug,
         title: body.title || slug,
         content: body.content || "",
-        html: body.content || "",
         updatedAt: Date.now()
       };
 
       await env.WIKI_DB.put(id, JSON.stringify(page));
-      await env.WIKI_DB.put("slug:" + slug, id);
 
       return Response.json(page);
     }
 
     // =========================
-    // API: DELETE
+    // DELETE
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "DELETE") {
       const key = pathname.split("/").pop();
 
-      const id = (await env.WIKI_DB.get("slug:" + key)) || key;
-      const raw = await env.WIKI_DB.get(id);
-
+      const raw = await env.WIKI_DB.get(key);
       if (!raw) return new Response("not found", { status: 404 });
 
-      const page = JSON.parse(raw);
-
-      await env.WIKI_DB.delete(id);
-      await env.WIKI_DB.delete("slug:" + page.slug);
+      await env.WIKI_DB.delete(key);
 
       return new Response("deleted");
-    }
-
-    // =========================
-    // 🔥 IMPORTANT: SLUG ROUTING LAST BUT ALWAYS EXECUTES
-    // =========================
-    const isSlugRoute =
-      req.method === "GET" &&
-      !pathname.startsWith("/api") &&
-      !pathname.includes(".");
-
-    if (isSlugRoute) {
-      return seoRouter(req, env);
     }
 
     return new Response("404");
