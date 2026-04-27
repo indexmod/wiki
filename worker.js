@@ -1,4 +1,6 @@
-// FILE: worker.js (MINIMAL ID + SLUG LAYER)
+// FILE: worker.js (MINIMAL ID + SLUG + SEO PLUGIN)
+
+import { seoRouter } from "./modules/seo.js";
 
 function genId() {
   return "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 12);
@@ -10,6 +12,17 @@ export default {
     const pathname = url.pathname;
 
     // =========================
+    // SEO ROUTE (SLUG → HTML PAGE)
+    // =========================
+    if (
+      req.method === "GET" &&
+      !pathname.startsWith("/api") &&
+      !pathname.includes(".")
+    ) {
+      return seoRouter(req, env);
+    }
+
+    // =========================
     // LIST (ONLY REAL PAGES)
     // =========================
     if (pathname === "/api/pages" && req.method === "GET") {
@@ -18,7 +31,7 @@ export default {
       const pages = await Promise.all(
         keys.keys
           .map(k => k.name)
-          .filter(k => k.startsWith("p_")) // только ID
+          .filter(k => k.startsWith("p_"))
           .map(id => env.WIKI_DB.get(id))
       );
 
@@ -33,10 +46,10 @@ export default {
     if (pathname.startsWith("/api/page/") && req.method === "GET") {
       const key = pathname.split("/").pop();
 
-      let raw = await env.WIKI_DB.get(key); // ID first
+      let raw = await env.WIKI_DB.get(key);
 
       if (!raw) {
-        const id = await env.WIKI_DB.get("slug:" + key); // fallback slug
+        const id = await env.WIKI_DB.get("slug:" + key);
         if (id) raw = await env.WIKI_DB.get(id);
       }
 
@@ -59,20 +72,17 @@ export default {
       if (isNew) {
         id = genId();
       } else {
-        // если key это slug → получаем id
         id = (await env.WIKI_DB.get("slug:" + key)) || key;
       }
 
       const existingRaw = await env.WIKI_DB.get(id);
       const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
-      // ⚠️ slug НИКОГДА не равен id
       let slug = (body.slug || existing?.slug || body.title || "page")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
-      // удалить старый slug если поменялся
       if (existing?.slug && existing.slug !== slug) {
         await env.WIKI_DB.delete("slug:" + existing.slug);
       }
