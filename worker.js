@@ -23,7 +23,7 @@ function parseFrontmatter(md) {
 }
 
 // =========================
-// FRONTMATTER BUILDER
+// MARKDOWN BUILDER
 // =========================
 function buildMarkdown(meta, body) {
   return `---
@@ -36,6 +36,7 @@ updatedAt: ${Date.now()}
 ${body || ""}`;
 }
 
+// =========================
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -49,15 +50,14 @@ export default {
     }
 
     // =========================
-    // DEBUG LIST RAW R2 FILES
+    // DEBUG LIST
     // =========================
     if (path === "/__list") {
-      const list = await env.PAGES.list();
-      return Response.json(list);
+      return Response.json(await env.PAGES.list());
     }
 
     // =========================
-    // API: LIST PAGES
+    // LIST PAGES
     // =========================
     if (req.method === "GET" && path === "/api/pages") {
       const list = await env.PAGES.list();
@@ -81,19 +81,14 @@ export default {
     }
 
     // =========================
-    // API: GET PAGE
+    // GET PAGE
     // =========================
     if (req.method === "GET" && path.startsWith("/api/page/")) {
-      let slug = path.split("/").pop();
-if (!slug || slug === "new") {
-  slug = body.slug || body.title || "page";
-}
+      const slug = path.split("/").pop();
 
       const file = await env.PAGES.get(encodePath(slug));
 
-      if (!file) {
-        return new Response("not found", { status: 404 });
-      }
+      if (!file) return new Response("not found", { status: 404 });
 
       const { meta, body } = parseFrontmatter(file);
 
@@ -106,38 +101,46 @@ if (!slug || slug === "new") {
     }
 
     // =========================
-    // API: SAVE PAGE
+    // SAVE PAGE
     // =========================
     if (req.method === "POST" && path.startsWith("/api/page/")) {
-      let slug = path.split("/").pop();
-if (!slug || slug === "new") {
-  slug = body.slug || body.title || "page";
-}
+      const slugFromUrl = path.split("/").pop();
       const body = await req.json();
+
+      const slug =
+        body.slug ||
+        body.title ||
+        slugFromUrl ||
+        "page";
+
+      const cleanSlug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
 
       const id = body.id || crypto.randomUUID();
 
       const md = buildMarkdown(
         {
           id,
-          slug,
+          slug: cleanSlug,
           title: body.title
         },
         body.content
       );
 
-      await env.PAGES.put(encodePath(slug), md);
+      await env.PAGES.put(encodePath(cleanSlug), md);
 
       return Response.json({
         id,
-        slug,
+        slug: cleanSlug,
         title: body.title,
         content: body.content
       });
     }
 
     // =========================
-    // 🧠 SLUG ROUTER (ВАЖНОЕ ИСПРАВЛЕНИЕ)
+    // SLUG ROUTER (PAGE VIEW)
     // =========================
     if (
       req.method === "GET" &&
@@ -149,10 +152,7 @@ if (!slug || slug === "new") {
 
       const file = await env.PAGES.get(encodePath(slug));
 
-      // fallback → index.html
-      if (!file) {
-        return env.ASSETS.fetch(req);
-      }
+      if (!file) return env.ASSETS.fetch(req);
 
       const { meta, body } = parseFrontmatter(file);
 
@@ -167,9 +167,9 @@ if (!slug || slug === "new") {
   <h1>${meta.title || slug}</h1>
   <article>${body}</article>
 
-  <p>
-    <a href="/editor.html?slug=${slug}">edit</a>
-  </p>
+  <a href="/editor.html?slug=${slug}" style="position:fixed;top:20px;right:20px;">
+    edit
+  </a>
 </body>
 </html>
       `, {
@@ -178,7 +178,7 @@ if (!slug || slug === "new") {
     }
 
     // =========================
-    // FALLBACK → STATIC ASSETS
+    // STATIC FALLBACK
     // =========================
     return env.ASSETS.fetch(req);
   }
