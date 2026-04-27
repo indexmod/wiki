@@ -1,16 +1,20 @@
-<!-- FILE: public/editor.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Editor</title>
+<title>IndexMod Fashion and Art</title>
+
+<link rel="icon" href="/favicon.svg">
 
 <style>
 body {
   margin: 0;
   font-family: Georgia, serif;
-  font-size: 22px;
+  background: #fff;
+  color: #000;
 }
+
+/* HEADER */
 header {
   position: fixed;
   top: 30px;
@@ -18,18 +22,73 @@ header {
   right: 30px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
+
+.logo {
+  height: 40px;
+}
+
+a {
+  color: #000;
+  text-decoration: none;
+}
+
+/* GRID */
 main {
-  padding: 120px 60px;
-  max-width: 900px;
-  margin: auto;
+  padding: 140px 60px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
 }
-input, textarea {
-  width: 100%;
-  font-size: 22px;
-  border: none;
-  outline: none;
-  margin-bottom: 20px;
+
+/* ITEM */
+.item {
+  break-inside: avoid;
+  margin-bottom: 30px;
+}
+
+/* TITLE */
+.title {
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* SUBTEXT (future markdown preview hook) */
+.preview {
+  font-size: 14px;
+  opacity: 0.6;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* DIVIDER */
+.item::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 1px;
+  background: #000;
+  margin-top: 10px;
+  opacity: 0.15;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  opacity: 0.4;
+  font-style: italic;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 </head>
@@ -38,52 +97,64 @@ input, textarea {
 
 <header>
   <a href="/">
-    <img src="/logo.png" style="height:40px;">
+    <img src="/logo.png" class="logo">
   </a>
 
-  <a onclick="save()">save</a>
+  <a href="/editor.html">+ new</a>
 </header>
 
-<main>
-  <input id="title" placeholder="title">
-  <textarea id="content" placeholder="content"></textarea>
-</main>
+<main id="list"></main>
 
 <script>
-const slug = new URLSearchParams(location.search).get("slug");
-
-const titleEl = document.getElementById("title");
-const contentEl = document.getElementById("content");
-
-// ================= LOAD =================
 async function load() {
-  if (!slug) return;
+  const res = await fetch("/api/pages");
+  const pages = await res.json();
 
-  const res = await fetch("/api/page/" + slug);
-  if (!res.ok) return;
+  const list = document.getElementById("list");
 
-  const p = await res.json();
+  const safe = (pages || [])
+    .filter(p => p && (p.slug || p.title));
 
-  titleEl.value = p.title || "";
-  contentEl.value = p.content || "";
+  if (!safe.length) {
+    list.innerHTML = `<div class="empty">no pages yet</div>`;
+    return;
+  }
+
+  list.innerHTML = safe
+    .sort((a,b) =>
+      (a.title || a.slug).localeCompare(b.title || b.slug)
+    )
+    .map(renderItem)
+    .join("");
 }
 
-// ================= SAVE =================
-async function save() {
-  const res = await fetch("/api/page/" + slug, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      title: titleEl.value,
-      content: contentEl.value,
-      slug: slug
-    })
-  });
+/* =========================
+   ITEM RENDER (CLEAN CORE)
+========================= */
+function renderItem(p) {
+  const title = safeText(p.title || p.slug);
+  const slug = safeText(p.slug || "");
 
-  const p = await res.json();
+  return `
+    <div class="item">
+      <a href="/${slug}">
+        <div class="title">${title.toUpperCase()}</div>
+      </a>
 
-  // 🔥 ВАЖНО: сразу в превью
-  location.href = "/" + p.slug;
+      <!-- markdown preview hook (future) -->
+      <div class="preview" data-slug="${slug}"></div>
+    </div>
+  `;
+}
+
+/* =========================
+   SAFE TEXT
+========================= */
+function safeText(s="") {
+  return String(s)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
 }
 
 load();

@@ -1,9 +1,8 @@
-<!-- FILE: public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>IndexMod</title>
+<title>IndexMod Fashio and Art</title>
 
 <link rel="icon" href="/favicon.svg">
 
@@ -11,10 +10,11 @@
 body {
   margin: 0;
   font-family: Georgia, serif;
-  font-size: 25px;
+  background: #fff;
   color: #000;
 }
 
+/* HEADER */
 header {
   position: fixed;
   top: 30px;
@@ -25,27 +25,61 @@ header {
   align-items: center;
 }
 
-.logo { height: 40px; }
-
-a { text-decoration: none; color: #000; }
-
-main {
-  padding: 120px 60px;
-  max-width: 900px;
-  margin: 0 auto;
+.logo {
+  height: 40px;
 }
 
-.item { margin-bottom: 12px; }
+a {
+  color: #000;
+  text-decoration: none;
+}
 
-.slug {
-  font-size: 14px;
-  opacity: 0.4;
-  margin-left: 8px;
+/* GRID */
+main {
+  padding: 140px 60px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+/* ITEM */
+.item {
+  break-inside: avoid;
+  margin-bottom: 30px;
+}
+
+/* TITLE */
+.title {
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* optional subtle divider */
+.item::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 1px;
+  background: #000;
+  margin-top: 10px;
+  opacity: 0.2;
 }
 
 .empty {
+  grid-column: 1 / -1;
   opacity: 0.4;
   font-style: italic;
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 </head>
@@ -57,7 +91,6 @@ main {
     <img src="/logo.png" class="logo">
   </a>
 
-  <!-- 🔥 теперь можно создать сразу страницу -->
   <a href="/editor.html">+ new</a>
 </header>
 
@@ -70,25 +103,28 @@ async function load() {
 
   const list = document.getElementById("list");
 
-  if (!pages.length) {
+  const safe = (pages || [])
+    .filter(p => p && p.slug);
+
+  if (!safe.length) {
     list.innerHTML = `<div class="empty">no pages yet</div>`;
     return;
   }
 
-  list.innerHTML = pages
-    .sort((a,b) => (a.title||"").localeCompare(b.title||""))
-    .map(p => `
-      <div class="item">
-        <a href="/${p.slug}">${escapeHtml(p.title || p.slug)}</a>
+  list.innerHTML = safe
+    .sort((a,b) => (a.title||a.slug).localeCompare(b.title||b.slug))
+    .map(p => {
+      const title = (p.title || p.slug || "")
+        .toUpperCase();
 
-        <span class="slug">/${escapeHtml(p.slug || "")}</span>
-
-        <!-- 🔥 быстрый edit -->
-        <a href="/editor.html?slug=${p.slug}" style="margin-left:10px;font-size:14px;opacity:0.5;">
-          edit
-        </a>
-      </div>
-    `)
+      return `
+        <div class="item">
+          <a href="/${p.slug}">
+            <div class="title">${escapeHtml(title)}</div>
+          </a>
+        </div>
+      `;
+    })
     .join("");
 }
 
