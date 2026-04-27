@@ -55,17 +55,48 @@ main {
   padding-top: 360px; /* +100 воздуха */
 }
 
-/* LINKS UI (New / Save / Edit) */
+/* ================= LINKS UI (SYSTEM BUTTONS) ================= */
+
 .new,
 .edit,
 .save {
-  font-size: 20px;
-  font-weight: 100;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 22px;
+
+  font-size: 17px;
+  font-weight: 400; /* не 100 — 100 выглядит “сломано” в Georgia */
   text-transform: none;
-  border: 1px solid #000;
-  border-radius: 40px;
-  padding: 10px 25px;
+
   color: #000;
+  background-color: #fff;
+
+  border: 1px solid #000;
+  border-radius: 999px; /* вместо 30/40 → настоящий pill */
+
+  text-decoration: none;
+
+  line-height: 1;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover = лёгкое поведение UI, без “перекраски мира” */
+.new:hover,
+.edit:hover,
+.save:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+/* active = мягкий “press” */
+.new:active,
+.edit:active,
+.save:active {
+  transform: scale(0.98);
 }
 
 /* prevent page scrolling under logo illusion */
