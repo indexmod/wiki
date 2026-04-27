@@ -1,3 +1,4 @@
+<!-- FILE: public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,14 +25,9 @@ header {
   align-items: center;
 }
 
-.logo {
-  height: 40px;
-}
+.logo { height: 40px; }
 
-a {
-  text-decoration: none;
-  color: #000;
-}
+a { text-decoration: none; color: #000; }
 
 main {
   padding: 120px 60px;
@@ -39,9 +35,7 @@ main {
   margin: 0 auto;
 }
 
-.item {
-  margin-bottom: 12px;
-}
+.item { margin-bottom: 12px; }
 
 .slug {
   font-size: 14px;
@@ -63,6 +57,7 @@ main {
     <img src="/logo.png" class="logo">
   </a>
 
+  <!-- 🔥 теперь можно создать сразу страницу -->
   <a href="/editor.html">+ new</a>
 </header>
 
@@ -70,34 +65,31 @@ main {
 
 <script>
 async function load() {
-  try {
-    const res = await fetch("/api/pages");
-    const pages = await res.json();
+  const res = await fetch("/api/pages");
+  const pages = await res.json();
 
-    const list = document.getElementById("list");
+  const list = document.getElementById("list");
 
-    const safe = (pages || []);
-
-    if (!safe.length) {
-      list.innerHTML = `<div class="empty">no pages yet</div>`;
-      return;
-    }
-
-    list.innerHTML = safe
-      .sort((a,b) => (a.title||"").localeCompare(b.title||""))
-      .map(p => `
-        <div class="item">
-          <a href="/${p.slug}">
-            ${escapeHtml(p.title || p.slug)}
-          </a>
-          <span class="slug">/${escapeHtml(p.slug || "")}</span>
-        </div>
-      `)
-      .join("");
-
-  } catch (e) {
-    console.error(e);
+  if (!pages.length) {
+    list.innerHTML = `<div class="empty">no pages yet</div>`;
+    return;
   }
+
+  list.innerHTML = pages
+    .sort((a,b) => (a.title||"").localeCompare(b.title||""))
+    .map(p => `
+      <div class="item">
+        <a href="/${p.slug}">${escapeHtml(p.title || p.slug)}</a>
+
+        <span class="slug">/${escapeHtml(p.slug || "")}</span>
+
+        <!-- 🔥 быстрый edit -->
+        <a href="/editor.html?slug=${p.slug}" style="margin-left:10px;font-size:14px;opacity:0.5;">
+          edit
+        </a>
+      </div>
+    `)
+    .join("");
 }
 
 function escapeHtml(s="") {
