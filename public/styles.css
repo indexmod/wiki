@@ -101,20 +101,6 @@ header {
   transition: all 0.2s ease;
 }
 
-/* hover */
-.new:hover,
-.edit:hover,
-.save:hover {
-  background: #000;
-  color: #fff;
-}
-
-/* click */
-.new:active,
-.edit:active,
-.save:active {
-  transform: scale(0.98);
-}
 
 
 /* =========================
