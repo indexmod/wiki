@@ -2,25 +2,39 @@ import { pagesAPI } from "./modules/pages.js";
 import { topicsAPI } from "./modules/topics.js";
 import { seoRouter } from "./modules/seo.js";
 
+function isAssetPath(pathname) {
+  return pathname.includes(".");
+}
+
+function isSlugRoute(pathname) {
+  return /^\/[a-z0-9-]+$/.test(pathname);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const { pathname } = url;
 
     // API
-    if (url.pathname.startsWith("/api/pages")) {
+    if (pathname.startsWith("/api/pages")) {
       return pagesAPI(request, env);
     }
 
-    if (url.pathname.startsWith("/api/topics")) {
+    if (pathname.startsWith("/api/topics")) {
       return topicsAPI(request, env);
     }
 
-    // SEO / pages
-    if (url.pathname.match(/^\/[a-z0-9-]+$/)) {
+    // STATIC
+    if (isAssetPath(pathname)) {
+      return env.ASSETS.fetch(request);
+    }
+
+    // SLUG → SSR
+    if (isSlugRoute(pathname)) {
       return seoRouter(request, env);
     }
 
-    // static
+    // fallback
     return env.ASSETS.fetch(request);
   }
 };

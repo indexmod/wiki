@@ -1,5 +1,5 @@
 /**
- * IndexMod Slug Core
+ * IndexMod Slug Core (STABLE VERSION)
  * единая система идентификации
  */
 
@@ -23,10 +23,13 @@ function translit(str) {
 }
 
 // =========================
-// CLEAN SLUG BASE
+// CLEAN SLUG
 // =========================
 function slugify(text) {
+  if (!text) return "";
+
   return text
+    .toString()
     .toLowerCase()
     .trim()
     .replace(/["'«»()]/g, "")
@@ -37,13 +40,17 @@ function slugify(text) {
 }
 
 // =========================
-// PERSON DETECTION (safer)
+// PERSON DETECTION (SAFE)
 // =========================
+// ⚠️ НИКАКИХ "2-3 слова" — это ломало систему
 function isPerson(text) {
   const words = text.trim().split(/\s+/);
 
-  // только 2-3 слова (очень мягкое правило)
-  return words.length === 2 || words.length === 3;
+  // строго 2 слова
+  if (words.length !== 2) return false;
+
+  // оба слова должны начинаться с заглавной
+  return words.every(w => /^[A-ZА-ЯЁ]/.test(w));
 }
 
 // =========================
@@ -55,21 +62,29 @@ function smartSlug(text) {
   const clean = text.trim();
 
   // -------------------------
-  // PERSON CASE
+  // PERSON CASE (Иван Иванов → ivanov-ivan)
   // -------------------------
   if (isPerson(clean)) {
-    const parts = clean.split(/\s+/);
-
-    const transliterated = parts.map(p => translit(p));
-
-    // фамилия-имя (reversed)
-    return transliterated.reverse().join("-");
+    return clean
+      .split(/\s+/)
+      .map(translit)
+      .reverse()
+      .join("-");
   }
 
   // -------------------------
-  // NORMAL CASE
+  // NORMAL CASE (ВСЁ ОСТАЛЬНОЕ)
   // -------------------------
-  const transliterated = translit(clean);
+  return slugify(translit(clean));
+}
 
-  return slugify(transliterated);
+// =========================
+// AUTO TITLE (simple helper)
+// =========================
+function autoTitle(slug) {
+  if (!slug) return "";
+
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
 }

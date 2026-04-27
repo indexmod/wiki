@@ -109,7 +109,9 @@ button:hover {
 
 <script>
 const params = new URLSearchParams(location.search);
+
 const incomingSlug = params.get("slug");
+const incomingTitle = params.get("title");
 
 const slugInput = document.getElementById("slug");
 const titleInput = document.getElementById("title");
@@ -118,22 +120,24 @@ const contentInput = document.getElementById("content");
 let locked = false;
 
 // =========================
-// INIT FROM TOPICS
+// INIT FROM TOPICS (🔥 фикс)
 // =========================
 if (incomingSlug) {
   const clean = smartSlug(incomingSlug);
 
   slugInput.value = clean;
-  slugInput.setAttribute("readonly", true); // 🔒 фиксируем slug
+  slugInput.setAttribute("readonly", true);
 
-  // автотайтл
-  titleInput.value = autoTitle(clean);
+  // 🔥 используем переданный title если есть
+  titleInput.value = incomingTitle
+    ? decodeURIComponent(incomingTitle)
+    : autoTitle(clean);
 
   locked = true;
 }
 
 // =========================
-// AUTO SLUG (только если НЕ из topics)
+// AUTO SLUG (если НЕ topics)
 // =========================
 titleInput.addEventListener("input", (e) => {
   if (locked) return;
@@ -143,7 +147,7 @@ titleInput.addEventListener("input", (e) => {
 });
 
 // =========================
-// LOAD EXISTING
+// LOAD EXISTING PAGE
 // =========================
 async function load() {
   if (!incomingSlug) return;
@@ -156,7 +160,7 @@ async function load() {
   const data = await res.json();
 
   slugInput.value = slug;
-  titleInput.value = data.title || autoTitle(slug);
+  titleInput.value = data.title || titleInput.value;
   contentInput.value = data.content || "";
 }
 
@@ -165,10 +169,10 @@ async function load() {
 // =========================
 async function save() {
   const slug = smartSlug(slugInput.value);
-  let title = titleInput.value.trim();
 
+  let title = titleInput.value.trim();
   if (!title) {
-    title = autoTitle(slug); // 🔥 защита от пустых / ошибок
+    title = autoTitle(slug);
     titleInput.value = title;
   }
 
@@ -180,7 +184,8 @@ async function save() {
     body: JSON.stringify({ title, content })
   });
 
-  location.href = "/view.html?slug=" + slug;
+  // 🔥 КЛЮЧЕВОЙ ФИКС (убираем view.html)
+  location.href = "/" + slug;
 }
 
 load();

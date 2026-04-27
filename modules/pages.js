@@ -1,115 +1,66 @@
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const { pathname } = url;
+export async function pagesAPI(request, env) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
 
-    const pageMatch = pathname.match(/^\/api\/page\/(.+)$/);
+  const match = pathname.match(/^\/api\/page\/(.+)$/);
 
-    // =========================
-    // LIST PAGES
-    // =========================
-    if (pathname === "/api/pages" && request.method === "GET") {
-      const keys = await env.WIKI_DB.list();
+  // LIST
+  if (pathname === "/api/pages" && request.method === "GET") {
+    const keys = await env.WIKI_DB.list();
 
-      const pages = await Promise.all(
-        keys.keys.map(async (k) => {
-          // 🔥 исключаем topics.txt из списка страниц
-          if (k.name === "topics.txt") return null;
+    const pages = await Promise.all(
+      keys.keys.map(async (k) => {
+        const value = await env.WIKI_DB.get(k.name);
+        if (!value) return null;
 
-          const value = await env.WIKI_DB.get(k.name);
-          if (!value) return null;
+        try {
+          return JSON.parse(value);
+        } catch {
+          return null;
+        }
+      })
+    );
 
-          try {
-            return JSON.parse(value);
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      return Response.json(pages.filter(Boolean));
-    }
-
-    // =========================
-    // GET PAGE
-    // =========================
-    if (pageMatch && request.method === "GET") {
-      const slug = pageMatch[1];
-
-      const value = await env.WIKI_DB.get(slug);
-
-      if (!value) {
-        return new Response("Not found", { status: 404 });
-      }
-
-      try {
-        return Response.json(JSON.parse(value));
-      } catch {
-        return new Response("Corrupted page data", { status: 500 });
-      }
-    }
-
-    // =========================
-    // SAVE PAGE
-    // =========================
-    if (pageMatch && request.method === "POST") {
-      const slug = pageMatch[1];
-      const body = await request.json();
-
-      const page = {
-        slug,
-        title: body.title || slug,
-        content: body.content || "",
-        html: body.html || "",
-        updatedAt: Date.now()
-      };
-
-      await env.WIKI_DB.put(slug, JSON.stringify(page));
-
-      return Response.json(page);
-    }
-
-    // =========================
-    // DELETE PAGE
-    // =========================
-    if (pageMatch && request.method === "DELETE") {
-      const slug = pageMatch[1];
-
-      await env.WIKI_DB.delete(slug);
-
-      return new Response("deleted", { status: 200 });
-    }
-
-    // =========================
-    // GET TOPICS
-    // =========================
-    if (pathname === "/api/topics" && request.method === "GET") {
-      const text = await env.WIKI_DB.get("topics.txt");
-
-      return new Response(text || "", {
-        headers: { "Content-Type": "text/plain" }
-      });
-    }
-
-    // =========================
-    // SAVE TOPICS
-    // =========================
-    if (pathname === "/api/topics" && request.method === "POST") {
-      const text = await request.text();
-
-      // 🔥 защита от пустого файла
-      if (!text.trim()) {
-        return new Response("Empty topics", { status: 400 });
-      }
-
-      await env.WIKI_DB.put("topics.txt", text);
-
-      return new Response("ok");
-    }
-
-    // =========================
-    // STATIC FRONTEND
-    // =========================
-    return env.ASSETS.fetch(request);
+    return Response.json(pages.filter(Boolean));
   }
-};
+
+  // GET
+  if (match && request.method === "GET") {
+    const slug = match[1];
+    const value = await env.WIKI_DB.get(slug);
+
+    if (!value) return new Response("Not found", { status: 404 });
+
+    return Response.json(JSON.parse(value));
+  }
+
+  // SAVE
+  if (match && request.method === "POST") {
+    const slug = match[1];
+    const body = await request.json();
+
+    // 🔥 VERY IMPORTANT: markdown → html
+    const html = body.content
+      .replace(/\n/g, "<br>")
+      .replace(/## (.*)/g, "<h2>$1</h2>");
+
+    const page = {
+      slug,
+      title: body.title || slug,
+      content: body.content || "",
+      html,
+      updatedAt: Date.now()
+    };
+
+    await env.WIKI_DB.put(slug, JSON.stringify(page));
+
+    return Response.json(page);
+  }
+
+  // DELETE
+  if (match && request.method === "DELETE") {
+    const slug = match[1];
+    await env.WIKI_DB.delete(slug);
+    return new Response("deleted");
+  }
+}

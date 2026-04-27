@@ -1,91 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<meta charset="UTF-8">
-<title>Mod</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  background: white;
-  color: #111;
-  font-size: 18px;
-}
-
-header {
-  padding: 40px 60px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  position: relative;
-}
-
-.logo {
-  width: 70px;
-  animation: pulse 3s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
-}
-
-.save {
-  position: absolute;
-  top: 40px;
-  right: 60px;
-  font-size: 20px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  user-select: none;
-}
-
-main {
-  padding: 0 60px 80px 60px;
-  max-width: 900px;
-}
-
-textarea {
-  width: 100%;
-  height: 500px;
-  font-family: inherit;
-  font-size: 18px;
-  line-height: 1.6;
-  border: none;
-  outline: none;
-  resize: vertical;
-  background: transparent;
-  color: #111;
-  margin-top: 20px;
-}
-</style>
-
-<script src="/slugify.js"></script>
-
-</head>
-
-<body>
-
-<header>
-  <a href="/">
-    <img src="/logo.png" class="logo">
-  </a>
-
-  <div class="save" onclick="forceSave()">Save</div>
-</header>
-
-<main>
-  <textarea id="editor"></textarea>
-</main>
-
 <script>
 let timeout;
+let isSaving = false;
+
+const editor = document.getElementById("editor");
 
 // =========================
-// LOAD (🔥 теперь из API)
+// LOAD
 // =========================
 async function load() {
   try {
@@ -97,7 +17,7 @@ async function load() {
     }
 
     const text = await res.text();
-    document.getElementById("editor").value = text;
+    editor.value = text;
 
   } catch (e) {
     console.error("LOAD FAIL", e);
@@ -105,7 +25,7 @@ async function load() {
 }
 
 // =========================
-// NORMALIZE (анти-дубли)
+// NORMALIZE
 // =========================
 function normalizeTopics(text) {
   const seen = new Set();
@@ -118,10 +38,9 @@ function normalizeTopics(text) {
       const key = smartSlug(line);
 
       if (!key) return false;
-
       if (seen.has(key)) return false;
-      seen.add(key);
 
+      seen.add(key);
       return true;
     })
     .join("\n");
@@ -131,7 +50,17 @@ function normalizeTopics(text) {
 // SAVE
 // =========================
 async function save(value) {
+  if (isSaving) return;
+  isSaving = true;
+
   const cleaned = normalizeTopics(value);
+
+  // ❌ защита от полного удаления
+  if (!cleaned.trim()) {
+    console.warn("EMPTY BLOCKED");
+    isSaving = false;
+    return;
+  }
 
   try {
     const res = await fetch("/api/topics", {
@@ -144,40 +73,43 @@ async function save(value) {
 
     if (!res.ok) {
       console.error("SAVE ERROR", res.status);
+      isSaving = false;
       return;
     }
 
-    // обновляем textarea → синхронное состояние
-    document.getElementById("editor").value = cleaned;
+    // ✔ обновляем только если отличается
+    if (editor.value !== cleaned) {
+      const cursor = editor.selectionStart;
+      editor.value = cleaned;
+      editor.setSelectionRange(cursor, cursor);
+    }
 
     console.log("saved");
 
   } catch (e) {
     console.error("SAVE FAIL", e);
   }
+
+  isSaving = false;
 }
 
 // =========================
-// FORCE SAVE (клик)
+// FORCE SAVE
 // =========================
 function forceSave() {
-  const value = document.getElementById("editor").value;
-  save(value);
+  save(editor.value);
 }
 
 // =========================
 // AUTOSAVE
 // =========================
-document.getElementById("editor").addEventListener("input", (e) => {
+editor.addEventListener("input", () => {
   clearTimeout(timeout);
 
   timeout = setTimeout(() => {
-    save(e.target.value);
-  }, 500);
+    save(editor.value);
+  }, 600); // чуть мягче
 });
 
 load();
 </script>
-
-</body>
-</html>
