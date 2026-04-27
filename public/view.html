@@ -1,129 +1,37 @@
-<!-- FILE: view.html -->
+<!-- FILE: public/view.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>View</title>
 
-<link rel="icon" href="/favicon.svg">
-
 <script src="/slugify.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-<style>
-body {
-  margin: 0;
-  font-family: Georgia, serif;
-  background: #fafafa;
-  color: #111;
-}
-
-/* logo left */
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding: 20px;
-}
-
-header img {
-  width: 70px;
-}
-
-/* actions right */
-.actions {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  font-size: 14px;
-  display: flex;
-  gap: 15px;
-}
-
-.actions a {
-  text-decoration: none;
-  color: #666;
-}
-
-.actions a:hover {
-  color: #000;
-}
-
-main {
-  padding: 140px 60px 80px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.title {
-  font-size: 42px;
-  margin-bottom: 20px;
-}
-
-.content {
-  font-size: 20px;
-  line-height: 1.6;
-}
-</style>
 </head>
 
 <body>
 
-<header>
-  <a href="/">
-    <img src="/logo.png">
-  </a>
-</header>
+<h1 id="title"></h1>
+<div id="content"></div>
 
-<div class="actions">
-  <a id="edit">Edit</a>
-</div>
-
-<main>
-  <div id="title" class="title"></div>
-  <div id="content" class="content"></div>
-</main>
+<a id="edit">edit</a>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
+const slug = new URLSearchParams(location.search).get("slug");
 
-  const params = new URLSearchParams(location.search);
+async function load() {
+  const id = await fetch("/api/page/" + slug)
+    .then(r => r.ok ? r.json() : null);
 
-  // =========================
-  // ID IS PRIMARY SOURCE NOW
-  // =========================
-  const id = params.get("id");
+  if (!id) return;
 
-  const titleEl = document.getElementById("title");
-  const contentEl = document.getElementById("content");
-  const editEl = document.getElementById("edit");
+  document.getElementById("title").innerText = id.title;
+  document.getElementById("content").innerHTML = marked.parse(id.content || "");
 
-  if (!id) {
-    titleEl.textContent = "Missing ID";
-    return;
-  }
+  document.getElementById("edit").href = "/editor.html?id=" + id.id;
+}
 
-  async function load() {
-    const res = await fetch("/api/page/" + id);
-
-    if (!res.ok) {
-      titleEl.textContent = "Not found";
-      return;
-    }
-
-    const data = await res.json();
-
-    titleEl.textContent = data.title || "";
-    contentEl.innerHTML = window.marked
-      ? marked.parse(data.content || "")
-      : (data.content || "");
-
-    // edit always uses ID now
-    editEl.href = "/editor.html?id=" + id;
-  }
-
-  load();
-});
+load();
 </script>
 
 </body>

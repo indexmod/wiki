@@ -1,67 +1,82 @@
-import { pagesAPI } from "./modules/pages.js";
-import { topicsAPI } from "./modules/topics.js";
-import { seoRouter } from "./modules/seo.js";
-
-// =========================
-// HELPERS
-// =========================
-function isAssetPath(pathname) {
-  return pathname.includes(".");
+function generateId() {
+  return "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 }
 
-function isSlugRoute(pathname) {
-  return /^\/[a-z0-9-]+$/.test(pathname);
-}
-
-function isApi(pathname) {
-  return pathname.startsWith("/api/");
-}
-
-// =========================
-// WORKER
-// =========================
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const { pathname } = url;
 
     // =========================
-    // 1. API LAYER
+    // LIST
     // =========================
-    if (isApi(pathname)) {
+    if (pathname === "/api/pages") {
+      const keys = await env.WIKI_DB.list();
 
-      if (pathname === "/api/pages") {
-        return pagesAPI(request, env);
-      }
+      const pages = await Promise.all(
+        keys.keys.map(async k => {
+          const raw = await env.WIKI_DB.get(k.name);
+          return raw ? JSON.parse(raw) : null;
+        })
+      );
 
-      if (pathname.startsWith("/api/page/")) {
-        return pagesAPI(request, env);
-      }
-
-      if (pathname.startsWith("/api/topics")) {
-        return topicsAPI(request, env);
-      }
-
-      return new Response("API not found", { status: 404 });
+      return Response.json(pages.filter(Boolean));
     }
 
     // =========================
-    // 2. STATIC
+    // GET BY SLUG
     // =========================
-    if (isAssetPath(pathname)) {
-      return env.ASSETS.fetch(request);
+    if (pathname.startsWith("/api/page/") && request.method === "GET") {
+      const slug = pathname.split("/").pop();
+
+      const id = await env.WIKI_DB.get("slug:" + slug);
+      if (!id) return new Response("Not found", { status: 404 });
+
+      const raw = await env.WIKI_DB.get(id);
+      if (!raw) return new Response("Not found", { status: 404 });
+
+      return Response.json(JSON.parse(raw));
     }
 
     // =========================
-    // 3. SEO (slug → resolver)
+    // SAVE
     // =========================
-    if (isSlugRoute(pathname)) {
-      return seoRouter(request, env);
+    if (pathname.startsWith("/api/page/") && request.method === "POST") {
+      const slug = pathname.split("/").pop();
+      const body = await request.json();
+
+      let id = await env.WIKI_DB.get("slug:" + slug);
+      if (!id) id = generateId();
+
+      const page = {
+        id,
+        slug,
+        title: body.title || slug,
+        content: body.content || "",
+        updatedAt: Date.now()
+      };
+
+      await env.WIKI_DB.put(id, JSON.stringify(page));
+      await env.WIKI_DB.put("slug:" + slug, id);
+
+      return Response.json(page);
     }
 
     // =========================
-    // 4. FALLBACK
+    // DELETE
     // =========================
-    return env.ASSETS.fetch(request);
+    if (pathname.startsWith("/api/page/") && request.method === "DELETE") {
+      const slug = pathname.split("/").pop();
+
+      const id = await env.WIKI_DB.get("slug:" + slug);
+      if (!id) return new Response("Not found", { status: 404 });
+
+      await env.WIKI_DB.delete(id);
+      await env.WIKI_DB.delete("slug:" + slug);
+
+      return new Response("deleted");
+    }
+
+    return new Response("404");
   }
 };

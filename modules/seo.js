@@ -1,21 +1,16 @@
-/// FILE: modules/seo.js
+// FILE: modules/seo.js
 
 export async function seoRouter(request, env) {
   const url = new URL(request.url);
   const slug = url.pathname.slice(1);
 
-  // =========================
-  // 1. RESOLVE SLUG → ID (INDEX LAYER)
-  // =========================
+  // slug → id
   const id = await env.WIKI_DB.get("slug:" + slug);
 
   if (!id) {
     return new Response("Not found", { status: 404 });
   }
 
-  // =========================
-  // 2. LOAD BY ID (SOURCE OF TRUTH)
-  // =========================
   const raw = await env.WIKI_DB.get(id);
 
   if (!raw) {
@@ -24,37 +19,18 @@ export async function seoRouter(request, env) {
 
   const page = JSON.parse(raw);
 
-  // =========================
-  // 3. SAFE FIELDS
-  // =========================
-  const title = escapeHtml(page.title || slug);
-  const description = escapeHtml((page.content || "").slice(0, 140));
-  const content = page.html || "";
+  const title = page.title || slug;
+  const content = page.html || page.content || "";
 
-  // canonical MUST be stable slug (but fallback-safe)
-  const canonicalSlug = page.slug || slug;
-  const canonical = `https://${url.host}/${canonicalSlug}`;
+  const canonical = `https://${url.host}/${slug}`;
 
-  // =========================
-  // 4. SEO HTML
-  // =========================
-  const html = `
+  return new Response(`
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-
-  <title>${title}</title>
-
-  <meta name="description" content="${description}">
-
-  <link rel="canonical" href="${canonical}">
-  <link rel="icon" href="/favicon.svg">
-
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="${canonical}">
+<meta charset="UTF-8">
+<title>${title}</title>
+<link rel="canonical" href="${canonical}">
 </head>
 
 <body style="font-family: Georgia; padding:60px; max-width:900px;">
@@ -66,19 +42,97 @@ export async function seoRouter(request, env) {
   </p>
 </body>
 </html>
-`;
-
-  return new Response(html, {
+  `, {
     headers: { "Content-Type": "text/html" }
   });
+}// FILE: modules/pages.js
+
+function generateId() {
+  return "p_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 }
 
 // =========================
-// HTML ESCAPE (CRITICAL FIX)
+// PAGES API (ID-FIRST SYSTEM)
 // =========================
-function escapeHtml(str = "") {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+export async function pagesAPI(request, env) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  const matchId = pathname.match(/^\/api\/page\/([^/]+)$/);
+
+  // =========================
+  // LIST (ALL PAGES)
+  // =========================
+  if (pathname === "/api/pages" && request.method === "GET") {
+    const keys = await env.WIKI_DB.list();
+
+    const pages = await Promise.all(
+      keys.keys.map(k => env.WIKI_DB.get(k.name))
+    );
+
+    return Response.json(
+      pages
+        .filter(Boolean)
+        .map(p => JSON.parse(p))
+    );
+  }
+
+  // =========================
+  // GET BY ID
+  // =========================
+  if (matchId && request.method === "GET") {
+    const id = matchId[1];
+
+    const raw = await env.WIKI_DB.get(id);
+    if (!raw) return new Response("Not found", { status: 404 });
+
+    return Response.json(JSON.parse(raw));
+  }
+
+  // =========================
+  // SAVE (UPSERT BY ID)
+  // =========================
+  if (matchId && request.method === "POST") {
+    const id = matchId[1];
+    const body = await request.json();
+
+    const raw = await env.WIKI_DB.get(id);
+    const existing = raw ? JSON.parse(raw) : null;
+
+    const slug = body.slug || existing?.slug || id;
+
+    const page = {
+      id,
+      slug,
+      title: body.title || slug,
+      content: body.content || "",
+      html: body.content || "",
+      updatedAt: Date.now()
+    };
+
+    // store by id
+    await env.WIKI_DB.put(id, JSON.stringify(page));
+
+    // slug index
+    await env.WIKI_DB.put("slug:" + slug, id);
+
+    return Response.json(page);
+  }
+
+  // =========================
+  // DELETE BY ID
+  // =========================
+  if (matchId && request.method === "DELETE") {
+    const id = matchId[1];
+
+    const raw = await env.WIKI_DB.get(id);
+    if (!raw) return new Response("Not found", { status: 404 });
+
+    const page = JSON.parse(raw);
+
+    await env.WIKI_DB.delete(id);
+    await env.WIKI_DB.delete("slug:" + page.slug);
+
+    return new Response("deleted");
+  }
 }
