@@ -84,7 +84,10 @@ export default {
     // API: GET PAGE
     // =========================
     if (req.method === "GET" && path.startsWith("/api/page/")) {
-      const slug = path.split("/").pop();
+      let slug = path.split("/").pop();
+if (!slug || slug === "new") {
+  slug = body.slug || body.title || "page";
+}
 
       const file = await env.PAGES.get(encodePath(slug));
 
@@ -106,7 +109,10 @@ export default {
     // API: SAVE PAGE
     // =========================
     if (req.method === "POST" && path.startsWith("/api/page/")) {
-      const slug = path.split("/").pop();
+      let slug = path.split("/").pop();
+if (!slug || slug === "new") {
+  slug = body.slug || body.title || "page";
+}
       const body = await req.json();
 
       const id = body.id || crypto.randomUUID();
