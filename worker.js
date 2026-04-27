@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.2 FIXED)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.3 SAFE ROUTING)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,13 +58,17 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (FIXED SAFE) =================
+// ================= LAYOUT LOADER (SAFE LOCAL ONLY) =================
 async function layout(env, name) {
-  const res = await env.ASSETS.fetch(
-    new Request(`https://indexmod.press/layouts/${name}.html`)
-  );
+  try {
+    const res = await env.ASSETS.fetch(
+      new Request(`https://indexmod.press/layouts/${name}.html`)
+    );
 
-  if (!res.ok) {
+    if (!res.ok) throw new Error("missing layout");
+
+    return await res.text();
+  } catch (e) {
     return `
 <!doctype html>
 <html>
@@ -74,8 +78,6 @@ async function layout(env, name) {
 </body>
 </html>`;
   }
-
-  return await res.text();
 }
 
 // ================= WORKER =================
@@ -91,17 +93,29 @@ export default {
         return new Response("OK");
       }
 
-      // ================= 🔒 EDITOR ROUTE LOCK =================
-      if (path === "/editor" || path === "/editor.html") {
+      // ================= EDITOR ROUTING (FIXED) =================
+
+      // redirect legacy
+      if (path === "/editor.html") {
+        return Response.redirect("/editor", 301);
+      }
+
+      if (path === "/editor/") {
+        return Response.redirect("/editor", 301);
+      }
+
+      // canonical editor
+      if (path === "/editor") {
         const tpl = await layout(env, "editor");
 
-        return new Response(
-          tpl
-            .replaceAll("{{title}}", "Editor")
-            .replaceAll("{{slug}}", "")
-            .replaceAll("{{content}}", ""),
-          { headers: { "Content-Type": "text/html; charset=utf-8" } }
-        );
+        const html = tpl
+          .replaceAll("{{title}}", "Editor")
+          .replaceAll("{{slug}}", "")
+          .replaceAll("{{content}}", "");
+
+        return new Response(html, {
+          headers: { "Content-Type": "text/html; charset=utf-8" }
+        });
       }
 
       // ================= LIST =================
@@ -177,8 +191,7 @@ ${data.content || ""}`;
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
         !path.includes(".") &&
-        path !== "/editor" &&
-        path !== "/editor.html"
+        path !== "/editor"
       ) {
         const slug = path === "/" ? "index" : path.slice(1);
 

@@ -1,11 +1,12 @@
 /* =========================
-   INDEXMOD LAYOUT SYSTEM v2
+   INDEXMOD LAYOUT SYSTEM v2 FIXED
    ========================= */
 
 :root {
   --x: 100px;
   --y: 100px;
-  --header-space: 320px; /* 🔥 ключевой фикс */
+  --header-space: 320px;
+  --radius-pill: 999px;
 }
 
 /* ================= BASE ================= */
@@ -15,6 +16,7 @@ body {
   font-family: Georgia, serif;
   background: #fff;
   color: #000;
+  overflow-x: hidden;
 }
 
 a {
@@ -22,13 +24,13 @@ a {
   color: #000;
 }
 
-/* links inside content only */
+/* content links */
 .layout-page a,
 .layout-editor a {
-  color: #1a0dab; /* 🔵 google blue */
+  color: #1a0dab;
 }
 
-/* ================= HEADER ================= */
+/* ================= HEADER (LOCKED SYSTEM) ================= */
 
 header {
   position: fixed;
@@ -40,75 +42,7 @@ header {
   justify-content: space-between;
   align-items: center;
 
-  z-index: 10;
-}
-
-header {
-  position: fixed;
-  top: 120px;
-  left: 100px;
-  right: 100px;
-  z-index: 10;
-}
-
-main {
-  padding-top: 360px; /* +100 воздуха */
-}
-
-/* ================= LINKS UI (SYSTEM BUTTONS) ================= */
-
-.new,
-.edit,
-.save {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 10px 22px;
-
-  font-size: 17px;
-  font-weight: 400; /* не 100 — 100 выглядит “сломано” в Georgia */
-  text-transform: none;
-
-  color: #000;
-  background-color: #fff;
-
-  border: 1px solid #000;
-  border-radius: 999px; /* вместо 30/40 → настоящий pill */
-
-  text-decoration: none;
-
-  line-height: 1;
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-}
-
-/* hover = лёгкое поведение UI, без “перекраски мира” */
-.new:hover,
-.edit:hover,
-.save:hover {
-  background-color: #000;
-  color: #fff;
-}
-
-/* active = мягкий “press” */
-.new:active,
-.edit:active,
-.save:active {
-  transform: scale(0.98);
-}
-
-/* prevent page scrolling under logo illusion */
-body {
-  overflow-x: hidden;
-}
-
-/* editor textarea height FIX */
-textarea {
-  min-height: 70vh;
-  font-size: 18px;
-  line-height: 1.5;
+  z-index: 100;
 }
 
 /* ================= LOGO ================= */
@@ -125,27 +59,51 @@ textarea {
   100% { transform: scale(1); }
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* ================= UI BUTTON SYSTEM ================= */
 
 .new,
-.edit {
-  font-size: 34px;
+.edit,
+.save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 22px;
+
+  font-size: 17px;
+  font-weight: 400;
+
+  color: #000;
+  background: #fff;
+
+  border: 1px solid #000;
+  border-radius: var(--radius-pill);
+
   line-height: 1;
   cursor: pointer;
+
+  transition: all 0.2s ease;
 }
 
-/* визуальное равенство кнопок */
-.actions a,
-.new,
-.edit {
-  display: inline-block;
-  padding: 10px 0;
+/* hover */
+.new:hover,
+.edit:hover,
+.save:hover {
+  background: #000;
+  color: #fff;
 }
 
-/* ================= GLOBAL MAIN ================= */
+/* click */
+.new:active,
+.edit:active,
+.save:active {
+  transform: scale(0.98);
+}
+
+/* ================= GLOBAL CONTENT SHIFT ================= */
 
 main {
-  padding: calc(var(--header-space) + 40px) var(--x) 120px;
+  padding: calc(var(--header-space) + 60px) var(--x) 120px;
   max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -157,21 +115,6 @@ main {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 60px;
-  padding-top: calc(var(--header-space) + 50px); /* 🔥 фикс на наезд */
-}
-
-/* ================= TEXT ================= */
-
-.title {
-  font-size: 26px;
-  letter-spacing: 0.05em;
-  color: #000;
-}
-
-.section-title {
-  font-size: 44px;
-  letter-spacing: 0.25em;
-  margin-bottom: 25px;
 }
 
 /* ================= PAGE ================= */
@@ -179,7 +122,7 @@ main {
 .layout-page main {
   max-width: 900px;
   line-height: 1.75;
-  font-size: 19px; /* 🔥 чуть больше текст */
+  font-size: 19px;
 }
 
 /* ================= EDITOR ================= */
@@ -188,22 +131,15 @@ main {
   max-width: 900px;
 }
 
-/* inputs unified */
-input,
+/* textarea fix */
 textarea {
-  width: 100%;
-  font-size: 22px;
-  border: none;
-  outline: none;
+  min-height: 75vh;
+  font-size: 18px;
+  line-height: 1.5;
   font-family: Georgia, serif;
 }
 
-/* editor save button match edit */
-.layout-editor .edit {
-  font-size: 34px;
-}
-
-/* ================= RESPONSIVE ================= */
+/* ================= MOBILE ================= */
 
 @media (max-width: 900px) {
   header {
