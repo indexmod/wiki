@@ -16,14 +16,37 @@ body {
 
 header {
   padding: 40px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .logo {
-  width: 80px;
+  width: 70px;
+}
+
+/* SAVE TOP RIGHT */
+.save {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* VIEW BUTTON TOP RIGHT (under save) */
+.view {
+  position: fixed;
+  top: 55px;
+  right: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #777;
 }
 
 main {
-  padding: 0 60px 60px;
+  padding: 80px 60px 60px;
   max-width: 900px;
 }
 
@@ -45,18 +68,9 @@ textarea {
   line-height: 1.6;
   background: transparent;
 }
-
-button {
-  margin-top: 20px;
-  border: none;
-  background: none;
-  font-size: 18px;
-  cursor: pointer;
-}
 </style>
 
 <script src="/slugify.js"></script>
-
 </head>
 
 <body>
@@ -67,60 +81,74 @@ button {
   </a>
 </header>
 
+<div class="save" onclick="save()">Save</div>
+<div class="view" id="viewBtn" style="display:none" onclick="goView()">View</div>
+
 <main>
-
-<input id="title" placeholder="Title" />
-<textarea id="content" placeholder="Start writing..."></textarea>
-
-<button onclick="save()">Save</button>
-
+  <input id="title" placeholder="Title" />
+  <textarea id="content" placeholder="Start writing..."></textarea>
 </main>
 
 <script>
 const params = new URLSearchParams(location.search);
-
-// ⚠️ ID — теперь главный
-const id = params.get("id");
+let id = params.get("id");
 
 const titleInput = document.getElementById("title");
 const contentInput = document.getElementById("content");
+const viewBtn = document.getElementById("viewBtn");
+
+let currentSlug = null;
 
 // =========================
-// LOAD BY ID
+// LOAD
 // =========================
 async function load() {
   if (!id) return;
 
   const res = await fetch("/api/page/" + id);
-
   if (!res.ok) return;
 
   const data = await res.json();
 
   titleInput.value = data.title || "";
   contentInput.value = data.content || "";
+
+  currentSlug = data.slug;
+
+  viewBtn.style.display = "block";
 }
 
 // =========================
-// SAVE BY ID
+// SAVE (UPSERT)
 // =========================
 async function save() {
-  if (!id) {
-    alert("Missing ID");
-    return;
-  }
-
   const title = titleInput.value.trim();
   const content = contentInput.value;
 
-  await fetch("/api/page/" + id, {
+  const res = await fetch("/api/page/" + (id || ""), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, content })
   });
 
-  // возвращаемся в чистый slug-view слой
-  location.href = "/";
+  const page = await res.json();
+
+  id = page.id;
+  currentSlug = page.slug;
+
+  viewBtn.style.display = "block";
+
+  // НЕ уводим в индекс
+  history.replaceState({}, "", `/editor.html?id=${id}`);
+}
+
+// =========================
+// VIEW BUTTON
+// =========================
+function goView() {
+  if (currentSlug) {
+    location.href = "/" + currentSlug;
+  }
 }
 
 load();

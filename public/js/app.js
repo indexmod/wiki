@@ -1,7 +1,7 @@
-<!-- FILE: app.js -->
+/// FILE: app.js
 
 // =========================
-// LOAD ALL PAGES
+// LOAD ALL PAGES (ID-FIRST)
 // =========================
 async function load() {
   const res = await fetch("/api/pages");
@@ -15,19 +15,20 @@ async function load() {
   }
 
   // =========================
-  // NORMALIZE + SAFE FALLBACKS
+  // NORMALIZE (ID IS PRIMARY)
   // =========================
   const items = pages.map(p => {
     return {
       id: p.id,
-      slug: p.slug || p.id,
-      title: p.title || p.slug || p.id,
-      letter: (p.title?.[0] || "#").toUpperCase()
+      slug: p.slug,
+      title: p.title || p.id,
+
+      letter: (p.title?.trim()?.[0] || "#").toUpperCase()
     };
   });
 
   // =========================
-  // SORT (A-Z by title)
+  // SORT (stable title sort)
   // =========================
   items.sort((a, b) =>
     (a.title || "")
@@ -43,15 +44,12 @@ async function load() {
   for (const p of items) {
     const letter = p.letter;
 
-    if (!groups[letter]) {
-      groups[letter] = [];
-    }
-
+    if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);
   }
 
   // =========================
-  // RENDER
+  // RENDER (ID ROUTING FIXED)
   // =========================
   grid.innerHTML = Object.keys(groups)
     .sort()
@@ -64,7 +62,8 @@ async function load() {
             .map(p => {
               return `
                 <div class="item">
-                  <a href="/${p.slug}">
+                  <!-- IMPORTANT: ID is navigation key -->
+                  <a href="/view.html?id=${p.id}">
                     ${escapeHtml(p.title)}
                   </a>
                 </div>
@@ -78,7 +77,7 @@ async function load() {
 }
 
 // =========================
-// SAFE HTML ESCAPE
+// SAFE HTML
 // =========================
 function escapeHtml(str = "") {
   return str
@@ -87,7 +86,4 @@ function escapeHtml(str = "") {
     .replace(/>/g, "&gt;");
 }
 
-// =========================
-// BOOT
-// =========================
 load();

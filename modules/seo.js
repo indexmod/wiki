@@ -1,45 +1,42 @@
-<!-- FILE: seo.js -->
+/// FILE: modules/seo.js
 
 export async function seoRouter(request, env) {
   const url = new URL(request.url);
   const slug = url.pathname.slice(1);
 
   // =========================
-  // 1. FIND BY SLUG (resolve layer)
+  // 1. RESOLVE SLUG → ID (INDEX LAYER)
   // =========================
-  const keys = await env.WIKI_DB.list();
+  const id = await env.WIKI_DB.get("slug:" + slug);
 
-  let page = null;
-
-  for (const k of keys.keys) {
-    const raw = await env.WIKI_DB.get(k.name);
-    if (!raw) continue;
-
-    try {
-      const p = JSON.parse(raw);
-
-      if (p.slug === slug) {
-        page = p;
-        break;
-      }
-    } catch {}
-  }
-
-  if (!page) {
+  if (!id) {
     return new Response("Not found", { status: 404 });
   }
 
   // =========================
-  // 2. SAFE FIELDS
+  // 2. LOAD BY ID (SOURCE OF TRUTH)
   // =========================
-  const title = page.title || slug;
-  const description = (page.content || "").slice(0, 140);
+  const raw = await env.WIKI_DB.get(id);
+
+  if (!raw) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const page = JSON.parse(raw);
+
+  // =========================
+  // 3. SAFE FIELDS
+  // =========================
+  const title = escapeHtml(page.title || slug);
+  const description = escapeHtml((page.content || "").slice(0, 140));
   const content = page.html || "";
 
-  const canonical = `https://${url.host}/${page.slug}`;
+  // canonical MUST be stable slug (but fallback-safe)
+  const canonicalSlug = page.slug || slug;
+  const canonical = `https://${url.host}/${canonicalSlug}`;
 
   // =========================
-  // 3. SEO HTML (clean)
+  // 4. SEO HTML
   // =========================
   const html = `
 <!DOCTYPE html>
@@ -49,14 +46,13 @@ export async function seoRouter(request, env) {
 
   <title>${title}</title>
 
-  <meta name="description" content="${escapeHtml(description)}">
+  <meta name="description" content="${description}">
 
   <link rel="canonical" href="${canonical}">
   <link rel="icon" href="/favicon.svg">
 
-  <!-- OpenGraph -->
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:description" content="${description}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="${canonical}">
 </head>
@@ -66,7 +62,7 @@ export async function seoRouter(request, env) {
   <article>${content}</article>
 
   <p>
-    <a href="/editor.html?slug=${page.slug}">Edit</a>
+    <a href="/editor.html?id=${page.id}">Edit</a>
   </p>
 </body>
 </html>
@@ -78,7 +74,7 @@ export async function seoRouter(request, env) {
 }
 
 // =========================
-// HTML ESCAPE (важно для SEO безопасности)
+// HTML ESCAPE (CRITICAL FIX)
 // =========================
 function escapeHtml(str = "") {
   return str

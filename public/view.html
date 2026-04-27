@@ -1,5 +1,4 @@
 <!-- FILE: view.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,42 +18,37 @@ body {
   color: #111;
 }
 
-/* =========================
-   LOGO (top-left safe area)
-========================= */
+/* logo left */
 header {
   position: fixed;
   top: 0;
   left: 0;
   padding: 20px;
-  z-index: 10;
 }
 
 header img {
   width: 70px;
-  opacity: 0.9;
 }
 
-/* =========================
-   EDIT LINK (TOP LEFT)
-========================= */
-#editLink {
+/* actions right */
+.actions {
   position: fixed;
-  top: 30px;
-  left: 110px;
+  top: 20px;
+  right: 20px;
   font-size: 14px;
-  color: #777;
-  text-decoration: none;
-  letter-spacing: 1px;
+  display: flex;
+  gap: 15px;
 }
 
-#editLink:hover {
+.actions a {
+  text-decoration: none;
+  color: #666;
+}
+
+.actions a:hover {
   color: #000;
 }
 
-/* =========================
-   CONTENT LAYOUT
-========================= */
 main {
   padding: 140px 60px 80px;
   max-width: 900px;
@@ -70,11 +64,6 @@ main {
   font-size: 20px;
   line-height: 1.6;
 }
-
-/* markdown safety */
-.content img {
-  max-width: 100%;
-}
 </style>
 </head>
 
@@ -86,8 +75,9 @@ main {
   </a>
 </header>
 
-<!-- 🔥 EDIT FIXED TOP-LEFT -->
-<a id="editLink">Edit</a>
+<div class="actions">
+  <a id="edit">Edit</a>
+</div>
 
 <main>
   <div id="title" class="title"></div>
@@ -95,50 +85,41 @@ main {
 </main>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   const params = new URLSearchParams(location.search);
-  const slug = slugify(params.get("slug") || "");
+
+  // =========================
+  // ID IS PRIMARY SOURCE NOW
+  // =========================
+  const id = params.get("id");
 
   const titleEl = document.getElementById("title");
   const contentEl = document.getElementById("content");
-  const editEl = document.getElementById("editLink");
+  const editEl = document.getElementById("edit");
 
-  if (!titleEl || !contentEl || !editEl) {
-    console.error("VIEW ERROR: missing DOM nodes");
+  if (!id) {
+    titleEl.textContent = "Missing ID";
     return;
   }
 
   async function load() {
-    if (!slug) {
-      titleEl.textContent = "No slug";
+    const res = await fetch("/api/page/" + id);
+
+    if (!res.ok) {
+      titleEl.textContent = "Not found";
       return;
     }
 
-    try {
-      const res = await fetch("/api/page/" + slug);
+    const data = await res.json();
 
-      if (!res.ok) {
-        titleEl.textContent = "Not found";
-        contentEl.textContent = "";
-        return;
-      }
+    titleEl.textContent = data.title || "";
+    contentEl.innerHTML = window.marked
+      ? marked.parse(data.content || "")
+      : (data.content || "");
 
-      const data = await res.json();
-
-      titleEl.textContent = data.title || slug;
-
-      // markdown render (safe fallback)
-      contentEl.innerHTML = window.marked
-        ? marked.parse(data.content || "")
-        : (data.content || "");
-
-      editEl.href = "/editor.html?slug=" + slug;
-
-    } catch (e) {
-      console.error("VIEW LOAD ERROR:", e);
-      titleEl.textContent = "Error";
-    }
+    // edit always uses ID now
+    editEl.href = "/editor.html?id=" + id;
   }
 
   load();
