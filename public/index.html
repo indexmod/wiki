@@ -25,14 +25,7 @@ header {
   align-items: center;
 }
 
-.logo {
-  height: 40px;
-}
-
-.add {
-  text-decoration: none;
-  color: #000;
-}
+.logo { height: 40px; }
 
 main {
   padding: 120px 60px;
@@ -40,73 +33,53 @@ main {
   margin: 0 auto;
 }
 
-.item {
-  margin-bottom: 12px;
-}
+.item { margin-bottom: 12px; }
 
 .item a {
   text-decoration: none;
   color: #000;
 }
 
-.item a:hover {
-  text-decoration: underline;
-}
+.item a:hover { text-decoration: underline; }
 </style>
 </head>
 
 <body>
 
 <header>
-  <!-- LOGO → index -->
   <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
-  <!-- NEW PAGE → editor opens empty page in edit mode -->
-  <a class="add" href="/new?edit=1">New page</a>
+  <a href="/editor.html" class="add">New page</a>
 </header>
 
 <main id="list"></main>
 
 <script>
-// =========================
-// LOAD ALL PAGES (ZERO-INDEX MODE)
-// =========================
 async function load() {
-  try {
-    const res = await fetch("/api/pages");
-    const pages = await res.json();
+  const res = await fetch("/api/pages");
+  const pages = await res.json();
 
-    const list = document.getElementById("list");
-
-    const safePages = (pages || []).filter(p => p && p.slug);
-
-    list.innerHTML = safePages
-      .sort((a, b) => (a.title || "").localeCompare(b.title || ""))
+  document.getElementById("list").innerHTML =
+    pages
+      .filter(p => p && p.slug)
+      .sort((a,b) => (a.title||"").localeCompare(b.title||""))
       .map(p => `
         <div class="item">
-          <!-- IMPORTANT: SLUG PAGE ROUTE -->
           <a href="/${p.slug}">
             ${escapeHtml(p.title || p.slug)}
           </a>
         </div>
       `)
       .join("");
-
-  } catch (err) {
-    console.error("Index load error:", err);
-  }
 }
 
-// =========================
-// ESCAPE
-// =========================
-function escapeHtml(str = "") {
+function escapeHtml(str="") {
   return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
 }
 
 load();

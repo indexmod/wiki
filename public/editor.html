@@ -1,4 +1,4 @@
-// FILE: public/editor.html
+<!-- FILE: public/editor.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,6 @@ body {
   margin: 0;
   font-family: Georgia, serif;
   font-size: 25px;
-  color: #000;
 }
 
 header {
@@ -20,22 +19,6 @@ header {
   right: 30px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  height: 40px;
-}
-
-.controls {
-  display: flex;
-  gap: 20px;
-}
-
-a {
-  text-decoration: none;
-  color: #000;
-  cursor: pointer;
 }
 
 main {
@@ -46,15 +29,10 @@ main {
 
 input, textarea {
   width: 100%;
-  font-family: Georgia, serif;
   font-size: 25px;
   border: none;
   outline: none;
   margin-bottom: 20px;
-}
-
-#slugInput {
-  opacity: 0.7;
 }
 </style>
 </head>
@@ -63,111 +41,78 @@ input, textarea {
 
 <header>
   <a href="/">
-    <img src="/logo.png" class="logo">
+    <img src="/logo.png" style="height:40px;">
   </a>
 
-  <div class="controls">
-    <a id="viewLink" target="_blank">view</a>
+  <div>
+    <a id="view">view</a>
     <a onclick="save()">save</a>
   </div>
 </header>
 
 <main>
   <input id="title" placeholder="title">
-  <input id="slugInput" placeholder="permalink">
+  <input id="slug" placeholder="slug">
   <textarea id="content" placeholder="content"></textarea>
 </main>
 
 <script>
-// =========================
-// ROUTING (ZERO-ID MODEL)
-// /romashka?edit=1
-// /new?edit=1
-// =========================
-const url = new URL(location.href);
-
-let slug = window.location.pathname.slice(1);
-let isNew = slug === "new";
-let isEdit = url.searchParams.get("edit") === "1";
+const params = new URLSearchParams(location.search);
+let slug = params.get("slug") || "";
 
 const titleEl = document.getElementById("title");
+const slugEl = document.getElementById("slug");
 const contentEl = document.getElementById("content");
-const slugEl = document.getElementById("slugInput");
-const viewLink = document.getElementById("viewLink");
-
-// internal id (never shown)
-let id = null;
+const view = document.getElementById("view");
 
 // =========================
-// LOAD
+// LOAD BY SLUG
 // =========================
 async function load() {
   if (!slug) return;
 
   const res = await fetch("/api/page/" + slug);
-  if (!res.ok && !isNew) return;
+  if (!res.ok) return;
 
-  if (isNew) {
-    viewLink.href = "/";
-    return;
-  }
+  const p = await res.json();
 
-  const page = await res.json();
+  titleEl.value = p.title || "";
+  slugEl.value = p.slug || "";
+  contentEl.value = p.content || "";
 
-  id = page.id;
-
-  titleEl.value = page.title || "";
-  contentEl.value = page.content || "";
-  slugEl.value = page.slug || "";
-
-  viewLink.href = "/" + page.slug;
-
-  if (!isEdit) {
-    titleEl.disabled = true;
-    contentEl.disabled = true;
-    slugEl.disabled = true;
-  }
+  view.href = "/" + p.slug;
 }
 
 // =========================
 // SAVE
 // =========================
 async function save() {
-  const finalSlug = normalizeSlug(
-    slugEl.value || titleEl.value || "page"
-  );
+  const newSlug = normalize(slugEl.value || titleEl.value);
 
-  const res = await fetch("/api/page/" + (id || "new"), {
+  const res = await fetch("/api/page/" + (slug || "new"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({
       title: titleEl.value,
-      content: contentEl.value,
-      slug: finalSlug
+      slug: newSlug,
+      content: contentEl.value
     })
   });
 
-  const page = await res.json();
+  const p = await res.json();
 
-  id = page.id;
+  slug = p.slug;
 
-  slugEl.value = page.slug;
+  history.replaceState(null, "", "/editor.html?slug=" + p.slug);
 
-  // redirect to clean canonical URL
-  history.replaceState(null, "", "/" + page.slug + "?edit=1");
-
-  viewLink.href = "/" + page.slug;
+  view.href = "/" + p.slug;
 }
 
-// =========================
-// SLUG NORMALIZER
-// =========================
-function normalizeSlug(input) {
-  return String(input || "")
+function normalize(s){
+  return String(s||"")
     .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
 }
 
 load();
