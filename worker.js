@@ -1,32 +1,40 @@
-// FILE: worker.js (OBSIDIAN MODE STABLE)
+// FILE: worker.js (INDEXMOD CLEAN STABLE)
 
-function path(slug) {
+function file(slug) {
   return `pages/${slug}.md`;
 }
 
 // =========================
-// FRONTMATTER PARSER
+// SAFE READ
+// =========================
+async function read(obj) {
+  if (!obj) return "";
+  if (typeof obj === "string") return obj;
+  if (obj.text) return await obj.text();
+  return String(obj);
+}
+
+// =========================
+// FRONTMATTER
 // =========================
 function parse(md = "") {
-  const match = String(md).match(/^---([\s\S]*?)---\n?/);
+  md = String(md);
 
-  if (!match) {
-    return { meta: {}, body: md };
-  }
+  const match = md.match(/^---([\s\S]*?)---\n?/);
+
+  if (!match) return { meta: {}, body: md };
 
   const meta = {};
 
-  match[1]
-    .split("\n")
-    .forEach(line => {
-      const i = line.indexOf(":");
-      if (i === -1) return;
+  match[1].split("\n").forEach(line => {
+    const i = line.indexOf(":");
+    if (i === -1) return;
 
-      const k = line.slice(0, i).trim();
-      const v = line.slice(i + 1).trim();
+    const k = line.slice(0, i).trim();
+    const v = line.slice(i + 1).trim();
 
-      if (k) meta[k] = v;
-    });
+    if (k) meta[k] = v;
+  });
 
   return {
     meta,
@@ -35,7 +43,7 @@ function parse(md = "") {
 }
 
 // =========================
-// MARKDOWN BUILDER
+// BUILD MD
 // =========================
 function build(meta, body) {
   return `---
@@ -59,26 +67,46 @@ function slugify(s = "") {
 }
 
 // =========================
+// MINIMAL MARKDOWN RENDER
+// =========================
+function render(md = "") {
+  let html = String(md);
+
+  html = html.replace(/^### (.*)$/gim, "<h3>$1</h3>");
+  html = html.replace(/^## (.*)$/gim, "<h2>$1</h2>");
+  html = html.replace(/^# (.*)$/gim, "<h1>$1</h1>");
+
+  html = html.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/gim,
+    `<a href="$2" target="_blank">$1</a>`
+  );
+
+  html = html.replace(/^\* (.*)$/gim, "<li>$1</li>");
+  html = html.replace(/(<li>.*<\/li>)/gims, "<ul>$1</ul>");
+
+  html = html.replace(/\n{2,}/g, "</p><p>");
+  html = `<p>${html}</p>`;
+
+  return html;
+}
+
+// =========================
 // WORKER
 // =========================
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    const pathname = url.pathname;
+    const path = url.pathname;
 
     try {
 
-      // =========================
-      // TEST
-      // =========================
-      if (pathname === "/__test") {
+      // ================= TEST =================
+      if (path === "/__test") {
         return new Response("OK");
       }
 
-      // =========================
-      // INDEX
-      // =========================
-      if (pathname === "/api/pages") {
+      // ================= INDEX =================
+      if (path === "/api/pages") {
         const list = await env.PAGES.list();
 
         const pages = [];
@@ -86,38 +114,33 @@ export default {
         for (const obj of list.objects || []) {
           if (!obj?.key) continue;
 
-          const slug = obj.key
-            .replace("pages/", "")
-            .replace(".md", "");
+          const raw = await env.PAGES.get(obj.key);
+          const md = await read(raw);
 
-          if (!slug || slug === "undefined") continue;
+          const { meta } = parse(md);
+
+          const slug = meta.slug ||
+            obj.key.replace("pages/", "").replace(".md", "");
+
+          if (!slug) continue;
 
           pages.push({
             slug,
-            title: slug
+            title: meta.title || slug
           });
         }
 
         return Response.json(pages);
       }
 
-      // =========================
-      // GET PAGE
-      // =========================
-      if (pathname.startsWith("/api/page/") && req.method === "GET") {
-        const slug = pathname.split("/").pop();
+      // ================= GET =================
+      if (path.startsWith("/api/page/") && req.method === "GET") {
+        const slug = path.split("/").pop();
 
-        if (!slug) {
-          return new Response("bad slug", { status: 400 });
-        }
+        const raw = await env.PAGES.get(file(slug));
+        if (!raw) return new Response("not found", { status: 404 });
 
-        const obj = await env.PAGES.get(path(slug));
-
-        if (!obj) {
-          return new Response("not found", { status: 404 });
-        }
-
-        const md = await obj.text();
+        const md = await read(raw);
         const { meta, body } = parse(md);
 
         return Response.json({
@@ -127,34 +150,23 @@ export default {
         });
       }
 
-      // =========================
-      // SAVE PAGE
-      // =========================
-      if (pathname.startsWith("/api/page/") && req.method === "POST") {
-        const urlSlug = pathname.split("/").pop();
+      // ================= SAVE =================
+      if (path.startsWith("/api/page/") && req.method === "POST") {
+        const urlSlug = path.split("/").pop();
 
         let data = {};
-        try {
-          data = await req.json();
-        } catch {}
+        try { data = await req.json(); } catch {}
 
         const slug = slugify(
           data.slug || data.title || urlSlug || "page"
         );
 
-        if (!slug) {
-          return new Response("invalid slug", { status: 400 });
-        }
-
         const md = build(
-          {
-            title: data.title,
-            slug
-          },
-          data.content || ""
+          { title: data.title, slug },
+          data.content
         );
 
-        await env.PAGES.put(path(slug), md);
+        await env.PAGES.put(file(slug), md);
 
         return Response.json({
           slug,
@@ -162,27 +174,20 @@ export default {
         });
       }
 
-      // =========================
-      // ROUTER (/slug)
-      // =========================
+      // ================= PAGE =================
       if (
-        !pathname.startsWith("/api") &&
-        !pathname.startsWith("/__") &&
-        !pathname.includes(".")
+        !path.startsWith("/api") &&
+        !path.startsWith("/__") &&
+        !path.includes(".")
       ) {
-        const slug = pathname.slice(1);
+        const slug = path.slice(1);
 
-        if (!slug) {
-          return env.ASSETS.fetch(req);
-        }
+        if (!slug) return env.ASSETS.fetch(req);
 
-        const obj = await env.PAGES.get(path(slug));
+        const raw = await env.PAGES.get(file(slug));
+        if (!raw) return env.ASSETS.fetch(req);
 
-        if (!obj) {
-          return env.ASSETS.fetch(req);
-        }
-
-        const md = await obj.text();
+        const md = await read(raw);
         const { meta, body } = parse(md);
 
         return new Response(`
@@ -191,27 +196,27 @@ export default {
 <head>
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
+<link rel="icon" href="/favicon.svg">
 </head>
-<body style="font-family:Georgia;max-width:800px;margin:60px auto;">
+<body style="font-family:Georgia;max-width:800px;margin:60px auto;line-height:1.6;">
+
   <h1>${meta.title || slug}</h1>
-  <article>${body}</article>
+
+  <article>${render(body)}</article>
 
   <a href="/editor.html?slug=${slug}"
      style="position:fixed;top:20px;right:20px;">
     edit
   </a>
+
 </body>
 </html>
         `, {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8"
-          }
+          headers: { "Content-Type": "text/html; charset=utf-8" }
         });
       }
 
-      // =========================
-      // FALLBACK
-      // =========================
+      // ================= STATIC =================
       return env.ASSETS.fetch(req);
 
     } catch (err) {

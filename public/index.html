@@ -5,6 +5,7 @@
 <title>IndexMod Fashion and Art</title>
 
 <link rel="icon" href="/favicon.svg">
+<link rel="shortcut icon" href="/favicon.svg">
 
 <style>
 body {
@@ -32,6 +33,11 @@ a {
   text-decoration: none;
 }
 
+/* NEW BUTTON */
+.new {
+  font-size: 28px;
+}
+
 /* GRID */
 main {
   padding: 140px 60px 60px;
@@ -52,7 +58,7 @@ main {
   font-size: 40px;
   letter-spacing: 0.3em;
   margin-bottom: 20px;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 /* ITEM */
@@ -64,15 +70,17 @@ main {
 .title {
   font-size: 25px;
   letter-spacing: 0.05em;
+  color: #000; /* 🔥 ЖЁСТКО ЧЁРНЫЙ */
 }
 
-
+/* EMPTY */
 .empty {
   grid-column: 1 / -1;
   opacity: 0.4;
   font-style: italic;
 }
 
+/* MOBILE */
 @media (max-width: 900px) {
   main {
     grid-template-columns: 1fr;
@@ -88,18 +96,23 @@ main {
     <img src="/logo.png" class="logo">
   </a>
 
-  <a href="#" onclick="location.href='/editor.html'">+ new</a>
+  <a class="new" href="/editor.html">+ new</a>
 </header>
 
 <main id="list"></main>
 
 <script>
-function normalizeTitle(s="") {
-  return String(s)
-    .replace(/\//g, " ")
-    .replace(/\bedit\b/gi, "")
-    .replace(/\bnew\b/gi, "")
-    .trim();
+function cleanTitle(p) {
+  let t = (p.title || "").trim();
+
+  // если title пустой → аккуратно из slug
+  if (!t) {
+    t = (p.slug || "")
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  return t;
 }
 
 function sectionLetter(title="") {
@@ -122,11 +135,10 @@ async function load() {
     return;
   }
 
-  // group by A/B/C...
   const groups = {};
 
   for (const p of safe) {
-    const title = normalizeTitle(p.title || p.slug);
+    const title = cleanTitle(p);
     const letter = sectionLetter(title);
 
     if (!groups[letter]) groups[letter] = [];
@@ -137,7 +149,7 @@ async function load() {
 
   list.innerHTML = letters.map(letter => {
     const items = groups[letter]
-      .sort((a,b) => (a.title||"").localeCompare(b.title||""));
+      .sort((a,b) => a.title.localeCompare(b.title));
 
     return `
       <div class="section">
@@ -146,7 +158,7 @@ async function load() {
         ${items.map(p => `
           <div class="item">
             <a href="/${p.slug}">
-              <div class="title">${escapeHtml(p.title || p.slug)}</div>
+              <div class="title">${escapeHtml(p.title)}</div>
             </a>
           </div>
         `).join("")}
