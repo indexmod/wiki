@@ -1,190 +1,205 @@
-// FILE: worker.js (OBSIDIAN MODE)
+// FILE: worker.js (HARDENED R2 WIKI CORE)
 
-function filePath(slug) {
+function pathOf(slug) {
   return `pages/${slug}.md`;
 }
 
-function safeText(v) {
-  return typeof v === "string" ? v : "";
-}
-
 // =========================
-// PARSER (FRONTMATTER OPTIONAL)
+// SAFE FRONTMATTER PARSER
 // =========================
 function parse(md = "") {
-  const match = md.match(/^---([\s\S]*?)---/);
+  try {
+    const text = String(md);
 
-  if (!match) {
-    return { meta: {}, body: md };
+    const match = text.match(/^---([\s\S]*?)---\n?/);
+    if (!match) return { meta: {}, body: text };
+
+    const meta = {};
+    const raw = match[1] || "";
+
+    raw.split("\n").forEach(line => {
+      const i = line.indexOf(":");
+      if (i === -1) return;
+
+      const k = line.slice(0, i).trim();
+      const v = line.slice(i + 1).trim();
+
+      if (k) meta[k] = v;
+    });
+
+    const body = text.slice(match[0].length).trim();
+
+    return { meta, body };
+  } catch (e) {
+    return { meta: {}, body: "" };
   }
-
-  const metaRaw = match[1] || "";
-  const body = md.slice(match[0].length).trim();
-
-  const meta = {};
-  metaRaw.split("\n").forEach(line => {
-    const i = line.indexOf(":");
-    if (i === -1) return;
-
-    const k = line.slice(0, i).trim();
-    const v = line.slice(i + 1).trim();
-
-    if (k) meta[k] = v;
-  });
-
-  return { meta, body };
 }
 
 // =========================
 // BUILD MARKDOWN
 // =========================
-function build({ title = "", slug = "" }, body = "") {
+function build(meta = {}, body = "") {
   return `---
-title: ${title}
-slug: ${slug}
+id: ${meta.id || ""}
+slug: ${meta.slug || ""}
+title: ${meta.title || ""}
 updatedAt: ${Date.now()}
 ---
 
-${body}`;
+${body || ""}`;
 }
 
+// =========================
+// SLUG NORMALIZER
+// =========================
+function slugify(s = "") {
+  return String(s)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// =========================
+// FETCH
+// =========================
 export default {
   async fetch(req, env) {
-    const url = new URL(req.url);
-    const path = url.pathname;
+    try {
+      const url = new URL(req.url);
+      const path = url.pathname || "/";
 
-    // =========================
-    // HEALTH CHECK
-    // =========================
-    if (path === "/__test") {
-      return new Response("OK");
-    }
+      // ================= TEST =================
+      if (path === "/__test") {
+        return new Response("OK");
+      }
 
-    // =========================
-    // LIST FILES (INDEX PAGE)
-    // =========================
-    if (path === "/api/pages") {
-      const list = await env.PAGES.list();
+      // ================= LIST =================
+      if (path === "/api/pages") {
+        const list = await env.PAGES.list();
 
-      const pages = [];
+        const pages = [];
 
-      for (const obj of list.objects || []) {
-        const file = await env.PAGES.get(obj.key);
-        if (!file) continue;
+        for (const obj of list.objects || []) {
+          if (!obj?.key) continue;
 
-        const { meta } = parse(file);
+          const file = await env.PAGES.get(obj.key);
+          if (!file) continue;
 
-        const slug = obj.key
-          .replace("pages/", "")
-          .replace(".md", "");
+          const { meta } = parse(file);
 
-        pages.push({
-          slug,
-          title: meta.title || slug
+          pages.push({
+            id: meta.id || obj.key,
+            slug: meta.slug || "",
+            title: meta.title || ""
+          });
+        }
+
+        return Response.json(pages);
+      }
+
+      // ================= GET PAGE =================
+      if (path.startsWith("/api/page/") && req.method === "GET") {
+        const slug = path.split("/").pop() || "";
+
+        const file = await env.PAGES.get(pathOf(slug));
+
+        if (!file) return new Response("not found", { status: 404 });
+
+        const { meta, body } = parse(file);
+
+        return Response.json({
+          id: meta.id,
+          slug: meta.slug,
+          title: meta.title,
+          content: body
         });
       }
 
-      return Response.json(pages);
-    }
+      // ================= SAVE PAGE =================
+      if (path.startsWith("/api/page/") && req.method === "POST") {
+        const slugFromUrl = path.split("/").pop() || "";
 
-    // =========================
-    // GET PAGE BY SLUG
-    // =========================
-    if (path.startsWith("/api/page/") && req.method === "GET") {
-      const slug = path.split("/").pop();
+        let body = {};
+        try {
+          body = await req.json();
+        } catch {
+          body = {};
+        }
 
-      const file = await env.PAGES.get(filePath(slug));
+        const slug = slugify(
+          body.slug || body.title || slugFromUrl || "page"
+        );
 
-      if (!file) {
-        return new Response("not found", { status: 404 });
+        const id = body.id || crypto.randomUUID();
+
+        const md = build(
+          {
+            id,
+            slug,
+            title: body.title
+          },
+          body.content
+        );
+
+        await env.PAGES.put(pathOf(slug), md);
+
+        return Response.json({
+          id,
+          slug,
+          title: body.title,
+          content: body.content
+        });
       }
 
-      const { meta, body } = parse(file);
+      // ================= ROUTER (PAGES) =================
+      if (
+        req.method === "GET" &&
+        !path.startsWith("/api") &&
+        !path.startsWith("/__") &&
+        !path.includes(".")
+      ) {
+        const slug = path.slice(1);
 
-      return Response.json({
-        slug,
-        title: meta.title || slug,
-        content: body
-      });
-    }
+        const file = await env.PAGES.get(pathOf(slug));
 
-    // =========================
-    // SAVE PAGE
-    // =========================
-    if (path.startsWith("/api/page/") && req.method === "POST") {
-      const slug = path.split("/").pop();
+        if (!file) return env.ASSETS.fetch(req);
 
-      let data = {};
-      try {
-        data = await req.json();
-      } catch {}
+        const { meta, body } = parse(file);
 
-      const finalSlug =
-        (data.slug || data.title || slug || "page")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "");
-
-      const md = build(
-        {
-          title: safeText(data.title),
-          slug: finalSlug
-        },
-        safeText(data.content)
-      );
-
-      await env.PAGES.put(filePath(finalSlug), md);
-
-      return Response.json({
-        slug: finalSlug,
-        title: data.title,
-        content: data.content
-      });
-    }
-
-    // =========================
-    // PAGE ROUTING (/mars)
-    // =========================
-    if (
-      !path.startsWith("/api") &&
-      !path.startsWith("/__") &&
-      !path.includes(".")
-    ) {
-      const slug = path.slice(1);
-
-      const file = await env.PAGES.get(filePath(slug));
-
-      if (!file) {
-        return env.ASSETS.fetch(req);
-      }
-
-      const { meta, body } = parse(file);
-
-      return new Response(`
-<!doctype html>
+        return new Response(
+`<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
 </head>
-
 <body style="font-family:Georgia;max-width:800px;margin:60px auto;">
   <h1>${meta.title || slug}</h1>
   <article>${body}</article>
 
-  <a href="/editor.html?slug=${slug}" style="position:fixed;top:20px;right:20px;">
-    edit
+  <a href="/editor.html?slug=${slug}"
+     style="position:fixed;top:20px;right:20px;">
+     edit
   </a>
 </body>
-</html>
-      `, {
-        headers: { "Content-Type": "text/html; charset=utf-8" }
-      });
-    }
+</html>`,
+          {
+            headers: {
+              "Content-Type": "text/html; charset=utf-8"
+            }
+          }
+        );
+      }
 
-    // =========================
-    // STATIC
-    // =========================
-    return env.ASSETS.fetch(req);
+      // ================= FALLBACK =================
+      return env.ASSETS.fetch(req);
+
+    } catch (err) {
+      return new Response(
+        "WORKER ERROR: " + (err?.message || "unknown"),
+        { status: 500 }
+      );
+    }
   }
 };
