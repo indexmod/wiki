@@ -2,14 +2,20 @@ name = "wiki"
 main = "worker.js"
 compatibility_date = "2026-04-25"
 
+# =========================
+# STATIC FRONTEND
+# =========================
 [assets]
 directory = "./public"
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/*"]
+
+# worker должен обрабатывать ВСЁ (API + /slug + index)
+run_worker_first = ["/*"]
+
 not_found_handling = "single-page-application"
 
 # =========================
-# NEW: R2 FILE STORAGE
+# R2 STORAGE (NEW CORE)
 # =========================
 [[r2_buckets]]
 binding = "PAGES"
