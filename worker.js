@@ -1,3 +1,5 @@
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1 SAFE)
+
 function file(slug) {
   return `pages/${slug}.md`;
 }
@@ -18,12 +20,14 @@ function parse(md = "") {
   if (!match) return { meta: {}, body: md };
 
   const meta = {};
+
   match[1].split("\n").forEach(line => {
     const i = line.indexOf(":");
     if (i === -1) return;
 
     const k = line.slice(0, i).trim();
     const v = line.slice(i + 1).trim();
+
     if (k) meta[k] = v;
   });
 
@@ -54,6 +58,27 @@ function render(md = "") {
   return html;
 }
 
+// ================= LAYOUT LOADER =================
+async function layout(env, name) {
+  const res = await env.ASSETS.fetch(
+    new Request(`/layouts/${name}.html`)
+  );
+
+  if (!res.ok) {
+    return `
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+  <h1>Layout missing: ${name}</h1>
+</body>
+</html>
+    `;
+  }
+
+  return await res.text();
+}
+
 // ================= WORKER =================
 export default {
   async fetch(req, env) {
@@ -62,6 +87,7 @@ export default {
 
     try {
 
+      // ================= TEST =================
       if (path === "/__test") {
         return new Response("OK");
       }
@@ -89,7 +115,7 @@ export default {
         return Response.json(pages);
       }
 
-      // ================= GET =================
+      // ================= GET PAGE =================
       if (path.startsWith("/api/page/") && req.method === "GET") {
         const slug = path.split("/").pop();
 
@@ -128,16 +154,19 @@ ${data.content || ""}`;
 
         await env.PAGES.put(file(slug), md);
 
-        return Response.json({ slug, title: data.title || slug });
+        return Response.json({
+          slug,
+          title: data.title || slug
+        });
       }
 
-      // ================= PAGE =================
+      // ================= PAGE ROUTE =================
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
         !path.includes(".")
       ) {
-        const slug = path.slice(1) || "index";
+        const slug = path === "/" ? "index" : path.slice(1);
 
         const raw = await env.PAGES.get(file(slug));
         if (!raw) return env.ASSETS.fetch(req);
@@ -157,10 +186,11 @@ ${data.content || ""}`;
         });
       }
 
+      // ================= STATIC =================
       return env.ASSETS.fetch(req);
 
     } catch (err) {
-      return new Response("WORKER ERROR: " + err.message, {
+      return new Response("WORKER ERROR: " + (err?.message || err), {
         status: 500
       });
     }
