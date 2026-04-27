@@ -1,9 +1,10 @@
-// FILE: worker.js (R2 FILE-FIRST WIKI + DEBUG MODE)
-
 function encodePath(slug) {
   return `pages/${slug}.md`;
 }
 
+// =========================
+// FRONTMATTER PARSER
+// =========================
 function parseFrontmatter(md) {
   const match = md.match(/^---([\s\S]*?)---/);
   if (!match) return { meta: {}, body: md };
@@ -21,6 +22,9 @@ function parseFrontmatter(md) {
   return { meta, body };
 }
 
+// =========================
+// FRONTMATTER BUILDER
+// =========================
 function buildMarkdown(meta, body) {
   return `---
 id: ${meta.id || ""}
@@ -38,14 +42,14 @@ export default {
     const path = url.pathname;
 
     // =========================
-    // 🧪 TEST ROUTE (CHECK WORKER)
+    // TEST
     // =========================
     if (path === "/__test") {
       return new Response("WORKER OK");
     }
 
     // =========================
-    // 🧪 LIST RAW FILES (DEBUG R2)
+    // DEBUG LIST RAW R2 FILES
     // =========================
     if (path === "/__list") {
       const list = await env.PAGES.list();
@@ -53,7 +57,31 @@ export default {
     }
 
     // =========================
-    // GET PAGE BY SLUG
+    // API: LIST PAGES
+    // =========================
+    if (req.method === "GET" && path === "/api/pages") {
+      const list = await env.PAGES.list();
+
+      const pages = await Promise.all(
+        list.objects.map(async (obj) => {
+          const file = await env.PAGES.get(obj.key);
+          if (!file) return null;
+
+          const { meta } = parseFrontmatter(file);
+
+          return {
+            id: meta.id,
+            slug: meta.slug,
+            title: meta.title
+          };
+        })
+      );
+
+      return Response.json(pages.filter(Boolean));
+    }
+
+    // =========================
+    // API: GET PAGE
     // =========================
     if (req.method === "GET" && path.startsWith("/api/page/")) {
       const slug = path.split("/").pop();
@@ -67,13 +95,15 @@ export default {
       const { meta, body } = parseFrontmatter(file);
 
       return Response.json({
-        ...meta,
+        id: meta.id,
+        slug: meta.slug,
+        title: meta.title,
         content: body
       });
     }
 
     // =========================
-    // SAVE PAGE
+    // API: SAVE PAGE
     // =========================
     if (req.method === "POST" && path.startsWith("/api/page/")) {
       const slug = path.split("/").pop();
@@ -101,29 +131,49 @@ export default {
     }
 
     // =========================
-    // INDEX
+    // 🧠 SLUG ROUTER (ВАЖНОЕ ИСПРАВЛЕНИЕ)
     // =========================
-    if (req.method === "GET" && path === "/api/pages") {
-      const list = await env.PAGES.list();
+    if (
+      req.method === "GET" &&
+      !path.startsWith("/api") &&
+      !path.startsWith("/__") &&
+      !path.includes(".")
+    ) {
+      const slug = path.slice(1);
 
-      const pages = await Promise.all(
-        list.objects.map(async obj => {
-          const file = await env.PAGES.get(obj.key);
-          if (!file) return null;
+      const file = await env.PAGES.get(encodePath(slug));
 
-          const { meta } = parseFrontmatter(file);
+      // fallback → index.html
+      if (!file) {
+        return env.ASSETS.fetch(req);
+      }
 
-          return {
-            id: meta.id,
-            slug: meta.slug,
-            title: meta.title
-          };
-        })
-      );
+      const { meta, body } = parseFrontmatter(file);
 
-      return Response.json(pages.filter(Boolean));
+      return new Response(`
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${meta.title || slug}</title>
+</head>
+<body style="font-family:Georgia;max-width:800px;margin:60px auto;">
+  <h1>${meta.title || slug}</h1>
+  <article>${body}</article>
+
+  <p>
+    <a href="/editor.html?slug=${slug}">edit</a>
+  </p>
+</body>
+</html>
+      `, {
+        headers: { "Content-Type": "text/html; charset=utf-8" }
+      });
     }
 
-    return new Response("404");
+    // =========================
+    // FALLBACK → STATIC ASSETS
+    // =========================
+    return env.ASSETS.fetch(req);
   }
 };
