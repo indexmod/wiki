@@ -1,5 +1,5 @@
-function encodePath(slug) {
-  return `pages/${slug}.md`;
+function encodePath(id) {
+  return `pages/${id}.md`;
 }
 
 // =========================
@@ -37,6 +37,15 @@ ${body || ""}`;
 }
 
 // =========================
+function normalizeSlug(s) {
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// =========================
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -50,7 +59,7 @@ export default {
     }
 
     // =========================
-    // DEBUG LIST
+    // DEBUG LIST RAW
     // =========================
     if (path === "/__list") {
       return Response.json(await env.PAGES.list());
@@ -81,12 +90,12 @@ export default {
     }
 
     // =========================
-    // GET PAGE
+    // GET PAGE (BY ID)
     // =========================
     if (req.method === "GET" && path.startsWith("/api/page/")) {
-      const slug = path.split("/").pop();
+      const id = path.split("/").pop();
 
-      const file = await env.PAGES.get(encodePath(slug));
+      const file = await env.PAGES.get(encodePath(id));
 
       if (!file) return new Response("not found", { status: 404 });
 
@@ -101,46 +110,41 @@ export default {
     }
 
     // =========================
-    // SAVE PAGE
+    // SAVE PAGE (BY ID)
     // =========================
     if (req.method === "POST" && path.startsWith("/api/page/")) {
-      const slugFromUrl = path.split("/").pop();
-      const body = await req.json();
+      const idFromUrl = path.split("/").pop();
 
-      const slug =
-        body.slug ||
-        body.title ||
-        slugFromUrl ||
-        "page";
+      let body = {};
+      try {
+        body = await req.json();
+      } catch {}
 
-      const cleanSlug = slug
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
+      const id = body.id || idFromUrl || crypto.randomUUID();
 
-      const id = body.id || crypto.randomUUID();
+      const slug = normalizeSlug(body.slug || body.title || id);
 
       const md = buildMarkdown(
         {
           id,
-          slug: cleanSlug,
-          title: body.title
+          slug,
+          title: body.title || slug
         },
-        body.content
+        body.content || ""
       );
 
-      await env.PAGES.put(encodePath(cleanSlug), md);
+      await env.PAGES.put(encodePath(id), md);
 
       return Response.json({
         id,
-        slug: cleanSlug,
-        title: body.title,
-        content: body.content
+        slug,
+        title: body.title || slug,
+        content: body.content || ""
       });
     }
 
     // =========================
-    // SLUG ROUTER (PAGE VIEW)
+    // SLUG ROUTER (PUBLIC PAGE)
     // =========================
     if (
       req.method === "GET" &&
@@ -150,13 +154,16 @@ export default {
     ) {
       const slug = path.slice(1);
 
-      const file = await env.PAGES.get(encodePath(slug));
+      const list = await env.PAGES.list();
 
-      if (!file) return env.ASSETS.fetch(req);
+      for (const obj of list.objects) {
+        const file = await env.PAGES.get(obj.key);
+        if (!file) continue;
 
-      const { meta, body } = parseFrontmatter(file);
+        const { meta, body } = parseFrontmatter(file);
 
-      return new Response(`
+        if (meta.slug === slug) {
+          return new Response(`
 <!doctype html>
 <html>
 <head>
@@ -172,13 +179,17 @@ export default {
   </a>
 </body>
 </html>
-      `, {
-        headers: { "Content-Type": "text/html; charset=utf-8" }
-      });
+          `, {
+            headers: { "Content-Type": "text/html; charset=utf-8" }
+          });
+        }
+      }
+
+      return env.ASSETS.fetch(req);
     }
 
     // =========================
-    // STATIC FALLBACK
+    // FALLBACK STATIC
     // =========================
     return env.ASSETS.fetch(req);
   }
