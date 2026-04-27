@@ -12,18 +12,7 @@ export default {
     const pathname = url.pathname;
 
     // =========================
-    // SEO ROUTE (SLUG → HTML PAGE)
-    // =========================
-    if (
-      req.method === "GET" &&
-      !pathname.startsWith("/api") &&
-      !pathname.includes(".")
-    ) {
-      return seoRouter(req, env);
-    }
-
-    // =========================
-    // LIST (ONLY REAL PAGES)
+    // API: LIST PAGES
     // =========================
     if (pathname === "/api/pages" && req.method === "GET") {
       const keys = await env.WIKI_DB.list();
@@ -41,7 +30,7 @@ export default {
     }
 
     // =========================
-    // GET (BY ID OR SLUG)
+    // API: GET PAGE (ID OR SLUG)
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "GET") {
       const key = pathname.split("/").pop();
@@ -59,7 +48,7 @@ export default {
     }
 
     // =========================
-    // SAVE (UPSERT)
+    // API: SAVE (UPSERT)
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "POST") {
       const key = pathname.split("/").pop();
@@ -103,7 +92,7 @@ export default {
     }
 
     // =========================
-    // DELETE
+    // API: DELETE
     // =========================
     if (pathname.startsWith("/api/page/") && req.method === "DELETE") {
       const key = pathname.split("/").pop();
@@ -119,6 +108,18 @@ export default {
       await env.WIKI_DB.delete("slug:" + page.slug);
 
       return new Response("deleted");
+    }
+
+    // =========================
+    // SEO ROUTE (SLUG → HTML PAGE)
+    // =========================
+    if (
+      req.method === "GET" &&
+      !pathname.startsWith("/api") &&
+      !pathname.includes(".") &&
+      pathname !== "/"
+    ) {
+      return seoRouter(req, env);
     }
 
     return new Response("404");
