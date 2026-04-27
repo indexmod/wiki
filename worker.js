@@ -6,15 +6,11 @@ import { seoRouter } from "./modules/seo.js";
 // ROUTE HELPERS
 // =========================
 function isAssetPath(pathname) {
-  return pathname.includes("."); // /logo.png /favicon.svg /index.css
+  return pathname.includes("."); // css / js / png / svg
 }
 
 function isSlugRoute(pathname) {
   return /^\/[a-z0-9-]+$/.test(pathname);
-}
-
-function isApiPage(pathname) {
-  return pathname.startsWith("/api/page/");
 }
 
 // =========================
@@ -26,39 +22,46 @@ export default {
     const { pathname } = url;
 
     // =====================================================
-    // 1. API LAYER (JSON — ПЕРВЫЙ ПРИОРИТЕТ)
+    // 1. API LAYER (ABSOLUTE PRIORITY)
     // =====================================================
 
-    if (pathname === "/api/pages") {
-      return pagesAPI(request, env);
-    }
+    if (pathname.startsWith("/api/")) {
 
-    if (pathname.startsWith("/api/topics")) {
-      return topicsAPI(request, env);
-    }
+      // pages collection
+      if (pathname === "/api/pages") {
+        return pagesAPI(request, env);
+      }
 
-    // 👉 ВАЖНО: конкретная страница API
-    if (isApiPage(pathname)) {
-      return pagesAPI(request, env);
+      // single page
+      if (pathname.startsWith("/api/page/")) {
+        return pagesAPI(request, env);
+      }
+
+      // topics
+      if (pathname.startsWith("/api/topics")) {
+        return topicsAPI(request, env);
+      }
+
+      return new Response("API route not found", { status: 404 });
     }
 
     // =====================================================
-    // 2. STATIC FILES (CSS, JS, IMG)
+    // 2. STATIC ASSETS
     // =====================================================
     if (isAssetPath(pathname)) {
       return env.ASSETS.fetch(request);
     }
 
     // =====================================================
-    // 3. SEO SLUG ROUTES (HTML VIEW)
-    // /svinoe-rylo → SSR page
+    // 3. SEO ROUTES (CLEAN URLS)
+    // /svinoe-rylo → seoRouter → HTML render
     // =====================================================
     if (isSlugRoute(pathname)) {
       return seoRouter(request, env);
     }
 
     // =====================================================
-    // 4. FALLBACK (SPA / INDEX)
+    // 4. FALLBACK (INDEX / SPA)
     // =====================================================
     return env.ASSETS.fetch(request);
   }

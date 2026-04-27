@@ -2,31 +2,61 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-const params = new URLSearchParams(location.search);
-const rawSlug = params.get("slug");
+document.addEventListener("DOMContentLoaded", () => {
 
-const slug = slugify(rawSlug);
+  const params = new URLSearchParams(location.search);
+  const rawSlug = params.get("slug");
 
-async function load() {
-  if (!slug) return;
+  const slug = slugify(rawSlug || "");
 
-  const res = await fetch("/api/page/" + slug);
-  if (!res.ok) {
-    document.getElementById("title").textContent = "Not found";
+  const titleEl = document.getElementById("title");
+  const contentEl = document.getElementById("content");
+  const editEl = document.getElementById("editLink");
+
+  if (!titleEl || !contentEl || !editEl) {
+    console.error("View: missing DOM nodes");
     return;
   }
 
-  const data = await res.json();
+  async function load() {
+    if (!slug) {
+      titleEl.textContent = "No slug";
+      return;
+    }
 
-  document.getElementById("title").textContent = data.title || slug;
+    try {
+      const res = await fetch("/api/page/" + slug);
 
-  // 🔥 Markdown render FIX
-  document.getElementById("content").innerHTML =
-    marked.parse(data.content || "");
+      // защита от HTML вместо JSON
+      const contentType = res.headers.get("content-type") || "";
+      if (!res.ok || !contentType.includes("application/json")) {
+        titleEl.textContent = "Not found";
+        contentEl.textContent = "";
+        return;
+      }
 
-  document.getElementById("editLink").href =
-    "/editor.html?slug=" + slug;
-}
+      const data = await res.json();
 
-load();
+      // title
+      titleEl.textContent = data.title || slug;
+
+      // markdown render (safe fallback)
+      if (window.marked && typeof marked.parse === "function") {
+        contentEl.innerHTML = marked.parse(data.content || "");
+      } else {
+        contentEl.textContent = data.content || "";
+      }
+
+      // edit link
+      editEl.href = "/editor.html?slug=" + slug;
+
+    } catch (err) {
+      console.error("View load error:", err);
+      titleEl.textContent = "Error";
+      contentEl.textContent = "";
+    }
+  }
+
+  load();
+});
 </script>
