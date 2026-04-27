@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1 SAFE)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.1 FIXED)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,10 +58,12 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER =================
+// ================= LAYOUT LOADER (SAFE FIXED) =================
 async function layout(env, name) {
+  const url = new URL("https://dummy");
+
   const res = await env.ASSETS.fetch(
-    new Request(`/layouts/${name}.html`)
+    new Request(url.origin + `/layouts/${name}.html`)
   );
 
   if (!res.ok) {
@@ -69,11 +71,10 @@ async function layout(env, name) {
 <!doctype html>
 <html>
 <head><meta charset="utf-8"></head>
-<body>
+<body style="font-family:sans-serif;padding:40px">
   <h1>Layout missing: ${name}</h1>
 </body>
-</html>
-    `;
+</html>`;
   }
 
   return await res.text();
@@ -87,7 +88,6 @@ export default {
 
     try {
 
-      // ================= TEST =================
       if (path === "/__test") {
         return new Response("OK");
       }
@@ -115,7 +115,7 @@ export default {
         return Response.json(pages);
       }
 
-      // ================= GET PAGE =================
+      // ================= GET =================
       if (path.startsWith("/api/page/") && req.method === "GET") {
         const slug = path.split("/").pop();
 
@@ -174,7 +174,9 @@ ${data.content || ""}`;
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const tpl = await layout(env, "page");
+        const layoutName = slug === "index" ? "index" : "page";
+
+        const tpl = await layout(env, layoutName);
 
         const html = tpl
           .replaceAll("{{title}}", meta.title || slug)
@@ -186,7 +188,6 @@ ${data.content || ""}`;
         });
       }
 
-      // ================= STATIC =================
       return env.ASSETS.fetch(req);
 
     } catch (err) {
