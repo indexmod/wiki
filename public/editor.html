@@ -2,99 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Editor</title>
+<title>Editor · IndexMod</title>
 
-<link rel="icon" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="shortcut icon" href="/favicon.svg">
 
-<style>
-body {
-  margin: 0;
-  font-family: Georgia, serif;
-  font-size: 26px;
-  background: #fff;
-  color: #000;
-}
-
-/* HEADER */
-header {
-  position: fixed;
-  top: 30px;
-  left: 30px;
-  right: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  height: 40px;
-}
-
-/* SAVE */
-.save {
-  cursor: pointer;
-}
-
-/* MAIN */
-main {
-  padding: 140px 60px;
-  max-width: 900px;
-  margin: auto;
-}
-
-/* INPUTS */
-input, textarea {
-  width: 100%;
-  font-family: Georgia, serif;
-  font-size: 26px;
-  border: none;
-  outline: none;
-  margin-bottom: 30px;
-  background: transparent;
-  color: #000;
-}
-
-/* TITLE */
-#title {
-  font-size: 42px;
-}
-
-/* TEXTAREA */
-textarea {
-  min-height: 60vh;
-  resize: none;
-}
-
-/* MOBILE */
-@media (max-width: 900px) {
-  main {
-    padding: 120px 20px;
-  }
-
-  #title {
-    font-size: 32px;
-  }
-
-  input, textarea {
-    font-size: 22px;
-  }
-}
-</style>
+<!-- GLOBAL STYLE SYSTEM -->
+<link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
 
 <header>
-  <a href="/">
+  <a href="/" class="logo-wrap">
     <img src="/logo.png" class="logo">
   </a>
 
-  <div class="save" onclick="save()">save</div>
+  <a class="edit" onclick="save()">save</a>
 </header>
 
-<main>
-  <input id="title" placeholder="Title">
-  <textarea id="content" placeholder="Write..."></textarea>
+<main class="page">
+
+  <input id="title" placeholder="title" />
+
+  <textarea id="content" placeholder="write markdown..."></textarea>
+
 </main>
 
 <script>
@@ -122,18 +54,22 @@ async function save() {
 
   const res = await fetch("/api/page/" + base, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       title: titleEl.value,
-      content: contentEl.value
+      content: contentEl.value,
+      slug: slug
     })
   });
 
   const p = await res.json();
 
+  // обновляем slug если новая страница
   slug = p.slug;
 
-  // 👉 сразу на страницу
+  // переход в просмотр
   location.href = "/" + p.slug;
 }
 

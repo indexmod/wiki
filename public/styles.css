@@ -1,0 +1,121 @@
+/* =========================
+   INDEXMOD SYSTEM SKIN
+   ========================= */
+
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fff;
+  color: #000;
+}
+
+/* LINKS */
+a {
+  color: #000;
+  text-decoration: none;
+}
+
+/* ================= HEADER ================= */
+
+header {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  z-index: 10;
+}
+
+/* LOGO */
+.logo {
+  height: 200px; /* как ты просил */
+  animation: pulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* плавный пульс БЕЗ opacity */
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* NEW BUTTON */
+.new {
+  font-size: 34px;
+}
+
+/* EDIT BUTTON */
+.edit {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+
+/* ================= INDEX GRID ================= */
+
+main {
+  padding: 240px 100px 100px; /* + воздух вокруг */
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+/* SECTION */
+.section {
+  margin-bottom: 60px;
+}
+
+.section-title {
+  font-size: 44px;
+  letter-spacing: 0.25em;
+  margin-bottom: 25px;
+}
+
+/* ITEM */
+.item {
+  margin-bottom: 18px;
+}
+
+/* TITLE */
+.title {
+  font-size: 26px;
+  letter-spacing: 0.05em;
+  color: #000; /* железный черный */
+}
+
+/* EMPTY */
+.empty {
+  grid-column: 1 / -1;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* ================= PAGE VIEW ================= */
+
+.page {
+  padding: 140px 60px;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 160px 30px;
+  }
+
+  .logo {
+    height: 120px;
+  }
+}

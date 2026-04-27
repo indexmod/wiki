@@ -1,12 +1,10 @@
-// FILE: worker.js (INDEXMOD CLEAN STABLE)
+// FILE: worker.js (INDEXMOD PURE CORE FIXED)
 
 function file(slug) {
   return `pages/${slug}.md`;
 }
 
-// =========================
-// SAFE READ
-// =========================
+// ================= SAFE READ =================
 async function read(obj) {
   if (!obj) return "";
   if (typeof obj === "string") return obj;
@@ -14,14 +12,11 @@ async function read(obj) {
   return String(obj);
 }
 
-// =========================
-// FRONTMATTER
-// =========================
+// ================= FRONTMATTER =================
 function parse(md = "") {
   md = String(md);
 
   const match = md.match(/^---([\s\S]*?)---\n?/);
-
   if (!match) return { meta: {}, body: md };
 
   const meta = {};
@@ -42,9 +37,7 @@ function parse(md = "") {
   };
 }
 
-// =========================
-// BUILD MD
-// =========================
+// ================= BUILD =================
 function build(meta, body) {
   return `---
 title: ${meta.title || ""}
@@ -55,9 +48,7 @@ updatedAt: ${Date.now()}
 ${body || ""}`;
 }
 
-// =========================
-// SLUGIFY
-// =========================
+// ================= SLUG =================
 function slugify(s = "") {
   return String(s)
     .toLowerCase()
@@ -66,9 +57,7 @@ function slugify(s = "") {
     .replace(/^-|-$/g, "");
 }
 
-// =========================
-// MINIMAL MARKDOWN RENDER
-// =========================
+// ================= MARKDOWN =================
 function render(md = "") {
   let html = String(md);
 
@@ -85,14 +74,11 @@ function render(md = "") {
   html = html.replace(/(<li>.*<\/li>)/gims, "<ul>$1</ul>");
 
   html = html.replace(/\n{2,}/g, "</p><p>");
-  html = `<p>${html}</p>`;
 
   return html;
 }
 
-// =========================
-// WORKER
-// =========================
+// ================= WORKER =================
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -100,15 +86,14 @@ export default {
 
     try {
 
-      // ================= TEST =================
+      // ===== TEST =====
       if (path === "/__test") {
         return new Response("OK");
       }
 
-      // ================= INDEX =================
+      // ===== LIST =====
       if (path === "/api/pages") {
         const list = await env.PAGES.list();
-
         const pages = [];
 
         for (const obj of list.objects || []) {
@@ -119,7 +104,8 @@ export default {
 
           const { meta } = parse(md);
 
-          const slug = meta.slug ||
+          const slug =
+            meta.slug ||
             obj.key.replace("pages/", "").replace(".md", "");
 
           if (!slug) continue;
@@ -133,7 +119,7 @@ export default {
         return Response.json(pages);
       }
 
-      // ================= GET =================
+      // ===== GET =====
       if (path.startsWith("/api/page/") && req.method === "GET") {
         const slug = path.split("/").pop();
 
@@ -150,7 +136,7 @@ export default {
         });
       }
 
-      // ================= SAVE =================
+      // ===== SAVE =====
       if (path.startsWith("/api/page/") && req.method === "POST") {
         const urlSlug = path.split("/").pop();
 
@@ -174,7 +160,7 @@ export default {
         });
       }
 
-      // ================= PAGE =================
+      // ===== PAGE (CLEAN HTML ONLY) =====
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
@@ -196,19 +182,27 @@ export default {
 <head>
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
-<link rel="icon" href="/favicon.svg">
-<link rel="shortcut icon" href="/favicon.svg">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/styles.css">
 </head>
-<body style="font-family:Georgia;max-width:800px;margin:60px auto;line-height:1.6;">
 
-  <h1>${meta.title || slug}</h1>
+<body>
 
-  <article>${render(body)}</article>
+<header>
+  <a href="/" class="logo-wrap">
+    <img src="/logo.png" class="logo">
+  </a>
 
-  <a href="/editor.html?slug=${slug}"
-     style="position:fixed;top:20px;right:20px;">
+  <a class="edit" href="/editor.html?slug=${slug}">
     edit
   </a>
+</header>
+
+<main class="page">
+  <h1>${meta.title || slug}</h1>
+  <article>${render(body)}</article>
+</main>
 
 </body>
 </html>
@@ -217,7 +211,7 @@ export default {
         });
       }
 
-      // ================= STATIC =================
+      // ===== STATIC =====
       return env.ASSETS.fetch(req);
 
     } catch (err) {
