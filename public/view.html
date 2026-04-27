@@ -1,5 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>View</title>
+
+<link rel="icon" href="/favicon.svg">
+
 <script src="/slugify.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #fafafa;
+  color: #111;
+}
+
+header {
+  padding: 60px;
+}
+
+main {
+  padding: 0 60px 80px;
+  max-width: 900px;
+}
+
+.title {
+  font-size: 42px;
+  margin-bottom: 20px;
+}
+
+.content {
+  font-size: 20px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+a {
+  color: #666;
+  text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="/">
+    <img src="/logo.png" style="width:80px">
+  </a>
+</header>
+
+<main>
+  <!-- ⚠️ ЭТО ОБЯЗАТЕЛЬНО -->
+  <div id="title" class="title"></div>
+  <div id="content" class="content"></div>
+  <a id="editLink">Edit</a>
+</main>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -7,19 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
   const slug = slugify(params.get("slug") || "");
 
+  // ⚠️ ГЛАВНАЯ ЗАЩИТА
   const titleEl = document.getElementById("title");
   const contentEl = document.getElementById("content");
   const editEl = document.getElementById("editLink");
 
-  // =========================
-  // SAFETY CHECK (ВАЖНО)
-  // =========================
   if (!titleEl || !contentEl || !editEl) {
-    console.error("View error: missing DOM nodes", {
-      titleEl,
-      contentEl,
-      editEl
-    });
+    console.error("❌ VIEW HTML BROKEN: missing DOM nodes");
     return;
   }
 
@@ -29,37 +81,27 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    try {
-      const res = await fetch("/api/page/" + slug);
+    const res = await fetch("/api/page/" + slug);
 
-      if (!res.ok) {
-        titleEl.textContent = "Not found";
-        contentEl.textContent = "";
-        return;
-      }
-
-      const data = await res.json();
-
-      // title
-      titleEl.textContent = data.title || slug;
-
-      // markdown
-      const html = window.marked
-        ? marked.parse(data.content || "")
-        : (data.content || "");
-
-      contentEl.innerHTML = html;
-
-      // edit link
-      editEl.href = "/editor.html?slug=" + slug;
-
-    } catch (e) {
-      console.error("View load error:", e);
-      titleEl.textContent = "Error";
-      contentEl.textContent = "";
+    if (!res.ok) {
+      titleEl.textContent = "Not found";
+      return;
     }
+
+    const data = await res.json();
+
+    titleEl.textContent = data.title || slug;
+
+    contentEl.innerHTML = window.marked
+      ? marked.parse(data.content || "")
+      : (data.content || "");
+
+    editEl.href = "/editor.html?slug=" + slug;
   }
 
   load();
 });
 </script>
+
+</body>
+</html>
