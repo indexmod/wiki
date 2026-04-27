@@ -187,7 +187,7 @@ export default {
 <link rel="stylesheet" href="/styles.css">
 </head>
 
-<body>
+<body class="layout-page">
 
 <header>
   <a href="/" class="logo-wrap">
