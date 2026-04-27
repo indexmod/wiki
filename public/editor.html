@@ -5,58 +5,54 @@
 <meta charset="UTF-8">
 <title>Editor</title>
 
-<script src="/slugify.js"></script>
-
 <style>
-body { font-family: Georgia; margin:0; padding:60px; }
-input, textarea { width:100%; font-size:18px; margin-bottom:20px; }
-textarea { height:400px; }
-.save { position:fixed; top:20px; right:20px; cursor:pointer; }
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  padding: 60px;
+}
+
+input, textarea {
+  width: 100%;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="save" onclick="save()">SAVE</div>
-
 <input id="title" placeholder="title">
-<textarea id="content"></textarea>
+<textarea id="content" placeholder="content"></textarea>
+
+<button onclick="save()">Save</button>
 
 <script>
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
+const id = new URLSearchParams(location.search).get("id");
 
-const title = document.getElementById("title");
-const content = document.getElementById("content");
-
-// LOAD
 async function load() {
   if (!id) return;
 
   const res = await fetch("/api/page/" + id);
   const data = await res.json();
 
-  title.value = data.title || "";
-  content.value = data.content || "";
+  document.getElementById("title").value = data.title;
+  document.getElementById("content").value = data.content;
 }
 
-// SAVE
 async function save() {
-  if (!id) return;
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
 
-  const res = await fetch("/api/page/" + id, {
+  const res = await fetch("/api/page/" + (id || "new"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: title.value,
-      content: content.value
-    })
+    body: JSON.stringify({ title, content })
   });
 
   const page = await res.json();
 
-  // возвращаемся на slug view
-  location.href = "/" + page.slug;
+  location.href = "/view.html?id=" + page.id;
 }
 
 load();

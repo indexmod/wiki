@@ -5,30 +5,43 @@
 <meta charset="UTF-8">
 <title>View</title>
 
-<script src="/slugify.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  padding: 60px;
+}
+
+h1 {
+  font-size: 40px;
+}
+
+.edit {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+</style>
 </head>
 
 <body>
 
+<a class="edit" id="edit">Edit</a>
+
 <h1 id="title"></h1>
 <div id="content"></div>
 
-<a id="edit">edit</a>
-
 <script>
-const slug = new URLSearchParams(location.search).get("slug");
+const id = new URLSearchParams(location.search).get("id");
 
 async function load() {
-  const id = await fetch("/api/page/" + slug)
-    .then(r => r.ok ? r.json() : null);
+  const res = await fetch("/api/page/" + id);
+  const data = await res.json();
 
-  if (!id) return;
+  document.getElementById("title").innerText = data.title;
+  document.getElementById("content").innerText = data.content;
 
-  document.getElementById("title").innerText = id.title;
-  document.getElementById("content").innerHTML = marked.parse(id.content || "");
-
-  document.getElementById("edit").href = "/editor.html?id=" + id.id;
+  document.getElementById("edit").href = "/editor.html?id=" + id;
 }
 
 load();

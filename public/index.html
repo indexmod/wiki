@@ -1,11 +1,9 @@
 <!-- FILE: public/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Index</title>
-
-<link rel="icon" href="/favicon.svg">
+<title>IndexMod</title>
 
 <style>
 body {
@@ -17,33 +15,7 @@ body {
 
 header {
   padding: 60px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  width: 70px;
-  opacity: 0.9;
-}
-
-main {
-  padding: 0 60px 80px;
-  max-width: 900px;
-}
-
-.group {
-  margin-bottom: 40px;
-}
-
-.letter {
-  font-size: 14px;
-  color: #999;
-  margin-bottom: 10px;
-}
-
-.item {
-  padding: 6px 0;
+  font-size: 30px;
 }
 
 a {
@@ -51,24 +23,21 @@ a {
   color: #111;
 }
 
-a:hover {
-  text-decoration: underline;
+.grid {
+  padding: 0 60px 80px;
+}
+
+.item {
+  padding: 10px 0;
 }
 </style>
-
 </head>
 
 <body>
 
-<header>
-  <a href="/">
-    <img src="/logo.png" class="logo">
-  </a>
-</header>
+<header>IndexMod</header>
 
-<main>
-  <div id="grid"></div>
-</main>
+<div class="grid" id="grid"></div>
 
 <script>
 async function load() {
@@ -77,44 +46,13 @@ async function load() {
 
   const grid = document.getElementById("grid");
 
-  const items = pages.map(p => ({
-    id: p.id,
-    slug: p.slug,
-    title: p.title || p.slug,
-    letter: (p.title?.[0] || "#").toUpperCase()
-  }));
-
-  items.sort((a, b) =>
-    (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase())
-  );
-
-  const groups = {};
-
-  for (const p of items) {
-    const l = p.letter;
-    if (!groups[l]) groups[l] = [];
-    groups[l].push(p);
-  }
-
-  grid.innerHTML = Object.keys(groups).sort().map(letter => `
-    <div class="group">
-      <div class="letter">${letter}</div>
-      ${groups[letter].map(p => `
-        <div class="item">
-          <a href="/${p.slug}">
-            ${escapeHtml(p.title)}
-          </a>
-        </div>
-      `).join("")}
+  grid.innerHTML = pages.map(p => `
+    <div class="item">
+      <a href="/view.html?id=${p.id}">
+        ${p.title || p.id}
+      </a>
     </div>
   `).join("");
-}
-
-function escapeHtml(str = "") {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
 
 load();
