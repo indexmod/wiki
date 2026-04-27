@@ -1,6 +1,5 @@
-<!-- FILE: public/editor.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Editor</title>
@@ -8,36 +7,41 @@
 <style>
 body {
   margin: 0;
-  font-family: Georgia, serif;
-  font-size: 25px;
+  font-family: Georgia;
+  font-size: 22px;
 }
 
 header {
   position: fixed;
-  top: 30px;
-  left: 30px;
-  right: 30px;
+  top: 20px;
+  left: 20px;
+  right: 20px;
   display: flex;
   justify-content: space-between;
 }
 
-main {
-  padding: 120px 60px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
 input, textarea {
   width: 100%;
-  font-size: 25px;
   border: none;
   outline: none;
-  margin-bottom: 20px;
+  font-size: 22px;
+  font-family: Georgia;
 }
 
-/* SAVE ONLY */
-.save {
-  cursor: pointer;
+#wrap {
+  padding: 100px 60px;
+  max-width: 900px;
+  margin: auto;
+}
+
+#title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+#slug {
+  opacity: 0.5;
+  margin-bottom: 20px;
 }
 </style>
 </head>
@@ -45,72 +49,70 @@ input, textarea {
 <body>
 
 <header>
-  <a href="/">
-    <img src="/logo.png" style="height:40px;">
-  </a>
-
-  <div class="save" onclick="save()">save</div>
+  <a href="/">Index</a>
+  <span id="status">saved</span>
 </header>
 
-<main>
+<div id="wrap">
   <input id="title" placeholder="title">
   <input id="slug" placeholder="slug">
-  <textarea id="content" placeholder="content"></textarea>
-</main>
+  <textarea id="content" rows="20"></textarea>
+</div>
 
 <script>
-let slug = new URLSearchParams(location.search).get("slug") || "";
+let id = null;
+let saveTimer = null;
 
-const titleEl = document.getElementById("title");
-const slugEl = document.getElementById("slug");
-const contentEl = document.getElementById("content");
+const title = document.getElementById("title");
+const slug = document.getElementById("slug");
+const content = document.getElementById("content");
+const status = document.getElementById("status");
 
-// =========================
-// LOAD
-// =========================
+const params = new URLSearchParams(location.search);
+let currentSlug = params.get("slug");
+
 async function load() {
-  if (!slug) return;
+  const res = await fetch("/api/page/" + currentSlug);
+  const data = await res.json();
 
-  const res = await fetch("/api/page/" + slug);
-  if (!res.ok) return;
+  id = data.id;
 
-  const p = await res.json();
-
-  titleEl.value = p.title || "";
-  slugEl.value = p.slug || "";
-  contentEl.value = p.content || "";
+  title.value = data.title;
+  slug.value = data.slug;
+  content.value = data.content;
 }
 
-// =========================
-// SAVE → GO TO PAGE
-// =========================
-async function save() {
-  const newSlug = normalize(slugEl.value || titleEl.value);
+function autosave() {
+  clearTimeout(saveTimer);
+  status.textContent = "saving...";
 
-  const res = await fetch("/api/page/" + newSlug, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      title: titleEl.value,
-      content: contentEl.value,
-      slug: newSlug
-    })
-  });
+  saveTimer = setTimeout(async () => {
+    const res = await fetch("/api/page/" + (id || "new"), {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        id,
+        title: title.value,
+        slug: slug.value,
+        content: content.value
+      })
+    });
 
-  const p = await res.json();
+    const data = await res.json();
 
-  // 🔥 главный момент UX
-  window.location.href = "/" + p.slug;
+    id = data.id;
+
+    // LIVE URL UPDATE (Obsidian feel)
+    history.replaceState(null, "", "/editor.html?slug=" + data.slug);
+
+    currentSlug = data.slug;
+
+    status.textContent = "saved";
+
+  }, 400);
 }
 
-// =========================
-function normalize(s){
-  return String(s||"")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g,"-")
-    .replace(/^-|-$/g,"");
-}
+title.oninput = slug.oninput = content.oninput = autosave;
 
 load();
 </script>
