@@ -5,22 +5,32 @@ function generateId() {
 }
 
 // =========================
-// PAGES API (ID-FIRST SYSTEM)
+// HELPERS
+// =========================
+function isPageKey(key) {
+  return key.startsWith("p_"); // ONLY real pages
+}
+
+// =========================
+// PAGES API
 // =========================
 export async function pagesAPI(request, env) {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
-  const matchId = pathname.match(/^\/api\/page\/([^/]+)$/);
+  const match = pathname.match(/^\/api\/page\/([^/]+)$/);
 
   // =========================
-  // LIST (ALL PAGES)
+  // LIST (ONLY REAL PAGES)
   // =========================
   if (pathname === "/api/pages" && request.method === "GET") {
     const keys = await env.WIKI_DB.list();
 
     const pages = await Promise.all(
-      keys.keys.map(k => env.WIKI_DB.get(k.name))
+      keys.keys
+        .map(k => k.name)
+        .filter(isPageKey)
+        .map(id => env.WIKI_DB.get(id))
     );
 
     return Response.json(
@@ -33,8 +43,8 @@ export async function pagesAPI(request, env) {
   // =========================
   // GET BY ID
   // =========================
-  if (matchId && request.method === "GET") {
-    const id = matchId[1];
+  if (match && request.method === "GET") {
+    const id = match[1];
 
     const raw = await env.WIKI_DB.get(id);
     if (!raw) return new Response("Not found", { status: 404 });
@@ -43,10 +53,10 @@ export async function pagesAPI(request, env) {
   }
 
   // =========================
-  // SAVE (UPSERT BY ID)
+  // SAVE (UPSERT)
   // =========================
-  if (matchId && request.method === "POST") {
-    const id = matchId[1];
+  if (match && request.method === "POST") {
+    const id = match[1];
     const body = await request.json();
 
     const raw = await env.WIKI_DB.get(id);
@@ -63,20 +73,20 @@ export async function pagesAPI(request, env) {
       updatedAt: Date.now()
     };
 
-    // store by id
+    // main record
     await env.WIKI_DB.put(id, JSON.stringify(page));
 
-    // slug index
+    // slug index (only pointer)
     await env.WIKI_DB.put("slug:" + slug, id);
 
     return Response.json(page);
   }
 
   // =========================
-  // DELETE BY ID
+  // DELETE
   // =========================
-  if (matchId && request.method === "DELETE") {
-    const id = matchId[1];
+  if (match && request.method === "DELETE") {
+    const id = match[1];
 
     const raw = await env.WIKI_DB.get(id);
     if (!raw) return new Response("Not found", { status: 404 });

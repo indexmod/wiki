@@ -15,7 +15,6 @@ body {
   color: #111;
 }
 
-/* HEADER BUTTON */
 #add {
   position: fixed;
   top: 30px;
@@ -30,7 +29,6 @@ body {
   opacity: 0.6;
 }
 
-/* LIST */
 main {
   padding: 120px 60px;
   max-width: 900px;
@@ -49,6 +47,12 @@ main {
 
 .item a:hover {
   text-decoration: underline;
+}
+
+.meta {
+  font-size: 12px;
+  color: #888;
+  margin-left: 10px;
 }
 </style>
 </head>
@@ -71,9 +75,10 @@ async function load() {
     .map(p => {
       return `
         <div class="item">
-          <a href="/${p.slug}">
-            ${escapeHtml(p.title || p.slug)}
+          <a href="/view.html?id=${p.id}">
+            ${escapeHtml(p.title || p.slug || p.id)}
           </a>
+          <span class="meta">${p.id}</span>
         </div>
       `;
     })
