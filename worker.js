@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD PURE CORE FIXED)
+// FILE: worker.js (INDEXMOD PURE CORE FIXED + LAYOUT SYSTEM)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -160,7 +160,7 @@ export default {
         });
       }
 
-      // ===== PAGE (CLEAN HTML ONLY) =====
+      // ===== PAGE =====
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
@@ -182,6 +182,7 @@ export default {
 <head>
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
+<link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/styles.css">
 </head>
 

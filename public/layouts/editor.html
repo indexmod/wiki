@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Editor · IndexMod</title>
+<meta charset="utf-8">
+<title>Editor</title>
 
 <link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/styles.css">
@@ -15,16 +15,13 @@
     <img src="/logo.png" class="logo">
   </a>
 
-  <div class="actions">
-    <a onclick="save()">save</a>
-  </div>
+  <a class="edit" onclick="save()">save</a>
 </header>
 
-<main class="editor">
+<main class="page">
 
-  <input id="title" placeholder="title" />
-
-  <textarea id="content" placeholder="write markdown..."></textarea>
+  <input id="title" placeholder="title">
+  <textarea id="content" placeholder="markdown..."></textarea>
 
 </main>
 
@@ -34,38 +31,29 @@ let slug = new URLSearchParams(location.search).get("slug");
 const titleEl = document.getElementById("title");
 const contentEl = document.getElementById("content");
 
-// ================= LOAD =================
 async function load() {
   if (!slug) return;
 
   const res = await fetch("/api/page/" + slug);
-  if (!res.ok) return;
-
   const p = await res.json();
 
   titleEl.value = p.title || "";
   contentEl.value = p.content || "";
 }
 
-// ================= SAVE =================
 async function save() {
   const base = slug || titleEl.value || "page";
 
   const res = await fetch("/api/page/" + base, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({
       title: titleEl.value,
-      content: contentEl.value,
-      slug: slug
+      content: contentEl.value
     })
   });
 
   const p = await res.json();
-
-  slug = p.slug;
   location.href = "/" + p.slug;
 }
 
