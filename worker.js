@@ -197,6 +197,7 @@ export default {
 <meta charset="utf-8">
 <title>${meta.title || slug}</title>
 <link rel="icon" href="/favicon.svg">
+<link rel="shortcut icon" href="/favicon.svg">
 </head>
 <body style="font-family:Georgia;max-width:800px;margin:60px auto;line-height:1.6;">
 
