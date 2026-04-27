@@ -1,95 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<meta charset="UTF-8">
-<title>View</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: Georgia, serif;
-  background: #fafafa;
-  color: #111;
-}
-
-header {
-  padding: 60px;
-}
-
-.logo {
-  width: 80px;
-  animation: pulse 2.5s infinite;
-}
-
-@keyframes pulse {
-  0%   { opacity: 1; transform: scale(1); }
-  50%  { opacity: 0.4; transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-main {
-  padding: 0 60px 80px 60px;
-  max-width: 900px;
-}
-
-.title {
-  font-size: 42px;
-  margin-bottom: 20px;
-}
-
-.content {
-  font-size: 20px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.actions {
-  margin-top: 40px;
-}
-
-a {
-  text-decoration: none;
-  color: #666;
-}
-
-a:hover {
-  color: #000;
-}
-</style>
-
-<!-- 🔥 slug core -->
 <script src="/slugify.js"></script>
-
-</head>
-
-<body>
-
-<header>
-  <a href="/">
-    <img src="/logo.png" class="logo">
-  </a>
-</header>
-
-<main>
-  <div id="title" class="title"></div>
-  <div id="content" class="content"></div>
-
-  <div class="actions">
-    <a id="editLink">Edit</a>
-  </div>
-</main>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
 const params = new URLSearchParams(location.search);
 const rawSlug = params.get("slug");
 
-// 🔥 нормализуем ВСЕГДА
 const slug = slugify(rawSlug);
 
-// =========================
-// LOAD PAGE
-// =========================
 async function load() {
   if (!slug) return;
 
@@ -102,7 +19,10 @@ async function load() {
   const data = await res.json();
 
   document.getElementById("title").textContent = data.title || slug;
-  document.getElementById("content").textContent = data.content || "";
+
+  // 🔥 Markdown render FIX
+  document.getElementById("content").innerHTML =
+    marked.parse(data.content || "");
 
   document.getElementById("editLink").href =
     "/editor.html?slug=" + slug;
@@ -110,6 +30,3 @@ async function load() {
 
 load();
 </script>
-
-</body>
-</html>
