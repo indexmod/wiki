@@ -93,30 +93,34 @@ export default {
         return new Response("OK");
       }
 
-      // ================= EDITOR ROUTING (FIXED) =================
+      // ================= EDITOR ROUTING (FIXED SAFE) =================
 
-      // redirect legacy
-      if (path === "/editor.html") {
-        return Response.redirect("/editor", 301);
+  // redirect legacy (use 302 to avoid browser caching trap)
+  if (path === "/editor.html") {
+    return Response.redirect("/editor", 302);
+  }
+
+  // normalize trailing slash
+  if (path === "/editor/") {
+    return Response.redirect("/editor", 302);
+  }
+
+  // canonical editor route
+  if (path === "/editor") {
+    const tpl = await layout(env, "editor");
+
+    const html = tpl
+      .replaceAll("{{title}}", "Editor")
+      .replaceAll("{{slug}}", "")
+      .replaceAll("{{content}}", "");
+
+    return new Response(html, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-cache"
       }
-
-      if (path === "/editor/") {
-        return Response.redirect("/editor", 301);
-      }
-
-      // canonical editor
-      if (path === "/editor") {
-        const tpl = await layout(env, "editor");
-
-        const html = tpl
-          .replaceAll("{{title}}", "Editor")
-          .replaceAll("{{slug}}", "")
-          .replaceAll("{{content}}", "");
-
-        return new Response(html, {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
-        });
-      }
+    });
+  }
 
       // ================= LIST =================
       if (path === "/api/pages") {
