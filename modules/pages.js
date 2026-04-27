@@ -8,7 +8,7 @@ function generateId() {
 // HELPERS
 // =========================
 function isPageKey(key) {
-  return key.startsWith("p_"); // ONLY real pages
+  return key.startsWith("p_");
 }
 
 // =========================
@@ -21,7 +21,7 @@ export async function pagesAPI(request, env) {
   const match = pathname.match(/^\/api\/page\/([^/]+)$/);
 
   // =========================
-  // LIST (ONLY REAL PAGES)
+  // LIST
   // =========================
   if (pathname === "/api/pages" && request.method === "GET") {
     const keys = await env.WIKI_DB.list();
@@ -34,14 +34,12 @@ export async function pagesAPI(request, env) {
     );
 
     return Response.json(
-      pages
-        .filter(Boolean)
-        .map(p => JSON.parse(p))
+      pages.filter(Boolean).map(p => JSON.parse(p))
     );
   }
 
   // =========================
-  // GET BY ID
+  // GET
   // =========================
   if (match && request.method === "GET") {
     const id = match[1];
@@ -53,7 +51,7 @@ export async function pagesAPI(request, env) {
   }
 
   // =========================
-  // SAVE (UPSERT)
+  // SAVE (FIXED SLUG RULE)
   // =========================
   if (match && request.method === "POST") {
     const id = match[1];
@@ -62,7 +60,22 @@ export async function pagesAPI(request, env) {
     const raw = await env.WIKI_DB.get(id);
     const existing = raw ? JSON.parse(raw) : null;
 
-    const slug = body.slug || existing?.slug || id;
+    // =========================
+    // ⚠️ FIX: slug NEVER depends on id
+    // =========================
+    let slug = body.slug?.trim();
+
+    if (!slug) {
+      slug = (body.title || "page")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    // remove old slug index if changed
+    if (existing?.slug && existing.slug !== slug) {
+      await env.WIKI_DB.delete("slug:" + existing.slug);
+    }
 
     const page = {
       id,
@@ -73,10 +86,7 @@ export async function pagesAPI(request, env) {
       updatedAt: Date.now()
     };
 
-    // main record
     await env.WIKI_DB.put(id, JSON.stringify(page));
-
-    // slug index (only pointer)
     await env.WIKI_DB.put("slug:" + slug, id);
 
     return Response.json(page);

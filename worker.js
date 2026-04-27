@@ -7,15 +7,19 @@ function genId() {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    const pathname = url.pathname;
 
     // =========================
-    // LIST
+    // LIST (ONLY REAL PAGES)
     // =========================
-    if (url.pathname === "/api/pages") {
+    if (pathname === "/api/pages" && req.method === "GET") {
       const keys = await env.WIKI_DB.list();
 
       const pages = await Promise.all(
-        keys.keys.map(k => env.WIKI_DB.get(k.name))
+        keys.keys
+          .map(k => k.name)
+          .filter(k => k.startsWith("p_")) // только ID
+          .map(id => env.WIKI_DB.get(id))
       );
 
       return Response.json(
@@ -24,20 +28,16 @@ export default {
     }
 
     // =========================
-    // GET BY ID
+    // GET (BY ID OR SLUG)
     // =========================
-    if (url.pathname.startsWith("/api/page/") && req.method === "GET") {
-      const key = url.pathname.split("/").pop();
+    if (pathname.startsWith("/api/page/") && req.method === "GET") {
+      const key = pathname.split("/").pop();
 
-      // 1) сначала пробуем как ID
-      let raw = await env.WIKI_DB.get(key);
+      let raw = await env.WIKI_DB.get(key); // ID first
 
-      // 2) если нет — пробуем как slug
       if (!raw) {
-        const id = await env.WIKI_DB.get("slug:" + key);
-        if (id) {
-          raw = await env.WIKI_DB.get(id);
-        }
+        const id = await env.WIKI_DB.get("slug:" + key); // fallback slug
+        if (id) raw = await env.WIKI_DB.get(id);
       }
 
       if (!raw) return new Response("not found", { status: 404 });
@@ -48,15 +48,34 @@ export default {
     // =========================
     // SAVE (UPSERT)
     // =========================
-    if (url.pathname.startsWith("/api/page/") && req.method === "POST") {
-      const key = url.pathname.split("/").pop();
+    if (pathname.startsWith("/api/page/") && req.method === "POST") {
+      const key = pathname.split("/").pop();
       const body = await req.json();
 
-      const id = key === "new"
-        ? genId()
-        : (await env.WIKI_DB.get("slug:" + key)) || key;
+      const isNew = key === "new";
 
-      const slug = body.slug || key;
+      let id;
+
+      if (isNew) {
+        id = genId();
+      } else {
+        // если key это slug → получаем id
+        id = (await env.WIKI_DB.get("slug:" + key)) || key;
+      }
+
+      const existingRaw = await env.WIKI_DB.get(id);
+      const existing = existingRaw ? JSON.parse(existingRaw) : null;
+
+      // ⚠️ slug НИКОГДА не равен id
+      let slug = (body.slug || existing?.slug || body.title || "page")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      // удалить старый slug если поменялся
+      if (existing?.slug && existing.slug !== slug) {
+        await env.WIKI_DB.delete("slug:" + existing.slug);
+      }
 
       const page = {
         id,
@@ -76,10 +95,10 @@ export default {
     // =========================
     // DELETE
     // =========================
-    if (url.pathname.startsWith("/api/page/") && req.method === "DELETE") {
-      const key = url.pathname.split("/").pop();
+    if (pathname.startsWith("/api/page/") && req.method === "DELETE") {
+      const key = pathname.split("/").pop();
 
-      const id = await env.WIKI_DB.get("slug:" + key) || key;
+      const id = (await env.WIKI_DB.get("slug:" + key)) || key;
       const raw = await env.WIKI_DB.get(id);
 
       if (!raw) return new Response("not found", { status: 404 });
@@ -91,5 +110,7 @@ export default {
 
       return new Response("deleted");
     }
+
+    return new Response("404");
   }
 };

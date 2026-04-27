@@ -38,6 +38,13 @@ a {
   color: #111;
   text-decoration: none;
 }
+
+#slugInput {
+  width: 100%;
+  font-size: 14px;
+  padding: 6px;
+  margin-top: 5px;
+}
 </style>
 </head>
 
@@ -49,7 +56,8 @@ a {
 
 <div class="meta">
   ID: <span id="idView">new</span><br>
-  Permalink: <span id="slugView">—</span>
+  Permalink:
+  <input id="slugInput" placeholder="slug">
 </div>
 
 <input id="title" placeholder="title">
@@ -65,7 +73,7 @@ const titleEl = document.getElementById("title");
 const contentEl = document.getElementById("content");
 
 const idView = document.getElementById("idView");
-const slugView = document.getElementById("slugView");
+const slugInput = document.getElementById("slugInput");
 const viewLink = document.getElementById("viewLink");
 
 // =========================
@@ -83,7 +91,7 @@ async function load() {
   contentEl.value = data.content || "";
 
   idView.textContent = data.id;
-  slugView.textContent = "/" + data.slug;
+  slugInput.value = data.slug || "";
 
   viewLink.href = "/view.html?id=" + data.id;
 }
@@ -92,27 +100,35 @@ async function load() {
 // SAVE
 // =========================
 async function save() {
+  let slug = slugInput.value.trim();
+
+  // fallback safety
+  if (!slug) {
+    slug = titleEl.value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
   const res = await fetch("/api/page/" + (id || "new"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title: titleEl.value,
-      content: contentEl.value
+      content: contentEl.value,
+      slug: slug   // 🔥 ключевая фикса
     })
   });
 
   const page = await res.json();
 
-  // 🔥 ключевой момент — фиксируем сущность
   id = page.id;
 
   idView.textContent = page.id;
-  slugView.textContent = "/" + page.slug;
+  slugInput.value = page.slug;
 
-  // обновляем URL без перезагрузки
   history.replaceState(null, "", "/editor.html?id=" + page.id);
 
-  // обновляем ссылку на view
   viewLink.href = "/view.html?id=" + page.id;
 }
 
