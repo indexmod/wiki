@@ -69,22 +69,23 @@ if (mode === "ask") {
   const ctx = prepareContext(raw);
 
   const prompt = `
-You are a senior software architect.
+YOU ARE NOT DESCRIBING THE CODE.
 
-Analyze the codebase and answer the question.
+You are reviewing it like a senior engineer in a code review.
 
-QUESTION:
-${input}
+For each part:
+- identify a problem (if any)
+- explain why it is bad
+- suggest a concrete improvement
+- prefer simplification over abstraction
 
-RULES:
-- Be precise
-- Focus on architecture and bugs
-- Suggest concrete fixes
-- Prefer simplicity
+If everything is fine, say: "no issues found"
 
 CODEBASE:
 ${ctx}
 `;
+
+const result = await ai(prompt);
 
   const result = await ai(prompt);
 
