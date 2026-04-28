@@ -67,7 +67,7 @@ header .edit,
 header .new,
 header .save,
 header a.button {
-  color: #111;
+  color: red;
   text-decoration: none;
 
   border: 1px solid #111;
@@ -91,6 +91,12 @@ header a {
   padding: 40px 60px;
   max-width: 900px;
   margin: 0 auto;
+}
+
+site-footer {
+
+color: #0b57d0;
+
 }
 
 /* ================= IMPORTANT RULES ================= */
