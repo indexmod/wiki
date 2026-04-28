@@ -1,3 +1,4 @@
+
 /* ================= RESET ================= */
 
 * {
@@ -9,28 +10,43 @@ html, body {
   padding: 0;
 }
 
-/* ================= BASE THEME ================= */
+/* ================= BASE THEME (NEW) ================= */
 
 body {
-  font-family: system-ui, -apple-system, Arial, sans-serif;
-  background: #0f0f10;
-  color: #eaeaea;
+  font-family: Georgia, "Times New Roman", serif;
+  background: #ffffff;
+  color: #111;
 
-  /* важно: нормальный скролл */
+  line-height: 1.6;
   overflow-y: auto;
 }
 
-/* ================= LINKS ================= */
+/* ================= LINKS (CONTENT ONLY) ================= */
 
-a {
-  color: #8ab4ff;
-  text-decoration: none;
-}
-
-a:hover {
+main a,
+article a,
+.page a {
+  color: #0b57d0; /* стандартный браузерный синий */
   text-decoration: underline;
 }
 
+main a:hover,
+article a:hover,
+.page a:hover {
+  text-decoration: underline;
+}
+
+/* ================= UI LINKS (BUTTONS) ================= */
+
+header a,
+button,
+a.button,
+.edit,
+.new,
+.save {
+  color: #111 !important;
+  text-decoration: none !important;
+}
 /* ================= MEDIA ================= */
 
 img {
@@ -38,37 +54,39 @@ img {
   display: block;
 }
 
-/* ================= LAYOUT CORE ================= */
+/* ================= HEADER (AIRY PRINT STYLE) ================= */
 
-/* header НЕ фиксированный — часть потока */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 16px 20px;
-  border-bottom: 1px solid #222;
-
-  position: relative; /* важно: никаких слоёв */
-  z-index: auto;
+  padding: 40px 60px; /* воздух */
+  margin-bottom: 40px;
 }
 
-/* логотип */
+/* ================= LOGO ================= */
+
 .logo {
-  height: 28px;
-  opacity: 0.9;
+  height: 200px; /* как ты сказал */
+  width: auto;
+  opacity: 1;
 }
 
-/* основной поток страницы */
+/* ================= MAIN CONTENT ================= */
+
 main {
-  padding: 24px;
+  padding: 40px 60px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-/* ================= IMPORTANT SAFETY RULE ================= */
+/* ================= IMPORTANT RULES ================= */
 /*
-Запрещено добавлять:
-- position: fixed
-- position: sticky (в этой системе)
-- height: 100vh на body/main
-- overflow: hidden на body
+ЗАПРЕЩЕНО:
+- fixed/sticky header
+- цветные UI кнопки
+- тени / blur / glow
+- card UI
+- синие ссылки как UI элемент
 */
