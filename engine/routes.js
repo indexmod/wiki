@@ -1,10 +1,14 @@
+import { layout } from "./layouts.js";
+import { render, renderIndex } from "./render.js";
+import { listPages, getPage } from "./api.js";
+
 export async function handleRoute(req, env, path) {
 
   // ================= INDEX =================
   if (path === "/" || path === "/index") {
 
     const pages = (await listPages(env))
-      .filter(p => p.slug !== "index");
+      .filter(p => p.slug && p.slug !== "index");
 
     const tpl = await layout(env, "index");
 
@@ -12,11 +16,7 @@ export async function handleRoute(req, env, path) {
       .replaceAll("{{title}}", "IndexMod")
       .replaceAll("{{content}}", renderIndex(pages));
 
-    return new Response(html, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8"
-      }
-    });
+    return html;
   }
 
   // ================= PAGE =================
@@ -25,20 +25,17 @@ export async function handleRoute(req, env, path) {
     const slug = path.slice(1);
 
     const page = await getPage(env, slug);
-    if (!page) return null;
+
+    if (!page) return "<h1>404</h1>";
 
     const tpl = await layout(env, "page");
 
     const html = tpl
-      .replaceAll("{{title}}", page.title)
-      .replaceAll("{{slug}}", page.slug)
-      .replaceAll("{{content}}", render(page.content));
+      .replaceAll("{{title}}", page.title || slug)
+      .replaceAll("{{slug}}", page.slug || slug)
+      .replaceAll("{{content}}", render(page.content || ""));
 
-    return new Response(html, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8"
-      }
-    });
+    return html;
   }
 
   return null;
