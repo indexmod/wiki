@@ -1,8 +1,8 @@
 export async function layout(env, name) {
   try {
-    const url = new URL(`/layouts/${name}.html`, "https://internal");
+    const path = `/layouts/${name}.html`;
 
-    const res = await env.ASSETS.fetch(new Request(url));
+    const res = await env.ASSETS.fetch(path);
 
     if (!res.ok) {
       throw new Error(`layout missing: ${name}`);
