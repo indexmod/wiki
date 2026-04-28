@@ -5,12 +5,9 @@
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html {
+  font-size: 16px; /* фиксируем базу */
 }
-
-/* ================= BASE THEME (NEW) ================= */
 
 body {
   font-family: Georgia, "Times New Roman", serif;
@@ -18,7 +15,6 @@ body {
   color: #111;
 
   line-height: 1.6;
-  overflow-y: auto;
 }
 
 /* ================= LINKS (CONTENT ONLY) ================= */
@@ -36,22 +32,29 @@ article a:hover,
   text-decoration: underline;
 }
 
-/* ================= UI LINKS (BUTTONS) ================= */
+
+/* ================= UI BUTTON SYSTEM ================= */
 
 header a,
-button,
-a.button,
-.edit,
-.new,
-.save {
+header button {
   color: #111 !important;
   text-decoration: none !important;
 }
-/* ================= MEDIA ================= */
 
-img {
-  max-width: 100%;
-  display: block;
+/* любые UI action ссылки */
+a.edit,
+a.new,
+a.save,
+a.button {
+  color: #111 !important;
+  text-decoration: none !important;
+
+  border: 1px solid #111;
+  border-radius: 6px;
+
+  padding: 4px 10px;
+
+  display: inline-block;
 }
 
 /* ================= HEADER (AIRY PRINT STYLE) ================= */
