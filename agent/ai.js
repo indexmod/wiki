@@ -1,13 +1,11 @@
-// ai.js
-
 // IndexMod AI Layer (local Ollama client)
-// Safe + deterministic version for automation
+// Single safe AI core
 
 const OLLAMA_URL = "http://localhost:11434/api/chat";
 const MODEL = "llama3";
 
 /**
- * Core AI call (safe + strict)
+ * ЕДИНАЯ ТОЧКА ВЫЗОВА LLM
  */
 export async function ai(prompt, options = {}) {
   const res = await fetch(OLLAMA_URL, {
@@ -21,7 +19,7 @@ export async function ai(prompt, options = {}) {
         {
           role: "system",
           content:
-            "You are a precise assistant. Return only the requested result. No explanations. No extra text."
+            "You are a precise coding assistant. Return only the answer. No commentary."
         },
         {
           role: "user",
@@ -38,6 +36,5 @@ export async function ai(prompt, options = {}) {
 
   const data = await res.json();
 
-  // защита от undefined/null
   return (data?.message?.content || "").trim();
 }

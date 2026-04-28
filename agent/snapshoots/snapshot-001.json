@@ -1,0 +1,18 @@
+{
+  "name": "snapshot-001",
+  "createdAt": "2026-04-28",
+  "description": "Auto-generated repository snapshot before AI analysis",
+
+  "files": [
+    "worker.js",
+    "file.js",
+    "read.js",
+    "parse.js",
+    "render.js"
+  ],
+
+  "rollback": {
+    "strategy": "manual_restore",
+    "note": "Use this snapshot to restore known working state"
+  }
+}

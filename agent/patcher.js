@@ -1,32 +1,15 @@
-// patcher.js
-
-import fs from "fs";
-import path from "path";
 import { ai } from "./ai.js";
 
-const ROOT = process.cwd();
-
 /**
- * Ask AI to generate patch
+ * Генерация безопасного patch (НЕ ПИШЕТ В ФАЙЛЫ)
  */
-export async function generatePatch(prompt, files) {
-  const context = files.map(f => {
-    const content = fs.readFileSync(f, "utf-8");
-    return `FILE: ${f}\n${content}`;
-  }).join("\n\n");
-
+export async function generatePatch(prompt, context) {
   const res = await ai(`
-You are a senior engineer.
+You are a senior software engineer.
 
-Given project files:
+You MUST return ONLY valid JSON.
 
-${context}
-
-Task:
-${prompt}
-
-Return ONLY valid JSON:
-
+Format:
 {
   "changes": [
     {
@@ -39,7 +22,14 @@ Return ONLY valid JSON:
 Rules:
 - no explanations
 - no markdown
-- only JSON
+- no text outside JSON
+- keep logic minimal and safe
+
+Context:
+${context}
+
+Task:
+${prompt}
 `);
 
   return JSON.parse(res);

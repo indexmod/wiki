@@ -1,136 +1,97 @@
-// run.js
-
-import {
-  summarizePage,
-  extractTitle,
-  extractDescription,
-  classifyTopic,
-  suggestEdit
-} from "./ai.js";
-
-/**
- * ================= SAFETY CONFIG =================
- */
-
-// лимит длины входа (защита от перегруза модели)
-const MAX_INPUT = 4000;
-
-// режим "только вывод, без побочных действий"
-// (на будущее — сейчас у нас и так нет записи в файлы)
-const SAFE_MODE = true;
-
-/**
- * ================= INPUT =================
- */
+import { ai } from "./ai.js";
+import { getRepoContext } from "./context.js";
 
 const mode = process.argv[2];
-let input = process.argv.slice(3).join(" ");
+const input = process.argv.slice(3).join(" ");
 
-// защита от пустого ввода
-if (!mode || !input) {
+if (!mode) {
   console.log(`
 Usage:
-node agent/run.js [mode] "text"
-
-Modes:
-  summarize
-  title
-  desc
-  tag
-  improve
+node agent/run.js scan
+node agent/run.js ask "question"
 `);
   process.exit(1);
 }
 
 /**
- * ================= INPUT SANITIZE =================
+ * ================= CONTEXT PIPELINE =================
  */
+function prepareContext(raw) {
+  let ctx = String(raw || "");
 
-// приводим к строке
-input = String(input);
+  // защита от мусора
+  ctx = ctx.replace(/\0/g, "");
 
-// убираем бинарный мусор / null bytes
-input = input.replace(/\0/g, "");
+  // ограничение размера
+  const MAX = 8000;
+  if (ctx.length > MAX) {
+    console.warn("⚠️ Context truncated:", ctx.length, "→", MAX);
+    ctx = ctx.slice(0, MAX);
+  }
 
-// ограничиваем длину (очень важно)
-if (input.length > MAX_INPUT) {
-  console.warn("⚠️ Input too long, truncated");
-  input = input.slice(0, MAX_INPUT);
+  return ctx;
 }
 
 /**
- * ================= MODE SWITCH =================
+ * ================= SCAN MODE =================
  */
+if (mode === "scan") {
+  const raw = getRepoContext();
+  const ctx = prepareContext(raw);
 
-let fn;
+  const prompt = `
+You are my eyes in the repository.
 
-switch (mode) {
-  case "summarize":
-    fn = summarizePage;
-    break;
+Return ONLY:
+1. File tree summary
+2. Main modules
+3. System architecture overview
 
-  case "title":
-    fn = extractTitle;
-    break;
+NO CODE CHANGES.
 
-  case "desc":
-    fn = extractDescription;
-    break;
+CODEBASE:
+${ctx}
+`;
 
-  case "tag":
-    fn = classifyTopic;
-    break;
+  const result = await ai(prompt);
 
-  case "improve":
-    fn = suggestEdit;
-    break;
+  console.log("\n=== SCAN OUTPUT ===\n");
+  console.log(result);
 
-  default:
-    console.error("❌ Unknown mode:", mode);
-    process.exit(1);
+  process.exit(0);
 }
 
 /**
- * ================= EXECUTION =================
+ * ================= ASK MODE =================
  */
+if (mode === "ask") {
+  const raw = getRepoContext();
+  const ctx = prepareContext(raw);
 
-let result = "";
+  const prompt = `
+You are a senior software architect.
 
-try {
-  result = await fn(input);
-} catch (err) {
-  console.error("❌ AI ERROR:", err.message || err);
-  process.exit(1);
+Analyze the codebase and answer the question.
+
+QUESTION:
+${input}
+
+RULES:
+- Be precise
+- Focus on architecture and bugs
+- Suggest concrete fixes
+- Prefer simplicity
+
+CODEBASE:
+${ctx}
+`;
+
+  const result = await ai(prompt);
+
+  console.log("\n=== ANSWER ===\n");
+  console.log(result);
+
+  process.exit(0);
 }
 
-/**
- * ================= OUTPUT SANITIZE =================
- */
-
-// защита от undefined/null
-result = String(result || "").trim();
-
-// убираем случайные “болтливые” хвосты (часто у LLM)
-result = result.replace(/^(Here is|Sure|Of course).*?\n/i, "");
-
-// ограничиваем длину вывода (чтобы не раздувал)
-if (result.length > 2000) {
-  console.warn("⚠️ Output truncated");
-  result = result.slice(0, 2000);
-}
-
-/**
- * ================= FINAL OUTPUT =================
- */
-
-console.log("\n=== AI OUTPUT ===\n");
-console.log(result);
-
-/**
- * ================= SAFE GUARD =================
- */
-
-// на будущее: если появится запись в файлы
-if (!SAFE_MODE) {
-  console.warn("⚠️ SAFE MODE DISABLED — be careful");
-}
+console.log("Unknown mode:", mode);
