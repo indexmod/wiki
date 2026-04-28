@@ -1,39 +1,52 @@
 export async function listPages(env) {
-  const list = await env.PAGES.list();
+  try {
 
-  const pages = [];
+    if (!env?.PAGES) {
+      console.log("[PAGES] binding missing");
+      return [];
+    }
 
-  for (const obj of list.objects || []) {
-    const raw = await env.PAGES.get(obj.key);
-    if (!raw) continue;
+    const list = await env.PAGES.list();
 
-    const md = await raw.text();
+    const pages = [];
 
-    const match = md.match(/^---([\s\S]*?)---/);
+    for (const obj of list.objects || []) {
 
-    let meta = {};
+      const raw = await env.PAGES.get(obj.key);
+      if (!raw) continue;
 
-    if (match) {
-      match[1].split("\n").forEach(line => {
-        const i = line.indexOf(":");
-        if (i === -1) return;
+      const md = await raw.text();
 
-        const k = line.slice(0, i).trim();
-        const v = line.slice(i + 1).trim();
+      const match = md.match(/^---([\s\S]*?)---/);
 
-        meta[k] = v;
+      let meta = {};
+
+      if (match) {
+        match[1].split("\n").forEach(line => {
+          const i = line.indexOf(":");
+          if (i === -1) return;
+
+          const k = line.slice(0, i).trim();
+          const v = line.slice(i + 1).trim();
+
+          meta[k] = v;
+        });
+      }
+
+      const slug =
+        meta.slug ||
+        obj.key.replace("pages/", "").replace(".md", "");
+
+      pages.push({
+        slug,
+        title: meta.title || slug
       });
     }
 
-    const slug =
-      meta.slug ||
-      obj.key.replace("pages/", "").replace(".md", "");
+    return pages;
 
-    pages.push({
-      slug,
-      title: meta.title || slug
-    });
+  } catch (err) {
+    console.log("[PAGES ERROR]", err);
+    return [];
   }
-
-  return pages;
 }
