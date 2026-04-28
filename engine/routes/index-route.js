@@ -1,14 +1,10 @@
-import { layout } from "../engine/layouts.js";
-import { listPages } from "../engine/api.js";
-import { renderIndex } from "../renders/index-render.js";
+import { layout } from "../layouts.js";
+import { listPages } from "../api.js";
+import { renderIndex } from "../../renders/index-render.js";
 
 export async function indexRoute(env) {
 
   const pages = await listPages(env);
-
-  if (!Array.isArray(pages)) {
-    return "<h1>NO PAGES</h1>";
-  }
 
   const filtered = pages.filter(p => p.slug !== "index");
 
