@@ -1,36 +1,33 @@
-import { handleRoute } from "./engine/routes.js";
-import { listPages, getPage, savePage } from "./engine/api.js";
+import { handleIndex } from "./engine/routes/index-route.js";
 
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const path = url.pathname;
 
-    // ================= API =================
-    if (path === "/api/pages") {
-      return Response.json(await listPages(env));
+    // ❌ ВСЁ API ВРЕМЕННО ВЫКЛЮЧАЕМ
+    if (path.startsWith("/api")) {
+      return new Response("API disabled (index fix mode)", { status: 503 });
     }
 
-    if (path.startsWith("/api/page/") && req.method === "GET") {
-      const slug = path.split("/").pop();
-      return Response.json(await getPage(env, slug));
+    // ❌ ЭДИТОР ВЫКЛЮЧАЕМ
+    if (path.startsWith("/editor")) {
+      return new Response("Editor disabled (index fix mode)", { status: 503 });
     }
 
-    if (path.startsWith("/api/page/") && req.method === "POST") {
-      const slug = path.split("/").pop();
-      const data = await req.json();
-      return Response.json(await savePage(env, slug, data));
-    }
+    // ✅ ТОЛЬКО ИНДЕКС
+    if (path === "/" || path === "/index") {
+      const html = await handleIndex(req, env);
 
-    // ================= ROUTES =================
-    const html = await handleRoute(req, env, path);
-
-    if (html) {
       return new Response(html, {
-        headers: { "Content-Type": "text/html; charset=utf-8" }
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-cache"
+        }
       });
     }
 
-    return env.ASSETS.fetch(req);
+    // всё остальное
+    return new Response("Not in index mode", { status: 404 });
   }
 };
