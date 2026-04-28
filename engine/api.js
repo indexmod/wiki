@@ -1,17 +1,12 @@
 export async function listPages(env) {
   try {
-
-    if (!env?.PAGES) {
-      console.log("[PAGES] binding missing");
-      return [];
-    }
+    if (!env?.PAGES) return [];
 
     const list = await env.PAGES.list();
 
     const pages = [];
 
     for (const obj of list.objects || []) {
-
       const raw = await env.PAGES.get(obj.key);
       if (!raw) continue;
 

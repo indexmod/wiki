@@ -1,11 +1,12 @@
 export function renderIndex(pages = []) {
+  const safe = Array.isArray(pages) ? pages : [];
 
-  pages.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+  safe.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
   const groups = {};
 
-  for (const p of pages) {
-    const letter = (p.title?.[0] || "#").toUpperCase();
+  for (const p of safe) {
+    const letter = ((p.title || "")[0] || "#").toUpperCase();
 
     if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);

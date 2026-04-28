@@ -1,115 +1,27 @@
-/* =========================
-   INDEX ROOT
-========================= */
-
-.layout-index {
-  background: #ffffff;
-  color: #111;
-  font-family: Georgia, "Times New Roman", serif;
-
-  padding: 60px;
-}
-
-/* =========================
-   GRID (3 COLUMNS)
-========================= */
-
 .layout-index .index-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 60px;
+  padding: 40px;
 }
-
-/* =========================
-   SECTION BLOCK
-========================= */
 
 .layout-index .section {
-  break-inside: avoid;
+  margin-bottom: 40px;
 }
-
-/* =========================
-   SECTION LETTER
-========================= */
 
 .layout-index .section-letter {
-  font-size: 80px;
+  font-size: 72px;
   font-weight: 900;
-  color: #000;
-
-  line-height: 1;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-
-/* =========================
-   TOPIC TITLE
-========================= */
 
 .layout-index .topic-title {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.2;
-
-  margin: 8px 0;
-  color: #2b2b2b;
+  font-size: 22px;
+  margin: 6px 0;
 }
-
-/* =========================
-   LINKS (CONTENT STYLE)
-========================= */
 
 .layout-index .topic-title a {
+  text-decoration: none;
   color: #0b57d0;
+}
+
+.layout-index .topic-title a:hover {
   text-decoration: underline;
-}
-
-/* =========================
-   META (OPTIONAL)
-========================= */
-
-.layout-index .topic-meta {
-  font-size: 14px;
-  color: #666;
-  margin-top: 4px;
-}
-
-/* =========================
-   HEADER FIX (ВАЖНО)
-========================= */
-
-.layout-index header {
-  margin-bottom: 60px;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1100px) {
-  .layout-index .index-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 40px;
-  }
-
-  .layout-index .section-letter {
-    font-size: 60px;
-  }
-
-  .layout-index .topic-title {
-    font-size: 32px;
-  }
-}
-
-@media (max-width: 600px) {
-  .layout-index .index-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .layout-index .section-letter {
-    font-size: 48px;
-  }
-
-  .layout-index .topic-title {
-    font-size: 28px;
-  }
 }
