@@ -1,6 +1,6 @@
 import { layout } from "../layouts.js";
 import { listPages } from "../api.js";
-import { renderIndex } from "../../renders/index-render.js";
+import { renderIndex } from "../renders/index-render.js";
 
 export async function indexRoute(env) {
 
