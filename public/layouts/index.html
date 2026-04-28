@@ -2,102 +2,25 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>IndexMod</title>
+<title>{{title}}</title>
 
-<link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/index.css">
 </head>
 
 <body class="layout-index">
 
-<header class="index-header">
-  <a href="/" class="logo-wrap">
+<header>
+  <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
-  <a class="new" href="/editor">New</a>
+  <a href="/editor">New</a>
 </header>
 
-<main id="list" class="index-grid"></main>
-
-<script>
-function cleanTitle(p) {
-  let t = (p.title || "").trim();
-
-  if (!t) {
-    t = (p.slug || "")
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  return t;
-}
-
-function sectionLetter(title = "") {
-  const c = (title.trim()[0] || "#").toUpperCase();
-  return (c >= "A" && c <= "Z") ? c : "#";
-}
-
-async function load() {
-  const res = await fetch("/api/pages");
-  const pages = await res.json();
-
-  const list = document.getElementById("list");
-
-  // ================= FILTER =================
-  const safe = pages.filter(p => {
-    if (!p?.slug) return false;
-
-    // исключаем системные / пустые страницы
-    if (p.slug === "index") return false;
-    if (p.slug === "/" || p.slug === "") return false;
-
-    return true;
-  });
-
-  if (!safe.length) {
-    list.innerHTML = "<div class='empty'>no pages</div>";
-    return;
-  }
-
-  // ================= GROUP BY LETTER =================
-  const groups = {};
-
-  for (const p of safe) {
-    const title = cleanTitle(p);
-    const letter = sectionLetter(title);
-
-    (groups[letter] ||= []).push({ ...p, title });
-  }
-
-  // ================= RENDER =================
-  list.innerHTML = Object.keys(groups)
-    .sort()
-    .map(letter => {
-      const items = groups[letter]
-        .sort((a, b) => a.title.localeCompare(b.title));
-
-      return `
-        <div class="section">
-          <div class="section-title">${letter}</div>
-
-          ${items.map(p => `
-            <div class="index-card">
-              <a href="/${p.slug}">
-                <h2>${p.title}</h2>
-              </a>
-            </div>
-          `).join("")}
-
-        </div>
-      `;
-    })
-    .join("");
-}
-
-load();
-</script>
+<main>
+{{content}}
+</main>
 
 </body>
 </html>

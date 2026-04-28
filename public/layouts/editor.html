@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>Editor</title>
 
-<link rel="icon" href="/favicon.svg">
 <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/editor.css">
 </head>
@@ -12,53 +11,19 @@
 <body class="layout-editor">
 
 <header>
-  <a href="/" class="logo-wrap">
+  <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
   <a class="edit" onclick="save()">Save</a>
 </header>
 
-<main class="page">
-
-  <input id="title" placeholder="title">
-  <textarea id="content" placeholder="markdown..."></textarea>
-
+<main class="editor">
+{{content}}
 </main>
 
 <script>
 let slug = new URLSearchParams(location.search).get("slug");
-
-const titleEl = document.getElementById("title");
-const contentEl = document.getElementById("content");
-
-async function load() {
-  if (!slug) return;
-
-  const res = await fetch("/api/page/" + slug);
-  const p = await res.json();
-
-  titleEl.value = p.title || "";
-  contentEl.value = p.content || "";
-}
-
-async function save() {
-  const base = slug || titleEl.value || "page";
-
-  const res = await fetch("/api/page/" + base, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      title: titleEl.value,
-      content: contentEl.value
-    })
-  });
-
-  const p = await res.json();
-  location.href = "/" + p.slug;
-}
-
-load();
 </script>
 
 </body>

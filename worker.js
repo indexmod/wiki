@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.3 SAFE ROUTING)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.4 BASE ARCH FIXED)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,11 +58,11 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (SAFE LOCAL ONLY) =================
+// ================= LAYOUT LOADER (LOCAL ONLY FIXED) =================
 async function layout(env, name) {
   try {
     const res = await env.ASSETS.fetch(
-      new Request(`https://indexmod.press/layouts/${name}.html`)
+      new Request(new URL(`/layouts/${name}.html`, "http://internal"))
     );
 
     if (!res.ok) throw new Error("missing layout");
@@ -72,8 +72,12 @@ async function layout(env, name) {
     return `
 <!doctype html>
 <html>
-<head><meta charset="utf-8"></head>
-<body style="font-family:sans-serif;padding:40px">
+<head>
+  <meta charset="utf-8">
+  <title>Layout missing</title>
+  <link rel="stylesheet" href="/styles/base.css">
+</head>
+<body style="font-family:Georgia;padding:40px">
   <h1>Layout missing: ${name}</h1>
 </body>
 </html>`;
@@ -93,37 +97,29 @@ export default {
         return new Response("OK");
       }
 
-      // ================= EDITOR ROUTING (SAFE + SIMPLE) =================
+      // ================= EDITOR ROUTING =================
+      if (path === "/editor.html") {
+        return Response.redirect(new URL("/editor", req.url), 301);
+      }
 
-// redirect legacy (/editor.html → /editor)
-if (path === "/editor.html") {
-  return Response.redirect(new URL("/editor", req.url), 301);
-}
+      if (path === "/editor/") {
+        return Response.redirect(new URL("/editor", req.url), 301);
+      }
 
-// normalize trailing slash (/editor/ → /editor)
-if (path === "/editor/") {
-  return Response.redirect(new URL("/editor", req.url), 301);
-}
+      if (path === "/editor") {
+        const tpl = await layout(env, "editor");
+        const base = await layout(env, "base");
 
-// canonical editor route (STATIC FILE ONLY)
-if (path === "/editor") {
-  const res = await env.ASSETS.fetch(
-    new Request(new URL("/layouts/editor.html", req.url))
-  );
+        const html = base.replace("{{content}}", tpl);
 
-  if (!res.ok) {
-    return new Response("Editor layout missing", { status: 404 });
-  }
+        return new Response(html, {
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "no-cache"
+          }
+        });
+      }
 
-  const html = await res.text();
-
-  return new Response(html, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-cache"
-    }
-  });
-}
       // ================= LIST =================
       if (path === "/api/pages") {
         const list = await env.PAGES.list();
@@ -147,7 +143,7 @@ if (path === "/editor") {
         return Response.json(pages);
       }
 
-      // ================= GET =================
+      // ================= GET PAGE =================
       if (path.startsWith("/api/page/") && req.method === "GET") {
         const slug = path.split("/").pop();
 
@@ -164,7 +160,7 @@ if (path === "/editor") {
         });
       }
 
-      // ================= SAVE =================
+      // ================= SAVE PAGE =================
       if (path.startsWith("/api/page/") && req.method === "POST") {
         const slugRaw = path.split("/").pop();
 
@@ -207,17 +203,26 @@ ${data.content || ""}`;
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const layoutName = slug === "index" ? "index" : "page";
+        const layoutName =
+          path === "/editor" ? "editor"
+          : slug === "index" ? "index"
+          : "page";
 
         const tpl = await layout(env, layoutName);
+        const base = await layout(env, "base");
 
-        const html = tpl
-          .replaceAll("{{title}}", meta.title || slug)
-          .replaceAll("{{slug}}", slug)
-          .replaceAll("{{content}}", render(body));
+        const html = base.replace(
+          "{{content}}",
+          tpl
+            .replaceAll("{{title}}", meta.title || slug)
+            .replaceAll("{{slug}}", slug)
+            .replaceAll("{{content}}", render(body))
+        );
 
         return new Response(html, {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
+          headers: {
+            "Content-Type": "text/html; charset=utf-8"
+          }
         });
       }
 

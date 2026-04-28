@@ -83,6 +83,16 @@ header a {
   text-decoration: none;
 }
 
+/* EDITOR ISOLATION */
+.layout-editor main {
+  all: unset;
+  font-family: Georgia, "Times New Roman", serif;
+  display: block;
+  padding: 40px 60px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 /* ================= IMPORTANT RULES ================= */
 
  /*
