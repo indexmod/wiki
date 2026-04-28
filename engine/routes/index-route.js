@@ -12,8 +12,14 @@ export async function indexRoute(env) {
 
   const tpl = await layout(env, "index");
 
-  return tpl
+  const html = tpl
     .replace("{{title}}", "IndexMod")
     .replace("{{layout}}", "index")
     .replace("{{content}}", content);
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  });
 }
