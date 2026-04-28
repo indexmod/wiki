@@ -1,46 +1,47 @@
 
 /* =========================
-   INDEX LAYOUT
+   INDEX BASE (same system as site)
 ========================= */
 
 .layout-index {
-  background: #0f0f10;
-  padding: 20px;
-  color: #eaeaea;
+  background: #ffffff;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+  padding: 40px;
 }
 
 /* =========================
-   HEADER
+   HEADER (airy print)
 ========================= */
 
 .index-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+
+  margin-bottom: 40px;
 }
 
 /* =========================
-   GRID (3 COLUMNS)
+   GRID (3 COLUMNS PRINT STYLE)
 ========================= */
 
 .index-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 40px;
 }
 
 /* =========================
-   SECTION LETTER (A, B, C...)
-   = 2x article title size
+   SECTION LETTER (NEWSPAPER BLOCK)
 ========================= */
 
 .section-letter {
-  font-size: 80px; /* 40px * 2 */
+  font-size: 80px; /* 2x article H1 */
   font-weight: 900;
-  color: #000; /* чёрный как ты просил */
+  color: #000; /* чёрный акцент */
   line-height: 1;
-  margin: 10px 0 10px;
+  margin-bottom: 10px;
 }
 
 /* =========================
@@ -48,37 +49,37 @@
 ========================= */
 
 .section {
-  margin-bottom: 30px;
+  break-inside: avoid;
+  margin-bottom: 40px;
 }
 
 /* =========================
-   TOPIC ITEM (TITLE STYLE)
+   TOPIC TITLE (GRAPHITE, NOT UI BLUE)
 ========================= */
 
 .topic-title {
-  font-size: 40px; /* как заголовок статьи */
+  font-size: 40px; /* как статья */
   font-weight: 700;
   line-height: 1.2;
+
   margin: 6px 0;
+
+  color: #2b2b2b; /* графит */
 }
 
-/* ссылка = цвет ссылок системы */
+/* ссылки внутри текста = синие (как ты уже утвердил раньше) */
 .topic-title a {
-  color: #8ab4ff;
-  text-decoration: none;
-}
-
-.topic-title a:hover {
+  color: #0b57d0;
   text-decoration: underline;
 }
 
 /* =========================
-   OPTIONAL META (if needed later)
+   META (secondary print text)
 ========================= */
 
 .topic-meta {
   font-size: 13px;
-  color: #888;
+  color: #666;
   margin-top: 4px;
 }
 
@@ -89,6 +90,7 @@
 @media (max-width: 1000px) {
   .index-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
   }
 
   .section-letter {
