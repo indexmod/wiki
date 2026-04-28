@@ -1,13 +1,31 @@
-
 /* =========================
-   INDEX BASE
+   INDEX ROOT
 ========================= */
 
 .layout-index {
   background: #ffffff;
   color: #111;
   font-family: Georgia, "Times New Roman", serif;
-  padding: 40px;
+
+  padding: 60px;
+}
+
+/* =========================
+   GRID (3 COLUMNS)
+========================= */
+
+.layout-index .index-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+/* =========================
+   SECTION BLOCK
+========================= */
+
+.layout-index .section {
+  break-inside: avoid;
 }
 
 /* =========================
@@ -18,8 +36,9 @@
   font-size: 80px;
   font-weight: 900;
   color: #000;
+
   line-height: 1;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 /* =========================
@@ -30,12 +49,13 @@
   font-size: 40px;
   font-weight: 700;
   line-height: 1.2;
-  margin: 6px 0;
+
+  margin: 8px 0;
   color: #2b2b2b;
 }
 
 /* =========================
-   LINKS
+   LINKS (CONTENT STYLE)
 ========================= */
 
 .layout-index .topic-title a {
@@ -44,11 +64,52 @@
 }
 
 /* =========================
-   META
+   META (OPTIONAL)
 ========================= */
 
 .layout-index .topic-meta {
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
   margin-top: 4px;
+}
+
+/* =========================
+   HEADER FIX (ВАЖНО)
+========================= */
+
+.layout-index header {
+  margin-bottom: 60px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .layout-index .index-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+
+  .layout-index .section-letter {
+    font-size: 60px;
+  }
+
+  .layout-index .topic-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .layout-index .index-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-index .section-letter {
+    font-size: 48px;
+  }
+
+  .layout-index .topic-title {
+    font-size: 28px;
+  }
 }

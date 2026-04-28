@@ -4,8 +4,30 @@ export async function layout(env, name) {
       new Request(new URL(`/layouts/${name}.html`, "http://internal"))
     );
 
+    if (!res.ok) {
+      throw new Error(`layout not found: ${name}`);
+    }
+
     return await res.text();
-  } catch {
-    return `<h1>missing layout: ${name}</h1>`;
+
+  } catch (e) {
+    return `
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Layout error</title>
+<link rel="stylesheet" href="/styles/base.css">
+</head>
+<body>
+<header>
+  <img src="/logo.png" class="logo">
+</header>
+<main>
+  <h1>Missing layout: ${name}</h1>
+</main>
+</body>
+</html>
+`;
   }
 }

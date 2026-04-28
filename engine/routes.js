@@ -1,18 +1,20 @@
 import { layout } from "./layouts.js";
 import { render, renderIndex } from "./render.js";
-import { listPages, getPage, savePage } from "./api.js";
+import { listPages, getPage } from "./api.js";
 
 export async function handleRoute(req, env, path) {
 
   // ================= INDEX =================
   if (path === "/" || path === "/index") {
-    const pages = await listPages(env);
+
+    const pages = (await listPages(env))
+      .filter(p => p.slug !== "index");
+
     const tpl = await layout(env, "index");
 
-    const html = tpl.replace(
-      "{{content}}",
-      renderIndex(pages)
-    );
+    const html = tpl
+      .replaceAll("{{title}}", "IndexMod")
+      .replaceAll("{{content}}", renderIndex(pages));
 
     return html;
   }
