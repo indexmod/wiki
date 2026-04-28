@@ -6,24 +6,20 @@
 
 <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/index.css">
-<link rel="stylesheet" href="/styles/page.css">
-<link rel="stylesheet" href="/styles/editor.css">
 </head>
 
-<body class="layout-{{slug}}">
+<body class="layout-{{layout}}">
 
-<header class="site-header">
-  <a href="/" class="logo-wrap">
+<header>
+  <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
-  <nav class="actions">
-    <a href="/editor">Edit</a>
-  </nav>
+  <a href="/editor">New</a>
 </header>
 
-<main class="content">
-  {{content}}
+<main>
+{{content}}
 </main>
 
 </body>

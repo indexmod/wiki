@@ -1,15 +1,9 @@
-./engine/api.js
-./engine/layouts.js
-./engine/render.js
-./engine/routes.js
-./engine/utils.js
-./modules/seoRouter.js
-./public/layouts/base.html
-./public/layouts/editor.html
-./public/layouts/index.html
-./public/layouts/page.html
-./public/styles/base.css
-./public/styles/editor.css
-./public/styles/index.css
-./public/styles/page.css
-./worker.js
+routes/index-route.js ГОТОВО
+renders/index-render.js ЖДУ
+engine/api.js ЖДУ
+engine/layouts.js ЖДУ
+public/layouts/index.html ЖДУ
+public/layouts/base.html   ← (ТОЛЬКО ЕСЛИ ИСПОЛЬЗУЕШЬ) ЖДУ
+public/styles/index.css ЖДУ
+worker.js ЖДУ
+engine/render.js ЖДУ
