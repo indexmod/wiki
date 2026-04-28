@@ -17,23 +17,16 @@ body {
   line-height: 1.6;
 }
 
-/* ================= LINKS (CONTENT ONLY) ================= */
-/* ВАЖНО: только контент внутри main/article/page */
+/* ================= LINKS (НЕЙТРАЛЬНЫЕ) ================= */
+/* base не управляет ссылками */
 
-main a,
-article a,
-.page a {
-  color: #0b57d0;
-  text-decoration: underline;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-main a:hover,
-article a:hover,
-.page a:hover {
-  text-decoration: underline;
-}
-
-/* ================= HEADER LAYOUT ================= */
+/* ================= HEADER ================= */
+/* только layout, без стилизации ссылок */
 
 header {
   display: flex;
@@ -49,41 +42,22 @@ header {
 .logo {
   height: 200px;
   width: auto;
-  opacity: 1;
+  display: block;
 }
 
-/* ================= MAIN CONTENT ================= */
-
-main {
-  padding: 40px 60px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* ================= UI BUTTON SYSTEM (FIXED ISOLATION) ================= */
-/* КРИТИЧНО: теперь UI НЕ трогает все header a */
+/* ================= BUTTON SYSTEM (НЕЙТРАЛЬНЫЙ) ================= */
+/* только для editor/save/edit в будущем */
 
 header .edit,
 header .new,
 header .save,
 header a.button {
-  color: red;
-  text-decoration: none;
-
-  border: 1px solid #111;
-  border-radius: 20px;
-
-  padding: 4px 10px;
-  display: inline-block;
+  all: unset;
+  cursor: pointer;
 }
 
-/* убираем влияние header на все ссылки */
-header a {
-  color: #111;
-  text-decoration: none;
-}
+/* ================= EDITOR ISOLATION ================= */
 
-/* EDITOR ISOLATION */
 .layout-editor main {
   all: unset;
   font-family: Georgia, "Times New Roman", serif;
@@ -93,52 +67,45 @@ header a {
   margin: 0 auto;
 }
 
-site-footer {
-
-color: #0b57d0;
-
-}
-
-/* =========================
-   FOOTER
-========================= */
+/* ================= FOOTER ================= */
 
 .site-footer {
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 20px 60px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .site-footer .footer-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
 
   font-size: 20px;
-  color: #a855f7; /* сиреневый */
+  color: #a855f7;
   text-decoration: none;
 }
 
-/* сиреневый кружок */
 .site-footer .footer-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: #a855f7;
-  display: inline-block;
 }
 
-/* hover эффект */
 .site-footer .footer-link:hover {
   opacity: 0.8;
 }
 
-/* ================= IMPORTANT RULES ================= */
+/* ================= IMPORTANT ================= */
 
- /*
-ЗАПРЕЩЕНО:
-- fixed/sticky layout
-- глобальные UI стили через a{}
-- color inheritance из header в контент
+/*
+base.css НЕ ДОЛЖЕН:
+- управлять ссылками
+- задавать стили контента
+- влиять на index/page/editor
+
+он только:
+✔ каркас
+✔ шрифты
+✔ header/footer
 */

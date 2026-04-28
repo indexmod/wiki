@@ -1,10 +1,9 @@
 /* =========================
-   INDEX GRID (3 COLS)
+   INDEX GRID
 ========================= */
 
 .layout-index .index-grid {
   padding: 40px;
-
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 40px;
@@ -19,7 +18,7 @@
 }
 
 /* =========================
-   SECTION LETTER
+   LETTER
 ========================= */
 
 .layout-index .section-letter {
@@ -39,12 +38,12 @@
 }
 
 /* =========================
-   LINKS (TOPICS)
+   TOPIC LINKS (ГЛАВНЫЕ)
 ========================= */
 
 .layout-index .topic-title a {
-  text-decoration: none;
   color: #0b57d0;
+  text-decoration: none;
 }
 
 .layout-index .topic-title a:hover {
@@ -52,19 +51,15 @@
 }
 
 /* =========================
-   HEADER LINKS (e.g. New)
+   HEADER LINKS (ТАКИЕ ЖЕ КАК ТОПИКИ)
 ========================= */
 
 .layout-index header a {
-  font-size: 14px;
+  color: #0b57d0;
   text-decoration: none;
-  color: #111;
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  font-size: 22px;
 }
 
 .layout-index header a:hover {
-  border-color: #ddd;
-  background: #f7f7f7;
+  text-decoration: underline;
 }
