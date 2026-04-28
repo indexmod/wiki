@@ -1,7 +1,3 @@
-import { layout } from "./layouts.js";
-import { render, renderIndex } from "./render.js";
-import { listPages, getPage } from "./api.js";
-
 export async function handleRoute(req, env, path) {
 
   // ================= INDEX =================
@@ -16,11 +12,16 @@ export async function handleRoute(req, env, path) {
       .replaceAll("{{title}}", "IndexMod")
       .replaceAll("{{content}}", renderIndex(pages));
 
-    return html;
+    return new Response(html, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8"
+      }
+    });
   }
 
   // ================= PAGE =================
   if (!path.startsWith("/api") && !path.includes(".")) {
+
     const slug = path.slice(1);
 
     const page = await getPage(env, slug);
@@ -28,10 +29,16 @@ export async function handleRoute(req, env, path) {
 
     const tpl = await layout(env, "page");
 
-    return tpl
+    const html = tpl
       .replaceAll("{{title}}", page.title)
       .replaceAll("{{slug}}", page.slug)
       .replaceAll("{{content}}", render(page.content));
+
+    return new Response(html, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8"
+      }
+    });
   }
 
   return null;

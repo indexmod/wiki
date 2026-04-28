@@ -20,27 +20,35 @@ export function render(md = "") {
 }
 
 
-// ================= INDEX RENDER =================
+// ================= INDEX RENDER (FIXED STRUCTURE) =================
 export function renderIndex(pages = []) {
 
-  // 1. сортировка
-  pages.sort((a, b) => a.title.localeCompare(b.title));
+  if (!Array.isArray(pages)) pages = [];
 
-  // 2. группировка по первой букве
+  // 1. фильтр мусора + index
+  pages = pages.filter(p => p && p.slug && p.title && p.slug !== "index");
+
+  // 2. сортировка
+  pages.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+
+  // 3. группировка
   const groups = {};
 
   for (const p of pages) {
-    const letter = (p.title[0] || "#").toUpperCase();
+
+    const title = (p.title || "").trim();
+    const letter = title.length ? title[0].toUpperCase() : "#";
 
     if (!groups[letter]) groups[letter] = [];
     groups[letter].push(p);
   }
 
-  // 3. сборка HTML
   const letters = Object.keys(groups).sort();
 
+  // 4. render
   return `
     <div class="index-grid">
+
       ${letters.map(letter => `
         <div class="section">
 
@@ -48,14 +56,17 @@ export function renderIndex(pages = []) {
             ${letter}
           </div>
 
-          ${groups[letter].map(p => `
-            <div class="topic-title">
-              <a href="/${p.slug}">${p.title}</a>
-            </div>
-          `).join("")}
+          <div class="section-body">
+            ${groups[letter].map(p => `
+              <div class="topic-title">
+                <a href="/${p.slug}">${p.title}</a>
+              </div>
+            `).join("")}
+          </div>
 
         </div>
       `).join("")}
+
     </div>
   `;
 }
