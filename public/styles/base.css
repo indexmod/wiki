@@ -1,0 +1,74 @@
+/* ================= RESET ================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* ================= BASE THEME ================= */
+
+body {
+  font-family: system-ui, -apple-system, Arial, sans-serif;
+  background: #0f0f10;
+  color: #eaeaea;
+
+  /* важно: нормальный скролл */
+  overflow-y: auto;
+}
+
+/* ================= LINKS ================= */
+
+a {
+  color: #8ab4ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ================= MEDIA ================= */
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ================= LAYOUT CORE ================= */
+
+/* header НЕ фиксированный — часть потока */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px 20px;
+  border-bottom: 1px solid #222;
+
+  position: relative; /* важно: никаких слоёв */
+  z-index: auto;
+}
+
+/* логотип */
+.logo {
+  height: 28px;
+  opacity: 0.9;
+}
+
+/* основной поток страницы */
+main {
+  padding: 24px;
+}
+
+/* ================= IMPORTANT SAFETY RULE ================= */
+/*
+Запрещено добавлять:
+- position: fixed
+- position: sticky (в этой системе)
+- height: 100vh на body/main
+- overflow: hidden на body
+*/
