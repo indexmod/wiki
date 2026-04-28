@@ -1,9 +1,9 @@
-routes/index-route.js ГОТОВО
-renders/index-render.js ЖДУ
-engine/api.js ЖДУ
-engine/layouts.js ЖДУ
-public/layouts/index.html ЖДУ
-public/layouts/base.html   ← (ТОЛЬКО ЕСЛИ ИСПОЛЬЗУЕШЬ) ЖДУ
-public/styles/index.css ЖДУ
-worker.js ЖДУ
-engine/render.js ЖДУ
+routes/page-route.js 
+renders/page-render.js 
+engine/api.js 
+engine/layouts.js 
+public/layouts/page.html 
+public/layouts/base.html  
+public/styles/page.css 
+worker.js 
+engine/render.js 

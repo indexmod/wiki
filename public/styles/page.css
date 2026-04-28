@@ -1,70 +1,20 @@
-.page {
-  max-width: 800px;
+.layout-page .page {
+  max-width: 700px;
   margin: 0 auto;
-  line-height: 1.65;
+  padding: 40px 60px;
 }
 
-/* ===================== */
-/* SECTION (главные блоки)
-/* ===================== */
-
-.page h1 {
-  font-size: 40px;
-  line-height: 1.2;
-  margin: 32px 0 16px;
-  letter-spacing: -0.5px;
+.layout-page .page-title {
+  font-size: 42px;
+  margin-bottom: 20px;
 }
 
-/* ===================== */
-/* HEADINGS (внутри секций)
-/* ===================== */
-
-.page h2 {
-  font-size: 25px;
-  line-height: 1.3;
-  margin: 28px 0 12px;
-}
-
-/* ===================== */
-/* SUBHEADINGS */
-/* ===================== */
-
-.page h3 {
+.layout-page .page-content {
   font-size: 18px;
-  margin: 20px 0 10px;
-  opacity: 0.9;
 }
 
-/* ===================== */
-/* BODY TEXT */
-/* ===================== */
-
-.page p {
-  margin: 12px 0;
-  font-size: 15px;
-}
-
-/* ===================== */
-/* LISTS */
-/* ===================== */
-
-.page ul {
-  padding-left: 20px;
-  margin: 10px 0;
-}
-
-.page li {
-  margin: 6px 0;
-}
-
-/* ===================== */
-/* CODE */
-/* ===================== */
-
-.page code {
-  background: #1a1a1a;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 13px;
+/* ссылки только для страниц */
+.layout-page .page-content a {
+  color: #0b57d0;
+  text-decoration: underline;
 }

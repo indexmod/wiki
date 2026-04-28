@@ -1,27 +1,26 @@
-export async function layout(env, name) {
-  try {
-    const res = await env.ASSETS.fetch(`/layouts/${name}.html`);
+import { layout } from "../layouts.js";
+import { getPage } from "../api.js";
+import { renderPage } from "../renders/page-render.js";
 
-    if (!res.ok) {
-      throw new Error(`layout not found: ${name}`);
-    }
+export async function pageRoute(env, slug) {
+  const page = await getPage(env, slug);
 
-    return await res.text();
-
-  } catch (e) {
-    return `
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Layout error</title>
-<link rel="stylesheet" href="/styles/base.css">
-</head>
-<body>
-<main>
-  <h1>Missing layout: ${name}</h1>
-</main>
-</body>
-</html>`;
+  if (!page) {
+    return new Response("<h1>404</h1>", { status: 404 });
   }
+
+  const content = renderPage(page);
+
+  const tpl = await layout(env, "base");
+
+  const html = tpl
+    .replaceAll("{{title}}", page.title || slug)
+    .replaceAll("{{layout}}", "page")
+    .replaceAll("{{content}}", content);
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  });
 }
