@@ -1,9 +1,9 @@
-routes/page-route.js 
-renders/page-render.js 
+routes/editor-route.js 
+renders/editor-render.js 
 engine/api.js 
 engine/layouts.js 
-public/layouts/page.html 
+public/layouts/editor.html 
 public/layouts/base.html  
-public/styles/page.css 
+public/styles/editor.css 
 worker.js 
 engine/render.js 

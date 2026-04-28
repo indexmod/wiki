@@ -1,27 +1,14 @@
-export async function layout(env, name) {
-  try {
-    const res = await env.ASSETS.fetch(`/layouts/${name}.html`);
+import { layout } from "../layouts.js";
+import { renderEditor } from "../../renders/editor-render.js";
 
-    if (!res.ok) {
-      throw new Error(`layout not found: ${name}`);
-    }
+export async function editorRoute(env) {
+  const tpl = await layout(env, "editor");
 
-    return await res.text();
+  const content = renderEditor();
 
-  } catch (e) {
-    return `
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Layout error</title>
-<link rel="stylesheet" href="/styles/base.css">
-</head>
-<body>
-<main>
-  <h1>Missing layout: ${name}</h1>
-</main>
-</body>
-</html>`;
-  }
+  return tpl
+    .replaceAll("{{title}}", "Editor")
+    .replaceAll("{{layout}}", "editor")
+    .replaceAll("{{nav}}", `<a href="/" class="ui-link">Back</a>`)
+    .replaceAll("{{content}}", content);
 }

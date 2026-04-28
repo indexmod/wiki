@@ -2,29 +2,27 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Editor</title>
+<title>{{title}}</title>
 
 <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/editor.css">
 </head>
 
-<body class="layout-editor">
+<body class="layout-{{layout}}">
 
 <header>
   <a href="/">
     <img src="/logo.png" class="logo">
   </a>
 
-  <a class="edit" onclick="save()">Save</a>
+  <nav>
+    {{nav}}
+  </nav>
 </header>
 
-<main class="editor">
+<main>
 {{content}}
 </main>
-
-<script>
-let slug = new URLSearchParams(location.search).get("slug");
-</script>
 
 </body>
 </html>

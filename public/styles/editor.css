@@ -1,56 +1,17 @@
-
-/* ===== PAGE WIDTH как статья ===== */
-
-.editor-page {
-  max-width: 800px;
+.layout-editor .editor-wrap {
+  max-width: 900px;
   margin: 0 auto;
-  padding: 40px 20px;
 }
 
-/* ===== TITLE как статья ===== */
-
-#title {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.2;
-  outline: none;
-  margin-bottom: 20px;
-}
-
-/* ===== BODY как статья ===== */
-
-#content {
+.layout-editor .editor-content {
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 18px;
   line-height: 1.6;
+
   outline: none;
   white-space: pre-wrap;
 }
 
-/* ===== PLACEHOLDER без рамок ===== */
-
-#title:empty:before {
-  content: attr(data-placeholder);
-  color: #666;
-}
-
-#content:empty:before {
-  content: attr(data-placeholder);
-  color: #666;
-}
-
-/* ===== REMOVE FORM FEEL ===== */
-
-#title,
-#content {
-  border: none;
-}
-
-/* ===== FIX SCROLL UNDER HEADER ===== */
-
-body {
-  overflow-y: auto;
-}
-
-.layout-editor main {
-  padding-top: 20px;
+.layout-editor .editor-toolbar {
+  margin-bottom: 20px;
 }
