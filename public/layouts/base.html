@@ -5,20 +5,25 @@
 <title>{{title}}</title>
 
 <link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/index.css">
+<link rel="stylesheet" href="/styles/page.css">
+<link rel="stylesheet" href="/styles/editor.css">
 </head>
 
-<body>
+<body class="layout-{{slug}}">
 
-<header>
-  <a href="/">
+<header class="site-header">
+  <a href="/" class="logo-wrap">
     <img src="/logo.png" class="logo">
   </a>
 
-  <a href="/editor">Edit</a>
+  <nav class="actions">
+    <a href="/editor">Edit</a>
+  </nav>
 </header>
 
-<main>
-{{content}}
+<main class="content">
+  {{content}}
 </main>
 
 </body>
