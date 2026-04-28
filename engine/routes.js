@@ -18,9 +18,15 @@ export async function handleRoute(req, env, path) {
 
     if (!page) return null;
 
-    const tpl = await layout(env, "index");
+    const tpl = await layout(env, "page");
 
-    return tpl;
+    const html = tpl
+      .replaceAll("{{title}}", page.title || slug)
+      .replaceAll("{{slug}}", slug)
+      .replaceAll("{{content}}", render(page.content || ""));
+
+    return html;
+  }
 
   return null;
 }
