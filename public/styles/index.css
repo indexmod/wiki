@@ -1,21 +1,46 @@
+/* =========================
+   INDEX GRID (3 COLS)
+========================= */
+
 .layout-index .index-grid {
   padding: 40px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
 }
+
+/* =========================
+   SECTION
+========================= */
 
 .layout-index .section {
   margin-bottom: 40px;
 }
 
+/* =========================
+   SECTION LETTER
+========================= */
+
 .layout-index .section-letter {
   font-size: 72px;
   font-weight: 900;
   margin-bottom: 10px;
+  line-height: 1;
 }
+
+/* =========================
+   TOPIC
+========================= */
 
 .layout-index .topic-title {
   font-size: 22px;
   margin: 6px 0;
 }
+
+/* =========================
+   LINKS (TOPICS)
+========================= */
 
 .layout-index .topic-title a {
   text-decoration: none;
@@ -24,4 +49,22 @@
 
 .layout-index .topic-title a:hover {
   text-decoration: underline;
+}
+
+/* =========================
+   HEADER LINKS (e.g. New)
+========================= */
+
+.layout-index header a {
+  font-size: 14px;
+  text-decoration: none;
+  color: #111;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.layout-index header a:hover {
+  border-color: #ddd;
+  background: #f7f7f7;
 }
