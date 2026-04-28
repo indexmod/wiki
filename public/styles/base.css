@@ -1,4 +1,3 @@
-
 /* ================= RESET ================= */
 
 * {
@@ -6,23 +5,25 @@
 }
 
 html {
-  font-size: 16px; /* фиксируем базу */
+  font-size: 16px;
 }
+
+/* ================= BASE THEME ================= */
 
 body {
   font-family: Georgia, "Times New Roman", serif;
   background: #ffffff;
   color: #111;
-
   line-height: 1.6;
 }
 
 /* ================= LINKS (CONTENT ONLY) ================= */
+/* ВАЖНО: только контент внутри main/article/page */
 
 main a,
 article a,
 .page a {
-  color: #0b57d0; /* стандартный браузерный синий */
+  color: #0b57d0;
   text-decoration: underline;
 }
 
@@ -32,46 +33,21 @@ article a:hover,
   text-decoration: underline;
 }
 
-
-/* ================= UI BUTTON SYSTEM ================= */
-
-header a,
-header button {
-  color: #111 !important;
-  text-decoration: none !important;
-}
-
-/* любые UI action ссылки */
-a.edit,
-a.new,
-a.save,
-a.button {
-  color: #111 !important;
-  text-decoration: none !important;
-
-  border: 1px solid #111;
-  border-radius: 20px;
-
-  padding: 4px 10px;
-
-  display: inline-block;
-}
-
-/* ================= HEADER (AIRY PRINT STYLE) ================= */
+/* ================= HEADER LAYOUT ================= */
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 40px 60px; /* воздух */
+  padding: 40px 60px;
   margin-bottom: 40px;
 }
 
 /* ================= LOGO ================= */
 
 .logo {
-  height: 200px; /* как ты сказал */
+  height: 200px;
   width: auto;
   opacity: 1;
 }
@@ -84,12 +60,34 @@ main {
   margin: 0 auto;
 }
 
+/* ================= UI BUTTON SYSTEM (FIXED ISOLATION) ================= */
+/* КРИТИЧНО: теперь UI НЕ трогает все header a */
+
+header .edit,
+header .new,
+header .save,
+header a.button {
+  color: #111;
+  text-decoration: none;
+
+  border: 1px solid #111;
+  border-radius: 20px;
+
+  padding: 4px 10px;
+  display: inline-block;
+}
+
+/* убираем влияние header на все ссылки */
+header a {
+  color: #111;
+  text-decoration: none;
+}
+
 /* ================= IMPORTANT RULES ================= */
-/*
+
+ /*
 ЗАПРЕЩЕНО:
-- fixed/sticky header
-- цветные UI кнопки
-- тени / blur / glow
-- card UI
-- синие ссылки как UI элемент
+- fixed/sticky layout
+- глобальные UI стили через a{}
+- color inheritance из header в контент
 */
