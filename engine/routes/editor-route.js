@@ -1,3 +1,6 @@
+
+// editor-route.js
+
 import { layout } from "../layouts.js";
 import { renderEditor } from "../renders/editor-render.js";
 
