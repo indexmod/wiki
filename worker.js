@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.4 FIXED SINGLE LAYOUT)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.5 STABLE INDEX FIX)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,7 +58,7 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (SINGLE LAYER ONLY) =================
+// ================= LAYOUT =================
 async function layout(env, name) {
   try {
     const res = await env.ASSETS.fetch(
@@ -68,14 +68,11 @@ async function layout(env, name) {
     if (!res.ok) throw new Error("missing layout");
 
     return await res.text();
-  } catch (e) {
+  } catch {
     return `
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Layout missing</title>
-</head>
+<head><meta charset="utf-8"></head>
 <body style="font-family:Georgia;padding:40px">
   <h1>Layout missing: ${name}</h1>
 </body>
@@ -116,7 +113,7 @@ export default {
         });
       }
 
-      // ================= LIST =================
+      // ================= API LIST =================
       if (path === "/api/pages") {
         const list = await env.PAGES.list();
         const pages = [];
@@ -129,6 +126,8 @@ export default {
           const slug =
             meta.slug ||
             obj.key.replace("pages/", "").replace(".md", "");
+
+          if (slug === "index") continue;
 
           pages.push({
             slug,
@@ -184,7 +183,7 @@ ${data.content || ""}`;
         });
       }
 
-      // ================= PAGE ROUTE =================
+      // ================= PAGE ROUTING =================
       if (
         !path.startsWith("/api") &&
         !path.startsWith("/__") &&
@@ -193,13 +192,59 @@ ${data.content || ""}`;
       ) {
         const slug = path === "/" ? "index" : path.slice(1);
 
+        // ================= INDEX AS LIST =================
+        if (slug === "index") {
+          const list = await env.PAGES.list();
+          const pages = [];
+
+          for (const obj of list.objects || []) {
+            const raw = await env.PAGES.get(obj.key);
+            const md = await read(raw);
+            const { meta } = parse(md);
+
+            const pageSlug =
+              meta.slug ||
+              obj.key.replace("pages/", "").replace(".md", "");
+
+            if (pageSlug === "index") continue;
+
+            pages.push({
+              slug: pageSlug,
+              title: meta.title || pageSlug
+            });
+          }
+
+          const tpl = await layout(env, "index");
+
+          const items = pages
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map(p => `
+              <div class="index-item">
+                <a href="/${p.slug}">${p.title}</a>
+              </div>
+            `)
+            .join("");
+
+          const html = tpl.replaceAll(
+            "{{content}}",
+            `<div class="index-grid">${items}</div>`
+          );
+
+          return new Response(html, {
+            headers: {
+              "Content-Type": "text/html; charset=utf-8"
+            }
+          });
+        }
+
+        // ================= NORMAL PAGE =================
         const raw = await env.PAGES.get(file(slug));
         if (!raw) return env.ASSETS.fetch(req);
 
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const tpl = await layout(env, slug === "index" ? "index" : "page");
+        const tpl = await layout(env, "page");
 
         const html = tpl
           .replaceAll("{{title}}", meta.title || slug)
