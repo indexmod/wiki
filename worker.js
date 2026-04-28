@@ -1,4 +1,4 @@
-// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.4 BASE ARCH FIXED)
+// FILE: worker.js (INDEXMOD LAYOUT ENGINE v1.4 FIXED SINGLE LAYOUT)
 
 function file(slug) {
   return `pages/${slug}.md`;
@@ -58,7 +58,7 @@ function render(md = "") {
   return html;
 }
 
-// ================= LAYOUT LOADER (LOCAL ONLY FIXED) =================
+// ================= LAYOUT LOADER (SINGLE LAYER ONLY) =================
 async function layout(env, name) {
   try {
     const res = await env.ASSETS.fetch(
@@ -75,7 +75,6 @@ async function layout(env, name) {
 <head>
   <meta charset="utf-8">
   <title>Layout missing</title>
-  <link rel="stylesheet" href="/styles/base.css">
 </head>
 <body style="font-family:Georgia;padding:40px">
   <h1>Layout missing: ${name}</h1>
@@ -108,11 +107,8 @@ export default {
 
       if (path === "/editor") {
         const tpl = await layout(env, "editor");
-        const base = await layout(env, "base");
 
-        const html = base.replace("{{content}}", tpl);
-
-        return new Response(html, {
+        return new Response(tpl, {
           headers: {
             "Content-Type": "text/html; charset=utf-8",
             "Cache-Control": "no-cache"
@@ -203,21 +199,12 @@ ${data.content || ""}`;
         const md = await read(raw);
         const { meta, body } = parse(md);
 
-        const layoutName =
-          path === "/editor" ? "editor"
-          : slug === "index" ? "index"
-          : "page";
+        const tpl = await layout(env, slug === "index" ? "index" : "page");
 
-        const tpl = await layout(env, layoutName);
-        const base = await layout(env, "base");
-
-        const html = base.replace(
-          "{{content}}",
-          tpl
-            .replaceAll("{{title}}", meta.title || slug)
-            .replaceAll("{{slug}}", slug)
-            .replaceAll("{{content}}", render(body))
-        );
+        const html = tpl
+          .replaceAll("{{title}}", meta.title || slug)
+          .replaceAll("{{slug}}", slug)
+          .replaceAll("{{content}}", render(body));
 
         return new Response(html, {
           headers: {
