@@ -1,6 +1,12 @@
+
+/* =========================
+   INDEX LAYOUT
+========================= */
+
 .layout-index {
   background: #0f0f10;
   padding: 20px;
+  color: #eaeaea;
 }
 
 /* =========================
@@ -25,38 +31,55 @@
 }
 
 /* =========================
-   CARD
+   SECTION LETTER (A, B, C...)
+   = 2x article title size
 ========================= */
 
-.index-card {
-  background: #151517;
-  border: 1px solid #222;
-  padding: 14px;
-  border-radius: 10px;
-  transition: 0.2s;
-}
-
-.index-card:hover {
-  border-color: #333;
-  transform: translateY(-2px);
+.section-letter {
+  font-size: 80px; /* 40px * 2 */
+  font-weight: 900;
+  color: #000; /* чёрный как ты просил */
+  line-height: 1;
+  margin: 10px 0 10px;
 }
 
 /* =========================
-   TITLE
+   SECTION WRAPPER
 ========================= */
 
-.index-card h2 {
-  font-size: 16px;
-  margin: 0 0 8px;
+.section {
+  margin-bottom: 30px;
 }
 
 /* =========================
-   LINK
+   TOPIC ITEM (TITLE STYLE)
 ========================= */
 
-.index-card a {
+.topic-title {
+  font-size: 40px; /* как заголовок статьи */
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 6px 0;
+}
+
+/* ссылка = цвет ссылок системы */
+.topic-title a {
   color: #8ab4ff;
+  text-decoration: none;
+}
+
+.topic-title a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   OPTIONAL META (if needed later)
+========================= */
+
+.topic-meta {
   font-size: 13px;
+  color: #888;
+  margin-top: 4px;
 }
 
 /* =========================
@@ -67,10 +90,26 @@
   .index-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .section-letter {
+    font-size: 60px;
+  }
+
+  .topic-title {
+    font-size: 32px;
+  }
 }
 
 @media (max-width: 600px) {
   .index-grid {
     grid-template-columns: 1fr;
+  }
+
+  .section-letter {
+    font-size: 48px;
+  }
+
+  .topic-title {
+    font-size: 28px;
   }
 }
