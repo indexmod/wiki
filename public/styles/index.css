@@ -1,6 +1,6 @@
 
 /* =========================
-   INDEX BASE (same system as site)
+   INDEX BASE
 ========================= */
 
 .layout-index {
@@ -11,107 +11,44 @@
 }
 
 /* =========================
-   HEADER (airy print)
+   SECTION LETTER
 ========================= */
 
-.index-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 40px;
-}
-
-/* =========================
-   GRID (3 COLUMNS PRINT STYLE)
-========================= */
-
-.index-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-}
-
-/* =========================
-   SECTION LETTER (NEWSPAPER BLOCK)
-========================= */
-
-.section-letter {
-  font-size: 80px; /* 2x article H1 */
+.layout-index .section-letter {
+  font-size: 80px;
   font-weight: 900;
-  color: #000; /* чёрный акцент */
+  color: #000;
   line-height: 1;
   margin-bottom: 10px;
 }
 
 /* =========================
-   SECTION WRAPPER
+   TOPIC TITLE
 ========================= */
 
-.section {
-  break-inside: avoid;
-  margin-bottom: 40px;
+.layout-index .topic-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 6px 0;
+  color: #2b2b2b;
 }
 
 /* =========================
-   TOPIC TITLE (GRAPHITE, NOT UI BLUE)
+   LINKS
 ========================= */
 
-.topic-title {
-  font-size: 40px; /* как статья */
-  font-weight: 700;
-  line-height: 1.2;
-
-  margin: 6px 0;
-
-  color: #2b2b2b; /* графит */
-}
-
-/* ссылки внутри текста = синие (как ты уже утвердил раньше) */
-.topic-title a {
+.layout-index .topic-title a {
   color: #0b57d0;
   text-decoration: underline;
 }
 
 /* =========================
-   META (secondary print text)
+   META
 ========================= */
 
-.topic-meta {
+.layout-index .topic-meta {
   font-size: 13px;
   color: #666;
   margin-top: 4px;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1000px) {
-  .index-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-  }
-
-  .section-letter {
-    font-size: 60px;
-  }
-
-  .topic-title {
-    font-size: 32px;
-  }
-}
-
-@media (max-width: 600px) {
-  .index-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .section-letter {
-    font-size: 48px;
-  }
-
-  .topic-title {
-    font-size: 28px;
-  }
 }
