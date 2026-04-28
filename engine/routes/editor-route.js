@@ -1,5 +1,5 @@
 import { layout } from "../layouts.js";
-import { renderEditor } from "../../renders/editor-render.js";
+import { renderEditor } from "../renders/editor-render.js";
 
 export async function editorRoute(env) {
   const tpl = await layout(env, "editor");

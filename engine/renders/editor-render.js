@@ -1,12 +1,19 @@
-import { render } from "../render.js";
-
-export function renderPage(page) {
+export function renderEditor() {
   return `
-    <article class="page">
-      <h1 class="page-title">${page.title}</h1>
-      <div class="page-content">
-        ${render(page.content || "")}
+    <div class="editor-wrap">
+
+      <div class="editor-toolbar">
+        <button class="ui-link">Save</button>
       </div>
-    </article>
+
+      <div
+        id="editor"
+        class="editor-content"
+        contenteditable="true"
+      >
+# Write here...
+      </div>
+
+    </div>
   `;
 }
