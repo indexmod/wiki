@@ -1,46 +1,53 @@
+
+// ===============================
+// WORKER ENTRY
+// ===============================
+
 import { indexRoute } from "./engine/index/route.js";
 import { pageRoute } from "./engine/pages/route.js";
 import { editorRoute } from "./engine/editor/route.js";
 
 export default {
   async fetch(req, env) {
-    const url = new URL(req.url);
-    const path = url.pathname;
 
     try {
-      // ================= INDEX =================
+      const path = new URL(req.url).pathname;
+
+      // ===============================
+      // INDEX
+      // ===============================
       if (path === "/" || path === "/index") {
         return await indexRoute(env);
       }
 
-      // ================= EDITOR =================
+      // ===============================
+      // EDITOR
+      // ===============================
       if (path === "/editor") {
         return await editorRoute(env);
       }
 
-      // ================= PAGE ENGINE =================
+      // ===============================
+      // PAGES
+      // ===============================
       if (!path.startsWith("/api") && !path.includes(".")) {
-        const res = await pageRoute(env, path.slice(1));
-
-        // 💥 важный safety fallback
-        if (!res) {
-          return new Response("PAGE NOT FOUND", { status: 404 });
-        }
-
-        return res;
+        return await pageRoute(env, path.slice(1));
       }
 
-      // ================= STATIC =================
+      // ===============================
+      // STATIC ASSETS
+      // ===============================
       return env.ASSETS.fetch(req);
 
-      catch (e) {
-        console.log("[WORKER CRASH]", e);
+    } catch (e) {
 
-        return new Response(
-          "WORKER CRASH:\n\n" +
-          (e?.stack || e?.message || e),
-          { status: 500 }
-        );
-      }
+      console.log("[WORKER ERROR]", e);
+
+      return new Response(
+        "WORKER ERROR:\n\n" +
+        (e?.stack || e?.message || e),
+        { status: 500 }
+      );
+    }
   }
 };
