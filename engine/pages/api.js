@@ -60,7 +60,7 @@ export async function getPage(env, slug) {
     // ===============================
     // SINGLE STORAGE CONTRACT
     // ===============================
-    const key = `pages/${cleanSlug}`;
+    const key = `${cleanSlug}.md`;
 
     const obj = await env.PAGES.get(key);
 
@@ -91,7 +91,7 @@ export async function getRawPage(env, slug) {
     const cleanSlug = normalizeSlug(slug);
     if (!cleanSlug) return null;
 
-    const key = `pages/${cleanSlug}`;
+    const key = `${cleanSlug}.md`;
     const obj = await env.PAGES.get(key);
 
     if (!obj) return null;
