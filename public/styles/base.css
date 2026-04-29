@@ -2,16 +2,18 @@
    BASE.CSS — GLOBAL LAYER
 
    ✔ reset
-   ✔ typography (fonts, base rhythm)
-   ✔ layout shell (header / footer spacing only)
-   ✔ ui-link (global semantic link system)
+   ✔ typography
+   ✔ layout spacing system
+   ✔ ui-link system
+   ✔ header/footer geometry
+   ✔ logo animation (pure decoration)
 
    DOES NOT:
-   ✘ style index / pages / editor layouts
-   ✘ define engine-specific UI logic
-   ✘ touch editor even indirectly
+   ✘ style index/pages/editor logic
+   ✘ define content layout rules
+   ✘ interfere with engine rendering
 
-   base = foundation only
+   base = structural + visual foundation only
    ========================================================= */
 
 
@@ -59,8 +61,6 @@ a {
 
   color: #1a5cff;
   text-decoration: none;
-
-  transition: opacity 0.2s ease;
 }
 
 .ui-link:hover {
@@ -68,8 +68,8 @@ a {
 }
 
 
-/* ================= LAYOUT CONTAINER (GLOBAL SPACING ONLY) ================= */
-/* НЕ влияет на layout engines — только геометрия страницы */
+/* ================= GLOBAL LAYOUT CONTAINER ================= */
+/* только геометрия, без влияния на engines */
 
 .site-header,
 .site-main,
@@ -83,12 +83,12 @@ a {
 }
 
 
-/* ================= HEADER (STRUCTURE ONLY) ================= */
+/* ================= HEADER ================= */
 
 header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 
   margin-bottom: 40px;
 }
@@ -101,11 +101,12 @@ header {
   width: auto;
   display: block;
 
-  margin-top: 20px; /* больше воздуха сверху */
+  margin-top: 30px; /* воздух сверху */
 
   animation: logoPulse 6s ease-in-out infinite;
   transform-origin: center;
 }
+
 
 /* ================= LOGO ANIMATION ================= */
 
@@ -132,7 +133,12 @@ header {
 .site-footer {
   margin-top: 80px;
   margin-bottom: 40px;
+
+  color: #a855f7; /* 💜 весь футер текст */
 }
+
+
+/* ================= FOOTER LINK ================= */
 
 .footer-link {
   display: inline-flex;
@@ -140,21 +146,23 @@ header {
   gap: 10px;
 
   font-size: 16px;
-
-  color: #a855f7; /* 💜 весь текст лиловый */
-  text-decoration: none;
+  color: inherit; /* наследует лиловый от footer */
 }
+
+
+/* ================= FOOTER BULLET ================= */
 
 .footer-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
 
-  background: #a855f7; /* 💜 буллет тоже лиловый */
+  background: currentColor; /* синхронизируется с текстом */
 }
 
-/* ================= EDITOR ISOLATION (HARD BOUNDARY) ================= */
-/* editor НЕ зависит от base layout */
+
+/* ================= EDITOR ISOLATION ================= */
+/* hard boundary — base НЕ влияет */
 
 .layout-editor main {
   all: unset;
