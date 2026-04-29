@@ -1,15 +1,28 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: api.js
-// PURPOSE: index data layer (optional navigation data)
+// PURPOSE: load page list from R2
 // ===============================
 
-// сейчас пусто — но оставляем контракт
-// чтобы index engine мог расширяться без изменения архитектуры
+export async function getIndexPages(env) {
+  try {
+    const list = await env.PAGES.list();
 
-export async function getIndexData(env) {
-  return {
-    ok: true,
-    pages: []
-  };
+    const pages = await Promise.all(
+      list.keys.map(async (k) => {
+        try {
+          const obj = await env.PAGES.get(k.name);
+          return obj ? await obj.json() : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    return pages.filter(Boolean);
+
+  } catch (e) {
+    console.log("[INDEX API ERROR]", e);
+    return [];
+  }
 }

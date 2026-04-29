@@ -1,27 +1,33 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: render.js
-// PURPOSE: homepage / navigation UI
+// PURPOSE: render index page UI
 // ===============================
 
-export function renderIndex() {
+import { getIndexPages } from "./api.js";
+
+export async function renderIndex(env) {
+  const pages = await getIndexPages(env);
+
   return `
-<!-- INDEX ENGINE START -->
+    <div class="index-header">
+      <h1>INDEX ENGINE ACTIVE</h1>
+      <img src="/logo.png" class="logo" />
+      <a href="/editor" class="ui-link">OPEN EDITOR</a>
+    </div>
 
-<div class="index-wrap">
-
-  <h1>INDEX ENGINE ACTIVE</h1>
-
-  <div class="index-nav">
-    <a href="/editor" class="ui-link">OPEN EDITOR</a>
-  </div>
-
-  <div class="index-content">
-    <p>Welcome to Index Engine.</p>
-  </div>
-
-</div>
-
-<!-- INDEX ENGINE END -->
-`;
+    <div class="index-list">
+      ${pages.length
+        ? pages
+            .map(
+              (p) => `
+                <a class="page-link" href="/${p.slug}">
+                  ${p.title || p.slug}
+                </a>
+              `
+            )
+            .join("")
+        : `<p class="muted">No pages found in PAGES bucket</p>`}
+    </div>
+  `;
 }

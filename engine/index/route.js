@@ -10,7 +10,7 @@ import { renderIndex } from "./render.js";
 export async function indexRoute(env) {
   const tpl = await layout(env);
 
-  const content = renderIndex();
+  const content = await renderIndex(env);
 
   return tpl
     .replaceAll("{{title}}", "INDEX ENGINE")
