@@ -2,14 +2,13 @@
    INDEX ENGINE — CURRENT STATE
 
    ✔ grouped by A–Z (no nav)
-   ✔ responsive grid: 3 → 2 → 1 columns
+   ✔ sections flow in columns (1 → 2 → 3)
    ✔ larger typography
    ✔ blue links, no underline
    ✔ minimal layout, no cross-engine styles
 
    NOTE:
-   base.css = only reset/typography
-   index.css = full layout responsibility
+   grid is applied to sections (NOT items)
 
    ========================================================= */
 
@@ -17,36 +16,41 @@
 /* ================= INDEX ENGINE ================= */
 
 .index-wrap {
-  max-width: 1100px;
-  margin: 60px auto;
-  padding: 0 20px;
+  max-width: 1200px;
+  margin: 80px auto;
+  padding: 0 30px;
+
+  /* 🔥 ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
 }
 
 /* SECTIONS */
 
 .index-section {
-  margin-bottom: 60px;
+  /* теперь каждая секция — колонка */
 }
 
 .index-letter {
-  font-size: 32px;
+  font-size: 40px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-/* LIST (GRID) */
+/* LIST (ВНУТРИ — СТРОГО В СТОЛБИК) */
 
 .index-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* ITEM */
 
 .index-item {
-  font-size: 18px;
-  line-height: 1.5;
+  font-size: 20px;
+  line-height: 1.6;
 
   color: #1a5cff;
   text-decoration: none;
@@ -59,18 +63,18 @@
 
 /* ================= RESPONSIVE ================= */
 
-@media (max-width: 900px) {
-  .index-list {
+@media (max-width: 1000px) {
+  .index-wrap {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .index-list {
+  .index-wrap {
     grid-template-columns: 1fr;
   }
 
   .index-item {
-    font-size: 20px;
+    font-size: 22px;
   }
 }
