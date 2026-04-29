@@ -1,3 +1,21 @@
+/* =========================================================
+   BASE.CSS — GLOBAL LAYER
+
+   ✔ reset
+   ✔ typography (fonts, base rhythm)
+   ✔ layout shell (header / footer)
+   ✔ neutral links (no styling control)
+
+   DOES NOT:
+   ✘ style index / pages / editor
+   ✘ override component styles
+   ✘ define visual identity of engines
+
+   base = foundation only
+
+   ========================================================= */
+
+
 /* ================= RESET ================= */
 
 * {
@@ -6,9 +24,17 @@
 
 html {
   font-size: 16px;
+  margin: 0;
+  padding: 0;
 }
 
-/* ================= BASE THEME ================= */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ================= BASE TYPOGRAPHY ================= */
 
 body {
   font-family: Georgia, "Times New Roman", serif;
@@ -17,25 +43,27 @@ body {
   line-height: 1.6;
 }
 
-/* ================= LINKS (НЕЙТРАЛЬНЫЕ) ================= */
-/* base не управляет ссылками */
+
+/* ================= LINKS (NEUTRAL) ================= */
 
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* ================= HEADER ================= */
-/* только layout, без стилизации ссылок */
+
+/* ================= HEADER (LAYOUT ONLY) ================= */
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 40px 60px;
-  margin-bottom: 40px;
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+  padding: 40px 30px;
 }
+
 
 /* ================= LOGO ================= */
 
@@ -45,67 +73,45 @@ header {
   display: block;
 }
 
-/* ================= BUTTON SYSTEM (НЕЙТРАЛЬНЫЙ) ================= */
-/* только для editor/save/edit в будущем */
 
-header .edit,
-header .new,
-header .save,
-header a.button {
-  all: unset;
-  cursor: pointer;
+/* ================= FOOTER (LAYOUT ONLY) ================= */
+
+.site-footer {
+  max-width: 1200px;
+  margin: 80px auto 40px auto;
+  padding: 0 30px;
 }
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 16px;
+  color: #888;
+}
+
+.footer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #888;
+}
+
+.footer-link:hover {
+  opacity: 0.7;
+}
+
 
 /* ================= EDITOR ISOLATION ================= */
 
 .layout-editor main {
   all: unset;
-  font-family: Georgia, "Times New Roman", serif;
   display: block;
-  padding: 40px 60px;
+
+  font-family: Georgia, "Times New Roman", serif;
+
   max-width: 900px;
   margin: 0 auto;
+  padding: 40px 30px;
 }
-
-/* ================= FOOTER ================= */
-
-.site-footer {
-  padding: 20px 60px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.site-footer .footer-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-
-  font-size: 20px;
-  color: #a855f7;
-  text-decoration: none;
-}
-
-.site-footer .footer-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #a855f7;
-}
-
-.site-footer .footer-link:hover {
-  opacity: 0.8;
-}
-
-/* ================= IMPORTANT ================= */
-
-/*
-base.css НЕ ДОЛЖЕН:
-- управлять ссылками
-- задавать стили контента
-- влиять на index/page/editor
-
-он только:
-✔ каркас
-✔ шрифты
-✔ header/footer
-*/

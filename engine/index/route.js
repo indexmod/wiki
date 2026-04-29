@@ -15,8 +15,8 @@ export async function indexRoute(env) {
   const content = renderIndex(pages);
 
   return tpl
-    .replaceAll("{{title}}", "Index")
+    .replaceAll("{{title}}", "Indexmod Fashion and Art")
     .replaceAll("{{layout}}", "index")
-    .replaceAll("{{nav}}", `<a href="/editor" class="ui-link">NEW</a>`)
+    .replaceAll("{{nav}}", `<a href="/editor" class="nav-new">New</a>`)
     .replaceAll("{{content}}", content);
 }
