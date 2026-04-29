@@ -5,17 +5,32 @@
 <title>{{title}}</title>
 
 <link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/index.css">
+<link rel="stylesheet" href="/styles/page.css">
+<link rel="stylesheet" href="/styles/editor.css">
 </head>
 
 <body class="layout-{{layout}}">
 
 <header class="site-header">
-  {{nav}}
+  <a href="/" class="logo-link">
+    <img src="/logo.png" class="logo">
+  </a>
+
+  <nav class="site-nav">
+    {{nav}}
+  </nav>
 </header>
 
 <main class="site-main">
   {{content}}
 </main>
+
+<footer class="site-footer">
+  <a href="https://mod.indexmod.press">
+    Chat at Mod by Indexmod
+  </a>
+</footer>
 
 </body>
 </html>
