@@ -1,13 +1,19 @@
-// ===============================
-// ENGINE: PAGES
-// FILE: api.js
-// PURPOSE: page data loader (R2 / DB layer)
-// ===============================
+// =========================================================
+// ENGINE STATE: PAGES API LAYER
+// STATUS:
+// ✔ single source of truth storage key
+// ✔ strict slug normalization
+// ✔ unified page schema
+// ✔ safe JSON parsing
+// ✔ read-layer stability fixed
+//
+// STORAGE CONTRACT:
+// env.PAGES key = "pages/{slug}"
+// =========================================================
 
 
 /* ===============================
-   SHARED SLUG NORMALIZER
-   (must match state.js)
+   SLUG NORMALIZER (GLOBAL CONTRACT)
 =============================== */
 
 function normalizeSlug(slug) {
@@ -24,7 +30,24 @@ function normalizeSlug(slug) {
 
 
 /* ===============================
-   GET PAGE
+   PAGE SCHEMA NORMALIZER
+=============================== */
+
+function normalizePage(data, slug) {
+  const cleanSlug = normalizeSlug(slug);
+
+  return {
+    slug: cleanSlug,
+    title: data?.title || cleanSlug,
+    content: data?.content || "",
+    createdAt: data?.createdAt || null,
+    updatedAt: data?.updatedAt || null
+  };
+}
+
+
+/* ===============================
+   GET PAGE (READ)
 =============================== */
 
 export async function getPage(env, slug) {
@@ -34,20 +57,18 @@ export async function getPage(env, slug) {
 
     if (!cleanSlug) return null;
 
-    const obj = await env.PAGES.get(cleanSlug);
+    // ===============================
+    // SINGLE STORAGE CONTRACT
+    // ===============================
+    const key = `pages/${cleanSlug}`;
+
+    const obj = await env.PAGES.get(key);
 
     if (!obj) return null;
 
     try {
       const data = await obj.json();
-
-      return {
-        slug: cleanSlug,
-        title: data?.title || cleanSlug,
-        content: data?.content || "",
-        createdAt: data?.createdAt || null,
-        updatedAt: data?.updatedAt || null
-      };
+      return normalizePage(data, cleanSlug);
 
     } catch (parseErr) {
       console.log("[PAGE API JSON ERROR]", parseErr);
@@ -56,6 +77,29 @@ export async function getPage(env, slug) {
 
   } catch (e) {
     console.log("[PAGE API ERROR]", e);
+    return null;
+  }
+}
+
+
+/* ===============================
+   OPTIONAL: RAW FETCH (DEBUG / ADMIN USE)
+=============================== */
+
+export async function getRawPage(env, slug) {
+  try {
+    const cleanSlug = normalizeSlug(slug);
+    if (!cleanSlug) return null;
+
+    const key = `pages/${cleanSlug}`;
+    const obj = await env.PAGES.get(key);
+
+    if (!obj) return null;
+
+    return await obj.text();
+
+  } catch (e) {
+    console.log("[PAGE RAW ERROR]", e);
     return null;
   }
 }
