@@ -1,53 +1,76 @@
-// ===============================
-// ENGINE: EDITOR
-// FILE: render.js
-// PURPOSE: markdown editor UI (isolated fragment)
-// ===============================
+// =========================================================
+// ENGINE STATE: EDITOR RENDER
+// STATUS:
+// ✔ supports new page + edit mode
+// ✔ page-aware content injection
+// ✔ no duplicated UI controls
+// ✔ clean UI fragment (no layout responsibility)
+// ✔ future-ready for save system
+//
+// NOTES:
+// - page = null → new page mode
+// - page exists → edit mode
+// - MUST NOT include layout or routing logic
+// =========================================================
 
 
+function escapeHtml(value) {
+  if (!value) return "";
+  return String(value)
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+// ===============================
+// RENDER EDITOR
+// ===============================
 export function renderEditor(page = null) {
 
-  const title = page?.title || "";
-  const content = page?.content || "";
+  const isEditMode = !!page;
+
+  const title = isEditMode
+    ? page.title || "Untitled page"
+    : "New page";
+
+  const content = isEditMode
+    ? page.content || ""
+    : "# New page\n\nStart writing...";
 
   return `
 <!-- ===============================
      EDITOR ENGINE UI
+     STATE: ${isEditMode ? "EDIT MODE" : "NEW PAGE"}
      =============================== -->
 
-<div class="editor-wrap" data-engine="editor">
+<div class="editor-wrap" data-mode="${isEditMode ? "edit" : "new"}">
 
   <!-- ================= TOOLBAR ================= -->
   <div class="editor-toolbar">
-    <button class="ui-link" data-action="save">
-      Save
-    </button>
 
-    <button class="ui-link" data-action="edit">
-      Edit
-    </button>
+    <span class="editor-title">
+      ${escapeHtml(title)}
+    </span>
+
+    <div class="editor-actions">
+      <button class="ui-link">Save</button>
+      <a href="/" class="ui-link">Exit</a>
+    </div>
+
   </div>
 
-  <!-- ================= TITLE ================= -->
-  <div
-    id="editor-title"
-    class="editor-title"
-    contenteditable="true"
-    data-field="title"
-  >${title || "Title"}</div>
-
-  <!-- ================= CONTENT ================= -->
+  <!-- ================= EDITABLE AREA ================= -->
   <div
     id="editor"
     class="editor-content"
     contenteditable="true"
-    data-field="content"
-  >${content || "Write markdown here..."}</div>
+    spellcheck="false"
+  >${escapeHtml(content)}</div>
 
 </div>
 
 <!-- ===============================
-     END EDITOR ENGINE
+     EDITOR ENGINE END
      =============================== -->
 `;
 }

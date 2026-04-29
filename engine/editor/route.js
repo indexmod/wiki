@@ -1,62 +1,89 @@
-// ===============================
-// ENGINE: EDITOR
-// FILE: route.js
-// PURPOSE: editor entry route
-// ===============================
+// =========================================================
+// ENGINE STATE: EDITOR ROUTE
+// STATUS:
+// ✔ slug-aware editor (/editor/:slug)
+// ✔ page preload supported
+// ✔ Page → Editor transformation layer
+// ✔ safe fallback mode (new page)
+// ✔ layout contract enforced
+//
+// NOTES:
+// - editor can work in 2 modes:
+//   1) new page (no slug)
+//   2) edit existing page (with slug)
+// =========================================================
 
 import { layout } from "./layout.js";
 import { renderEditor } from "./render.js";
-import { loadPage } from "./state.js";
+import { getPage } from "../pages/api.js";
 
-function assertContract(html) {
-  if (!html || typeof html !== "string") {
-    throw new Error("EDITOR LAYOUT EMPTY");
-  }
 
-  if (!html.includes("{{content}}")) {
-    throw new Error("EDITOR LAYOUT CONTRACT BROKEN");
-  }
+// ===============================
+// SLUG NORMALIZER (shared rule)
+// ===============================
+function normalizeSlug(slug) {
+  if (!slug || typeof slug !== "string") return null;
+
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\.md$/g, "");
 }
 
-export async function editorRoute(env, slug = "untitled") {
+
+// ===============================
+// EDITOR ROUTE
+// ===============================
+export async function editorRoute(env, slug) {
   try {
-    console.log("[EDITOR ROUTE] start");
+
+    const cleanSlug = normalizeSlug(slug);
+
+    let page = null;
 
     // ===============================
-    // LOAD DATA (STATE LAYER)
+    // LOAD EXISTING PAGE (EDIT MODE)
     // ===============================
-    const page = await loadPage(env, slug);
+    if (cleanSlug) {
+      page = await getPage(env, cleanSlug);
+    }
 
-    // ===============================
-    // LOAD LAYOUT
-    // ===============================
     const tpl = await layout(env);
 
-    assertContract(tpl);
-
-    // ===============================
-    // NAVIGATION (CONTEXT-AWARE)
-    // ===============================
-    const nav = `
-      <a href="/" class="ui-link">Back</a>
-      <a href="#" class="ui-link">Save</a>
-      <a href="#" class="ui-link">Edit</a>
-    `;
-
-    // ===============================
-    // RENDER CONTENT (WITH STATE)
-    // ===============================
-    const content = renderEditor(page);
-
-    if (!content) {
-      throw new Error("EDITOR RENDER EMPTY");
+    if (!tpl || !tpl.includes("{{content}}")) {
+      throw new Error("EDITOR LAYOUT CONTRACT BROKEN");
     }
 
     // ===============================
-    // BUILD RESPONSE
+    // RENDER CONTENT
+    // ===============================
+    const content = renderEditor(page);
+
+    // ===============================
+    // NAV CONTRACT
+    // ===============================
+    const nav = `
+      <a href="/" class="ui-link">Index</a>
+      ${
+        cleanSlug
+          ? `<a href="/${cleanSlug}" class="ui-link">View</a>`
+          : ""
+      }
+    `;
+
+    // ===============================
+    // TITLE CONTEXT
+    // ===============================
+    const title = cleanSlug
+      ? `Edit: ${cleanSlug}`
+      : "New page";
+
+    // ===============================
+    // BUILD RESPONSE (STRING ONLY)
     // ===============================
     return tpl
-      .replaceAll("{{title}}", page?.title || "Editor Engine")
+      .replaceAll("{{title}}", title)
       .replaceAll("{{layout}}", "editor")
       .replaceAll("{{nav}}", nav)
       .replaceAll("{{content}}", content);
@@ -64,10 +91,12 @@ export async function editorRoute(env, slug = "untitled") {
   } catch (e) {
     console.log("[EDITOR ROUTE ERROR]", e);
 
-    return new Response(
-      "EDITOR ENGINE CRASH:\n\n" +
-      (e?.stack || e?.message || e),
-      { status: 500 }
-    );
+    return `
+      <div class="editor-error">
+        <h1>EDITOR ENGINE ERROR</h1>
+        <pre>${e?.message || e}</pre>
+        <a href="/" class="ui-link">Back to index</a>
+      </div>
+    `;
   }
 }

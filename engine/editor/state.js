@@ -1,27 +1,87 @@
-// ===============================
-// ENGINE: EDITOR
-// FILE: state.js
-// PURPOSE: editor data operations (save/load)
-// ===============================
+// =========================================================
+// ENGINE STATE: EDITOR STATE LAYER
+// STATUS:
+// ✔ R2 save/load implemented
+// ✔ unified page schema
+// ✔ safe serialization
+// ✔ overwrite-ready model (CMS style)
+// ✔ editor → pages sync layer
+//
+// NOTES:
+// - This is the ONLY write layer for pages
+// - key = normalized slug
+// - data = { title, content, updatedAt }
+// =========================================================
 
-/**
- * Normalize slug to safe key for R2
- */
+
+// ===============================
+// NORMALIZE SLUG (must match all engines)
+// ===============================
 function normalizeSlug(slug) {
-  if (!slug) return null;
+  if (!slug || typeof slug !== "string") return null;
 
   return slug
-    .toString()
-    .trim()
     .toLowerCase()
-    .replace(/\s+/g, "-");
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\.md$/g, "");
 }
 
-/**
- * Load page data from R2
- */
+
+// ===============================
+// SERIALIZE PAGE
+// ===============================
+function serializePage(data = {}) {
+  return {
+    title: data.title || "Untitled page",
+    content: data.content || "",
+    updatedAt: Date.now()
+  };
+}
+
+
+// ===============================
+// SAVE PAGE (WRITE TO R2)
+// ===============================
+export async function savePage(env, slug, data) {
+  try {
+
+    const key = normalizeSlug(slug);
+
+    if (!key) {
+      return { ok: false, error: "INVALID_SLUG" };
+    }
+
+    const payload = serializePage(data);
+
+    await env.PAGES.put(
+      key,
+      JSON.stringify(payload, null, 2)
+    );
+
+    return {
+      ok: true,
+      slug: key,
+      updatedAt: payload.updatedAt
+    };
+
+  } catch (e) {
+    console.log("[EDITOR SAVE ERROR]", e);
+
+    return {
+      ok: false,
+      error: e?.message || "SAVE_FAILED"
+    };
+  }
+}
+
+
+// ===============================
+// LOAD PAGE (READ FROM R2)
+// ===============================
 export async function loadPage(env, slug) {
   try {
+
     const key = normalizeSlug(slug);
 
     if (!key) return null;
@@ -30,67 +90,15 @@ export async function loadPage(env, slug) {
 
     if (!obj) return null;
 
-    return await obj.json();
+    try {
+      return await obj.json();
+    } catch (e) {
+      console.log("[EDITOR LOAD PARSE ERROR]", e);
+      return null;
+    }
 
   } catch (e) {
     console.log("[EDITOR LOAD ERROR]", e);
     return null;
-  }
-}
-
-/**
- * Save page data to R2
- * data = { title, content, updatedAt? }
- */
-export async function savePage(env, slug, data) {
-  try {
-    const key = normalizeSlug(slug);
-
-    if (!key) {
-      throw new Error("INVALID SLUG");
-    }
-
-    const payload = {
-      slug: key,
-      title: data?.title || "",
-      content: data?.content || "",
-      updatedAt: Date.now(),
-      createdAt: data?.createdAt || Date.now()
-    };
-
-    await env.PAGES.put(
-      key,
-      JSON.stringify(payload),
-      {
-        httpMetadata: {
-          contentType: "application/json"
-        }
-      }
-    );
-
-    return payload;
-
-  } catch (e) {
-    console.log("[EDITOR SAVE ERROR]", e);
-    throw e;
-  }
-}
-
-/**
- * Delete page (future use)
- */
-export async function deletePage(env, slug) {
-  try {
-    const key = normalizeSlug(slug);
-
-    if (!key) return false;
-
-    await env.PAGES.delete(key);
-
-    return true;
-
-  } catch (e) {
-    console.log("[EDITOR DELETE ERROR]", e);
-    return false;
   }
 }
