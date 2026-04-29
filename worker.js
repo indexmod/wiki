@@ -68,7 +68,7 @@ export default {
       // PAGE ENGINE (DYNAMIC ROUTES)
       // ===============================
       if (!path.startsWith("/api") && !path.includes(".")) {
-        const slug = path.slice(1);
+        const slug = path.replace(/^\/+|\/+$/g, "");
         const html = normalizeOutput(await pageRoute(env, slug));
         return htmlResponse(html);
       }
