@@ -1,16 +1,11 @@
 // =========================================================
 // ENGINE STATE: PAGES ROUTE
 // STATUS:
-// ✔ unified string contract (NO Response return)
-// ✔ stable slug normalization alignment with API
-// ✔ safe fallback rendering
-// ✔ index → page navigation stabilized
-// ✔ editor hook ready (nav placeholder)
-//
-// NOTES:
-// - MUST always return STRING HTML
-// - NEVER return Response from this layer
-// - layout layer owns HTML shell
+// ✔ unified layout contract (ALWAYS used)
+// ✔ no raw HTML returns outside layout
+// ✔ safe not-found rendering inside shell
+// ✔ stable slug normalization aligned with API
+// ✔ consistent index → page flow restored
 // =========================================================
 
 import { layout } from "./layout.js";
@@ -19,8 +14,7 @@ import { getPage } from "./api.js";
 
 
 // ===============================
-// SLUG NORMALIZER (SOURCE ALIGNMENT)
-// must match API layer exactly
+// SLUG NORMALIZER (MUST MATCH API)
 // ===============================
 function normalizeSlug(slug) {
   if (!slug || typeof slug !== "string") return null;
@@ -42,37 +36,47 @@ export async function pageRoute(env, slug) {
     const cleanSlug = normalizeSlug(slug);
 
     if (!cleanSlug) {
-      return `<h1>INVALID PAGE</h1>`;
+      const tpl = await layout(env);
+
+      return tpl
+        .replaceAll("{{title}}", "Invalid page")
+        .replaceAll("{{layout}}", "page")
+        .replaceAll("{{nav}}", `<a href="/" class="ui-link">Index</a>`)
+        .replaceAll("{{content}}", `<h1>INVALID PAGE</h1>`);
     }
 
     const page = await getPage(env, cleanSlug);
 
+    const tpl = await layout(env);
+
     // ===============================
-    // NOT FOUND STATE
+    // NOT FOUND (INSIDE LAYOUT)
     // ===============================
     if (!page) {
-      return `
+      const fallback = `
         <div class="page-wrap">
           <h1>PAGE NOT FOUND</h1>
           <a href="/" class="ui-link">Back to index</a>
         </div>
       `;
+
+      return tpl
+        .replaceAll("{{title}}", "Not found")
+        .replaceAll("{{layout}}", "page")
+        .replaceAll("{{nav}}", `<a href="/" class="ui-link">Index</a>`)
+        .replaceAll("{{content}}", fallback);
     }
 
-    const tpl = await layout(env);
+    // ===============================
+    // NORMAL PAGE
+    // ===============================
     const content = renderPage(page);
 
-    // ===============================
-    // NAV CONTRACT (future editor hook)
-    // ===============================
     const nav = `
       <a href="/" class="ui-link">Index</a>
       <a href="/editor/${cleanSlug}" class="ui-link">Edit</a>
     `;
 
-    // ===============================
-    // BUILD PAGE
-    // ===============================
     return tpl
       .replaceAll("{{title}}", page.title || cleanSlug)
       .replaceAll("{{layout}}", "page")
@@ -82,12 +86,20 @@ export async function pageRoute(env, slug) {
   } catch (e) {
     console.log("[PAGE ROUTE ERROR]", e);
 
-    return `
+    const tpl = await layout(env);
+
+    const errorBlock = `
       <div class="page-wrap">
         <h1>PAGE ENGINE ERROR</h1>
         <pre>${e?.message || e}</pre>
         <a href="/" class="ui-link">Back</a>
       </div>
     `;
+
+    return tpl
+      .replaceAll("{{title}}", "Error")
+      .replaceAll("{{layout}}", "page")
+      .replaceAll("{{nav}}", `<a href="/" class="ui-link">Index</a>`)
+      .replaceAll("{{content}}", errorBlock);
   }
 }
