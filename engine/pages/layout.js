@@ -6,46 +6,58 @@
 
 export async function layout(env) {
   try {
-    const url = new URL("/layouts/page.html", "https://internal");
-
-    const res = await env.ASSETS.fetch(new Request(url));
 
     // ===============================
-    // HARD FAIL SAFE CHECK
+    // DIRECT ASSET FETCH (SAFE MODE)
+    // ===============================
+    const res = await env.ASSETS.fetch(
+      "https://internal/layouts/page.html"
+    );
+
+    // ===============================
+    // VALIDATION
     // ===============================
     if (!res || !res.ok) {
-      return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>PAGE ENGINE - LAYOUT ERROR</title>
-  <link rel="stylesheet" href="/styles/base.css">
-</head>
-<body>
-  <h1>PAGE ENGINE: layout missing</h1>
-</body>
-</html>`;
+      throw new Error("PAGE LAYOUT NOT FOUND");
     }
 
-    return await res.text();
+    const html = await res.text();
+
+    // ===============================
+    // CONTRACT CHECK (CRITICAL)
+    // ===============================
+    if (!html.includes("{{content}}")) {
+      throw new Error("PAGE LAYOUT CONTRACT BROKEN");
+    }
+
+    return html;
 
   } catch (err) {
-    // ===============================
-    // CATCH RUNTIME FAIL (1101 PREVENTION)
-    // ===============================
     console.log("[PAGES LAYOUT ERROR]", err);
 
+    // ===============================
+    // SAFE FALLBACK (UI SAFE)
+    // ===============================
     return `
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>PAGE ENGINE - CRASH</title>
+  <title>Page Engine</title>
+  <link rel="stylesheet" href="/styles/base.css">
 </head>
-<body>
-  <h1>PAGE ENGINE CRASH</h1>
+
+<body class="layout-page">
+
+<header class="site-header">
+  <a href="/" class="ui-link">Index</a>
+</header>
+
+<main style="padding:40px;">
+  <h1 style="font-family: Georgia;">Page Engine Error</h1>
   <pre>${err?.message || err}</pre>
+</main>
+
 </body>
 </html>`;
   }

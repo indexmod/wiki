@@ -4,28 +4,51 @@
 // PURPOSE: page data loader (R2 / DB layer)
 // ===============================
 
+
+/* ===============================
+   SHARED SLUG NORMALIZER
+   (must match state.js)
+=============================== */
+
+function normalizeSlug(slug) {
+  if (!slug || typeof slug !== "string") return null;
+
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\.md$/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "");
+}
+
+
+/* ===============================
+   GET PAGE
+=============================== */
+
 export async function getPage(env, slug) {
   try {
-    // ===============================
-    // BASIC SANITIZATION (IMPORTANT)
-    // ===============================
-    if (!slug || typeof slug !== "string") return null;
 
-    // убираем случайные слэши
-    const cleanSlug = slug.replace(/^\/+|\/+$/g, "");
+    const cleanSlug = normalizeSlug(slug);
 
-    // ===============================
-    // LOAD FROM R2
-    // ===============================
+    if (!cleanSlug) return null;
+
     const obj = await env.PAGES.get(cleanSlug);
 
     if (!obj) return null;
 
-    // ===============================
-    // SAFE JSON PARSE
-    // ===============================
     try {
-      return await obj.json();
+      const data = await obj.json();
+
+      return {
+        slug: cleanSlug,
+        title: data?.title || cleanSlug,
+        content: data?.content || "",
+        createdAt: data?.createdAt || null,
+        updatedAt: data?.updatedAt || null
+      };
+
     } catch (parseErr) {
       console.log("[PAGE API JSON ERROR]", parseErr);
       return null;
