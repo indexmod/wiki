@@ -1,5 +1,5 @@
 // ===============================
-// ENGINE: PAGE
+// ENGINE: PAGES
 // FILE: route.js
 // PURPOSE: dynamic wiki page route
 // ===============================
@@ -11,7 +11,9 @@ import { getPage } from "./api.js";
 export async function pageRoute(env, slug) {
   const page = await getPage(env, slug);
 
-  // page not found → fallback
+  // ===============================
+  // PAGE NOT FOUND → FALLBACK
+  // ===============================
   if (!page) {
     return new Response("PAGE NOT FOUND", { status: 404 });
   }
