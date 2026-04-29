@@ -117,7 +117,8 @@ header {
 
   font-size: 16px;
 
-  color: #a855f7; /* 💜 только текст */
+  color: #a855f7; /* 💜 весь текст лиловый */
+  text-decoration: none;
 }
 
 .footer-dot {
@@ -125,13 +126,8 @@ header {
   height: 10px;
   border-radius: 50%;
 
-  background: #888; /* серый буллет */
+  background: #a855f7; /* 💜 буллет тоже лиловый */
 }
-
-.footer-link:hover {
-  opacity: 0.7;
-}
-
 
 /* ================= EDITOR ISOLATION (HARD BOUNDARY) ================= */
 /* editor НЕ зависит от base layout */
