@@ -2,6 +2,8 @@ import { indexRoute } from "./engine/index/route.js";
 import { pageRoute } from "./engine/pages/route.js";
 import { editorRoute } from "./engine/editor/route.js";
 
+import { htmlResponse, errorResponse } from "./engine/core/response.js";
+
 export default {
   async fetch(req, env) {
     const path = new URL(req.url).pathname;
@@ -9,18 +11,21 @@ export default {
     try {
       // ================= INDEX =================
       if (path === "/" || path === "/index") {
-        return await indexRoute(env);
+        const html = await indexRoute(env);
+        return htmlResponse(html);
       }
 
       // ================= EDITOR =================
       if (path === "/editor") {
-        return await editorRoute(env);
+        const html = await editorRoute(env);
+        return htmlResponse(html);
       }
 
       // ================= PAGES =================
       if (!path.startsWith("/api") && !path.includes(".")) {
         const slug = path.slice(1);
-        return await pageRoute(env, slug);
+        const html = await pageRoute(env, slug);
+        return htmlResponse(html);
       }
 
       // ================= STATIC =================
@@ -28,11 +33,7 @@ export default {
 
     } catch (e) {
       console.log("[WORKER ERROR]", e);
-
-      return new Response(
-        "WORKER CRASH:\n\n" + (e?.stack || e?.message || e),
-        { status: 500 }
-      );
+      return errorResponse(e, "WORKER");
     }
   }
 };
