@@ -1,6 +1,6 @@
-import { indexRoute } from "./engine/routes/index-route.js";
-import { pageRoute } from "./engine/routes/page-route.js";
-import { editorRoute } from "./engine/routes/editor-route.js";
+import { indexRoute } from "./engine/index/route.js";
+import { pageRoute } from "./engine/page/route.js";
+import { editorRoute } from "./engine/editor/route.js";
 
 export default {
   async fetch(req, env) {
