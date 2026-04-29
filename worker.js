@@ -1,5 +1,5 @@
 import { indexRoute } from "./engine/index/route.js";
-import { pageRoute } from "./engine/page/route.js";
+import { pageRoute } from "./engine/pages/route.js";
 import { editorRoute } from "./engine/editor/route.js";
 
 export default {
