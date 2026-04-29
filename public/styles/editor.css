@@ -1,16 +1,71 @@
+/* =========================================================
+   EDITOR ENGINE — CURRENT STATE
+
+   ✔ shared typography with index/page
+   ✔ no borders, no chrome UI
+   ✔ pure writing surface
+   ✔ placeholders styled as text hierarchy
+   ✔ graphite system tone
+
+   NOTE:
+   editor = mode, not app
+   ========================================================= */
+
+
+/* ================= APP SHELL ================= */
+
 .editor-app {
   font-family: Georgia, serif;
   background: #fff;
+  color: #111;
 }
+
+
+/* ================= HEADER TOOLBAR ================= */
+
+.editor-toolbar {
+  padding: 20px 60px;
+  /* intentionally no border */
+}
+
+
+/* ================= MAIN AREA ================= */
 
 .editor-content {
   font-size: 18px;
   line-height: 1.6;
-  padding: 40px;
+
+  padding: 40px 60px;
+
   outline: none;
+  background: transparent;
 }
 
-.editor-toolbar {
-  padding: 20px 40px;
-  border-bottom: 1px solid #eee;
+
+/* ================= TITLE (PLACEHOLDER STYLE) ================= */
+
+.editor-title {
+  font-size: 32px; /* как заголовок index/page */
+  font-weight: 600;
+
+  padding: 20px 60px 0 60px;
+
+  color: #2b2b2b; /* графит */
 }
+
+
+/* ================= PLACEHOLDER SYSTEM ================= */
+
+.editor-title:empty:before {
+  content: "Title";
+  color: #3a3a3a; /* графит без прозрачности */
+}
+
+.editor-content:empty:before {
+  content: "Write...";
+  color: #3a3a3a;
+}
+
+
+/* ================= LINKS (INHERITED STYLE ONLY) ================= */
+/* НЕ переопределяем ui-link из base */

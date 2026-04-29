@@ -6,29 +6,47 @@
 
 import { layout } from "./layout.js";
 import { renderEditor } from "./render.js";
+import { loadPage } from "./state.js";
 
-export async function editorRoute(env) {
+function assertContract(html) {
+  if (!html || typeof html !== "string") {
+    throw new Error("EDITOR LAYOUT EMPTY");
+  }
+
+  if (!html.includes("{{content}}")) {
+    throw new Error("EDITOR LAYOUT CONTRACT BROKEN");
+  }
+}
+
+export async function editorRoute(env, slug = "untitled") {
   try {
     console.log("[EDITOR ROUTE] start");
 
     // ===============================
-    // LOAD LAYOUT (STRICT CONTRACT)
+    // LOAD DATA (STATE LAYER)
+    // ===============================
+    const page = await loadPage(env, slug);
+
+    // ===============================
+    // LOAD LAYOUT
     // ===============================
     const tpl = await layout(env);
 
-    if (!tpl) {
-      throw new Error("EDITOR LAYOUT EMPTY");
-    }
-
-    // HARD CONTRACT CHECK
-    if (!tpl.includes("{{content}}")) {
-      throw new Error("EDITOR LAYOUT CONTRACT BROKEN");
-    }
+    assertContract(tpl);
 
     // ===============================
-    // RENDER CONTENT
+    // NAVIGATION (CONTEXT-AWARE)
     // ===============================
-    const content = renderEditor();
+    const nav = `
+      <a href="/" class="ui-link">Back</a>
+      <a href="#" class="ui-link">Save</a>
+      <a href="#" class="ui-link">Edit</a>
+    `;
+
+    // ===============================
+    // RENDER CONTENT (WITH STATE)
+    // ===============================
+    const content = renderEditor(page);
 
     if (!content) {
       throw new Error("EDITOR RENDER EMPTY");
@@ -38,9 +56,9 @@ export async function editorRoute(env) {
     // BUILD RESPONSE
     // ===============================
     return tpl
-      .replaceAll("{{title}}", "EDITOR ENGINE")
+      .replaceAll("{{title}}", page?.title || "Editor Engine")
       .replaceAll("{{layout}}", "editor")
-      .replaceAll("{{nav}}", `<a href="/" class="ui-link">BACK TO INDEX</a>`)
+      .replaceAll("{{nav}}", nav)
       .replaceAll("{{content}}", content);
 
   } catch (e) {

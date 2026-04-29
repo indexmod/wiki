@@ -10,14 +10,37 @@
 
 <body class="editor-app">
 
-<header class="editor-header">
-  <nav>
+<!-- ================= HEADER ================= -->
+<header class="site-header">
+
+  <a href="/" class="logo-link">
+    <img src="/logo.png" class="logo">
+  </a>
+
+  <!-- ================= EDITOR ACTIONS ================= -->
+  <nav class="editor-actions">
     {{nav}}
+
+    <!-- FUTURE HOOKS (UI PLACEHOLDERS) -->
+    <a href="#" class="ui-link editor-save">Save</a>
+    <a href="#" class="ui-link editor-edit">Edit</a>
   </nav>
+
 </header>
 
-<main>
-  {{content}}
+<!-- ================= MAIN EDITOR ================= -->
+<main class="site-main editor-main">
+
+  <!-- TITLE SLOT -->
+  <section class="editor-title">
+    {{title_block}}
+  </section>
+
+  <!-- CONTENT SLOT -->
+  <section class="editor-content">
+    {{content}}
+  </section>
+
 </main>
 
 </body>
