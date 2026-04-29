@@ -9,14 +9,19 @@ compatibility_date = "2026-04-25"
 directory = "./public"
 binding = "ASSETS"
 
-# ВАЖНО: worker всегда первым обрабатывает ВСЁ
-run_worker_first = ["/*"]
+# ⚠️ ВАЖНО:
+# НЕ перехватываем ВСЕ запросы Worker'ом без fallback логики
+# иначе при любом crash = 1101
+run_worker_first = []
 
-# ⚠️ УБРАТЬ SPA MODE (он ломает slug routing)
+# =========================
+# ROUTING BEHAVIOR
+# =========================
+# оставляем стандартное поведение Cloudflare
 not_found_handling = "none"
 
 # =========================
-# R2 STORAGE
+# R2 STORAGE (PAGES DB)
 # =========================
 [[r2_buckets]]
 binding = "PAGES"
