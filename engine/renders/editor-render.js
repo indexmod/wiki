@@ -3,23 +3,13 @@ export function renderEditor() {
     <div class="editor-wrap">
 
       <div class="editor-toolbar">
-        <button class="ui-link" id="saveBtn">Save</button>
+        <button class="ui-link">Save</button>
       </div>
 
-      <div
-        id="editor"
-        class="editor-content"
-        contenteditable="true"
-        spellcheck="false"
-      ></div>
+      <div id="editor" class="editor-content" contenteditable="true">
+# Write here...
+      </div>
 
     </div>
-
-    <script>
-      const el = document.getElementById("editor");
-
-      // стартовый текст (без риска HTML/парсинга)
-      el.innerText = "# Write here...";
-    </script>
   `;
 }
