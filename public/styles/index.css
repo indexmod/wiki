@@ -1,65 +1,50 @@
-/* =========================
-   INDEX GRID
-========================= */
+/* ================= INDEX ENGINE ================= */
 
-.layout-index .index-grid {
-  padding: 40px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+.index-wrap {
+  max-width: 900px;
+  margin: 40px auto;
 }
 
-/* =========================
-   SECTION
-========================= */
+/* NAV */
 
-.layout-index .section {
+.index-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.index-nav-link {
+  font-size: 12px;
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.index-nav-link:hover {
+  opacity: 1;
+}
+
+/* SECTIONS */
+
+.index-section {
   margin-bottom: 40px;
 }
 
-/* =========================
-   LETTER
-========================= */
-
-.layout-index .section-letter {
-  font-size: 72px;
-  font-weight: 900;
+.index-letter {
+  font-size: 28px;
+  font-weight: bold;
   margin-bottom: 10px;
-  line-height: 1;
 }
 
-/* =========================
-   TOPIC
-========================= */
+/* LIST */
 
-.layout-index .topic-title {
-  font-size: 22px;
-  margin: 6px 0;
+.index-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* =========================
-   TOPIC LINKS (ГЛАВНЫЕ)
-========================= */
-
-.layout-index .topic-title a {
-  color: #0b57d0;
+.index-item {
   text-decoration: none;
-}
-
-.layout-index .topic-title a:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   HEADER LINKS (ТАКИЕ ЖЕ КАК ТОПИКИ)
-========================= */
-
-.layout-index header a {
-  color: #0b57d0;
-  text-decoration: none;
-  font-size: 22px;
-}
-
-.layout-index header a:hover {
-  text-decoration: underline;
+  font-size: 14px;
 }

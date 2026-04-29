@@ -1,33 +1,54 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: render.js
-// PURPOSE: render index page UI
+// PURPOSE: index UI with nav + A-Z sections
 // ===============================
 
-import { getIndexPages } from "./api.js";
+import { groupPages } from "./state.js";
 
-export async function renderIndex(env) {
-  const pages = await getIndexPages(env);
+export function renderIndex(pages = []) {
+  const groups = groupPages(pages);
+
+  // ================= NAV (TOPICS)
+  const nav = `
+<div class="index-nav">
+  ${groups.map(g => `
+    <a href="#section-${g.letter}" class="index-nav-link">
+      ${g.letter}
+    </a>
+  `).join("")}
+</div>
+`;
+
+  // ================= SECTIONS
+  const sections = `
+<div class="index-sections">
+  ${groups.map(g => `
+    <section id="section-${g.letter}" class="index-section">
+
+      <div class="index-letter">
+        ${g.letter}
+      </div>
+
+      <div class="index-list">
+        ${g.items.map(p => `
+          <a href="/${p}" class="index-item">
+            ${p}
+          </a>
+        `).join("")}
+      </div>
+
+    </section>
+  `).join("")}
+</div>
+`;
 
   return `
-    <div class="index-header">
-      <h1>INDEX ENGINE ACTIVE</h1>
-      <img src="/logo.png" class="logo" />
-      <a href="/editor" class="ui-link">OPEN EDITOR</a>
-    </div>
+<link rel="stylesheet" href="/styles/index.css">
 
-    <div class="index-list">
-      ${pages.length
-        ? pages
-            .map(
-              (p) => `
-                <a class="page-link" href="/${p.slug}">
-                  ${p.title || p.slug}
-                </a>
-              `
-            )
-            .join("")
-        : `<p class="muted">No pages found in PAGES bucket</p>`}
-    </div>
-  `;
+<div class="index-wrap" data-engine="index">
+  ${nav}
+  ${sections}
+</div>
+`;
 }
