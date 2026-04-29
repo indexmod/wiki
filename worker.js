@@ -1,5 +1,5 @@
-import { indexRoute } from "./engine/routes/index-route.js";
-import { pageRoute } from "./engine/routes/page-route.js";
+import { indexRoute } from "./engine/index/route.js";
+import { pageRoute } from "./engine/page/route.js";
 import { editorRoute } from "./engine/editor/route.js";
 
 export default {
@@ -8,24 +8,34 @@ export default {
     const path = url.pathname;
 
     try {
+      // ================= INDEX =================
       if (path === "/" || path === "/index") {
         return await indexRoute(env);
       }
 
+      // ================= EDITOR =================
       if (path === "/editor") {
         return await editorRoute(env);
       }
 
+      // ================= PAGE ENGINE =================
       if (!path.startsWith("/api") && !path.includes(".")) {
-        const slug = path.slice(1);
-        return await pageRoute(env, slug);
+        const res = await pageRoute(env, path.slice(1));
+
+        // 💥 важный safety fallback
+        if (!res) {
+          return new Response("PAGE NOT FOUND", { status: 404 });
+        }
+
+        return res;
       }
 
+      // ================= STATIC =================
       return env.ASSETS.fetch(req);
 
-    } catch (err) {
+    } catch (e) {
       return new Response(
-        "WORKER ERROR: " + (err?.stack || err?.message || err),
+        "WORKER ERROR:\n" + (e?.stack || e?.message || String(e)),
         { status: 500 }
       );
     }

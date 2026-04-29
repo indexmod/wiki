@@ -1,11 +1,11 @@
 // ===============================
-// ENGINE: EDITOR
+// ENGINE: INDEX
 // FILE: layout.js
-// PURPOSE: editor html shell loader
+// PURPOSE: index html shell loader
 // ===============================
 
 export async function layout(env) {
-  const url = new URL("/layouts/editor.html", "https://internal");
+  const url = new URL("/layouts/index.html", "https://internal");
 
   const res = await env.ASSETS.fetch(new Request(url));
 
@@ -15,10 +15,10 @@ export async function layout(env) {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>EDITOR ENGINE - LAYOUT ERROR</title>
+  <title>INDEX ENGINE - LAYOUT ERROR</title>
 </head>
 <body>
-  <h1>EDITOR ENGINE: layout missing</h1>
+  <h1>INDEX ENGINE: layout missing</h1>
 </body>
 </html>`;
   }

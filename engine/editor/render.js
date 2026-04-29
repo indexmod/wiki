@@ -1,15 +1,31 @@
+// ===============================
+// ENGINE: EDITOR
+// FILE: render.js
+// PURPOSE: markdown editor UI
+// ===============================
+
 export function renderEditor() {
   return `
-    <div class="editor">
+<!-- EDITOR ENGINE START -->
 
-      <div class="editor-toolbar">
-        <button class="editor-save">Save</button>
-      </div>
+<div class="editor-wrap">
 
-      <div id="editor" class="editor-content" contenteditable="true">
-# Write here...
-      </div>
+  <div class="editor-toolbar">
+    <button class="ui-link">SAVE (EDITOR ENGINE)</button>
+  </div>
 
-    </div>
-  `;
+  <div
+    id="editor"
+    class="editor-content"
+    contenteditable="true"
+  >
+# EDITOR ENGINE ACTIVE
+
+Write markdown here...
+  </div>
+
+</div>
+
+<!-- EDITOR ENGINE END -->
+`;
 }
