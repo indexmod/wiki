@@ -10,14 +10,13 @@ directory = "./public"
 binding = "ASSETS"
 
 # ⚠️ ВАЖНО:
-# НЕ перехватываем ВСЕ запросы Worker'ом без fallback логики
-# иначе при любом crash = 1101
-run_worker_first = []
+# run_worker_first НЕ используется в Workers + Assets режиме
+# (это вызывает ошибки в wrangler 4+)
+# run_worker_first = []
 
 # =========================
 # ROUTING BEHAVIOR
 # =========================
-# оставляем стандартное поведение Cloudflare
 not_found_handling = "none"
 
 # =========================
