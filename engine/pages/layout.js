@@ -8,10 +8,10 @@ export async function layout(env) {
   try {
 
     // ===============================
-    // DIRECT ASSET FETCH (SAFE MODE)
+    // SAFE ASSET FETCH (FIXED)
     // ===============================
     const res = await env.ASSETS.fetch(
-      "https://internal/layouts/page.html"
+      new Request("https://internal/layouts/page.html")
     );
 
     // ===============================
@@ -26,7 +26,7 @@ export async function layout(env) {
     // ===============================
     // CONTRACT CHECK (CRITICAL)
     // ===============================
-    if (!html.includes("{{content}}")) {
+    if (!html || !html.includes("{{content}}")) {
       throw new Error("PAGE LAYOUT CONTRACT BROKEN");
     }
 
