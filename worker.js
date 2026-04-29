@@ -33,11 +33,14 @@ export default {
       // ================= STATIC =================
       return env.ASSETS.fetch(req);
 
-    } catch (e) {
-      return new Response(
-        "WORKER ERROR:\n" + (e?.stack || e?.message || String(e)),
-        { status: 500 }
-      );
-    }
+      catch (e) {
+        console.log("[WORKER CRASH]", e);
+
+        return new Response(
+          "WORKER CRASH:\n\n" +
+          (e?.stack || e?.message || e),
+          { status: 500 }
+        );
+      }
   }
 };
