@@ -1,11 +1,11 @@
 // ===============================
 // ENGINE: EDITOR
 // FILE: layout.js
-// PURPOSE: editor html shell loader
+// PURPOSE: editor html shell loader (uses BASE LAYOUT)
 // ===============================
 
 export async function layout(env) {
-  const url = new URL("/layouts/editor.html", "https://internal");
+  const url = new URL("/layouts/base.html", "https://internal");
 
   const res = await env.ASSETS.fetch(new Request(url));
 
@@ -18,7 +18,7 @@ export async function layout(env) {
   <title>EDITOR ENGINE - LAYOUT ERROR</title>
 </head>
 <body>
-  <h1>EDITOR ENGINE: layout missing</h1>
+  <h1>EDITOR ENGINE: base layout missing</h1>
 </body>
 </html>`;
   }

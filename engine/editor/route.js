@@ -14,10 +14,15 @@ export async function editorRoute(env) {
     // ===============================
     // LOAD LAYOUT (STRICT CONTRACT)
     // ===============================
-    const tpl = await layout(env, "editor");
+    const tpl = await layout(env);
 
     if (!tpl) {
       throw new Error("EDITOR LAYOUT EMPTY");
+    }
+
+    // HARD CONTRACT CHECK
+    if (!tpl.includes("{{content}}")) {
+      throw new Error("EDITOR LAYOUT CONTRACT BROKEN");
     }
 
     // ===============================

@@ -10,11 +10,11 @@ import { renderIndex } from "./render.js";
 export async function indexRoute(env) {
   const tpl = await layout(env);
 
-  const content = await renderIndex(env);
+  const content = renderIndex();
 
   return tpl
     .replaceAll("{{title}}", "INDEX ENGINE")
     .replaceAll("{{layout}}", "index")
-    .replaceAll("{{nav}}", `<span class="ui-link">INDEX MODE</span>`)
+    .replaceAll("{{nav}}", `<span class="nav-index">INDEX MODE</span>`)
     .replaceAll("{{content}}", content);
 }

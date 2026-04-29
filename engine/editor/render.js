@@ -1,14 +1,18 @@
 // ===============================
 // ENGINE: EDITOR
 // FILE: render.js
-// PURPOSE: markdown editor UI
+// PURPOSE: markdown editor UI (isolated fragment)
 // ===============================
 
 export function renderEditor() {
   return `
-<!-- EDITOR ENGINE START -->
+<!-- ===============================
+     EDITOR ENGINE UI
+     =============================== -->
 
-<div class="editor-wrap">
+<link rel="stylesheet" href="/styles/editor.css">
+
+<div class="editor-wrap" data-engine="editor">
 
   <div class="editor-toolbar">
     <button class="ui-link">SAVE (EDITOR ENGINE)</button>
