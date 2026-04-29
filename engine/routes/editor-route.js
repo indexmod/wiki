@@ -4,7 +4,7 @@ import { renderEditor } from "../renders/editor-render.js";
 export async function editorRoute(env) {
   const tpl = await LAYOUTS.layout(env, "editor");
 
-  const content = renderEditor();
+  const content = "<h1>EDITOR OK</h1>";
 
   return tpl
     .replaceAll("{{title}}", "Editor")
