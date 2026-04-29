@@ -17,6 +17,6 @@ export async function indexRoute(env) {
   return tpl
     .replaceAll("{{title}}", "Indexmod Fashion and Art")
     .replaceAll("{{layout}}", "index")
-    .replaceAll("{{nav}}", `<a href="/editor" class="nav-new">New</a>`)
+    .replaceAll("{{nav}}", `<a href="/editor" class="index-item index-nav-item">New</a>`)
     .replaceAll("{{content}}", content);
 }

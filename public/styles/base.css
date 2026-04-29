@@ -3,16 +3,15 @@
 
    ✔ reset
    ✔ typography (fonts, base rhythm)
-   ✔ layout shell (header / footer)
-   ✔ neutral links (no styling control)
+   ✔ layout shell (header / footer spacing only)
+   ✔ ui-link (global semantic link system)
 
    DOES NOT:
-   ✘ style index / pages / editor
-   ✘ override component styles
-   ✘ define visual identity of engines
+   ✘ style index / pages / editor layouts
+   ✘ define engine-specific UI logic
+   ✘ touch editor even indirectly
 
    base = foundation only
-
    ========================================================= */
 
 
@@ -44,7 +43,7 @@ body {
 }
 
 
-/* ================= LINKS (NEUTRAL) ================= */
+/* ================= LINKS (BASE FALLBACK ONLY) ================= */
 
 a {
   color: inherit;
@@ -52,16 +51,46 @@ a {
 }
 
 
-/* ================= HEADER (LAYOUT ONLY) ================= */
+/* ================= UI LINK SYSTEM ================= */
+
+.ui-link {
+  font-size: 20px;
+  line-height: 1.6;
+
+  color: #1a5cff;
+  text-decoration: none;
+
+  transition: opacity 0.2s ease;
+}
+
+.ui-link:hover {
+  opacity: 0.6;
+}
+
+
+/* ================= LAYOUT CONTAINER (GLOBAL SPACING ONLY) ================= */
+/* НЕ влияет на layout engines — только геометрия страницы */
+
+.site-header,
+.site-main,
+.site-footer {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
+
+/* ================= HEADER (STRUCTURE ONLY) ================= */
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  max-width: 1200px;
-  margin: 0 auto 40px auto;
-  padding: 40px 30px;
+  margin-bottom: 40px;
 }
 
 
@@ -74,12 +103,11 @@ header {
 }
 
 
-/* ================= FOOTER (LAYOUT ONLY) ================= */
+/* ================= FOOTER ================= */
 
 .site-footer {
-  max-width: 1200px;
-  margin: 80px auto 40px auto;
-  padding: 0 30px;
+  margin-top: 80px;
+  margin-bottom: 40px;
 }
 
 .footer-link {
@@ -88,14 +116,16 @@ header {
   gap: 10px;
 
   font-size: 16px;
-  color: #888;
+
+  color: #a855f7; /* 💜 только текст */
 }
 
 .footer-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #888;
+
+  background: #888; /* серый буллет */
 }
 
 .footer-link:hover {
@@ -103,15 +133,9 @@ header {
 }
 
 
-/* ================= EDITOR ISOLATION ================= */
+/* ================= EDITOR ISOLATION (HARD BOUNDARY) ================= */
+/* editor НЕ зависит от base layout */
 
 .layout-editor main {
   all: unset;
-  display: block;
-
-  font-family: Georgia, "Times New Roman", serif;
-
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 40px 30px;
 }
