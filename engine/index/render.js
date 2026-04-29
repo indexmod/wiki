@@ -1,30 +1,31 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: render.js
-// PURPOSE: index UI with nav + A-Z sections
+// PURPOSE: clean index list (no nav)
 // ===============================
 
 import { groupPages } from "./state.js";
 
+function formatTitle(slug) {
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, l => l.toUpperCase());
+}
+
 export function renderIndex(pages = []) {
   const groups = groupPages(pages);
 
-  // ================= NAV (TOPICS)
-  const nav = `
-<div class="index-nav">
-  ${groups.map(g => `
-    <a href="#section-${g.letter}" class="index-nav-link">
-      ${g.letter}
-    </a>
-  `).join("")}
-</div>
-`;
+  if (!groups.length) {
+    return `<div class="empty">No pages found</div>`;
+  }
 
-  // ================= SECTIONS
-  const sections = `
-<div class="index-sections">
+  return `
+<link rel="stylesheet" href="/styles/index.css">
+
+<div class="index-wrap">
+
   ${groups.map(g => `
-    <section id="section-${g.letter}" class="index-section">
+    <section class="index-section">
 
       <div class="index-letter">
         ${g.letter}
@@ -33,22 +34,14 @@ export function renderIndex(pages = []) {
       <div class="index-list">
         ${g.items.map(p => `
           <a href="/${p}" class="index-item">
-            ${p}
+            ${formatTitle(p)}
           </a>
         `).join("")}
       </div>
 
     </section>
   `).join("")}
-</div>
-`;
 
-  return `
-<link rel="stylesheet" href="/styles/index.css">
-
-<div class="index-wrap" data-engine="index">
-  ${nav}
-  ${sections}
 </div>
 `;
 }
