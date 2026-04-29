@@ -1,29 +1,11 @@
 export async function layout(env, name) {
-  try {
-    const path = `/layouts/${name}.html`;
+  const url = new URL(`/layouts/${name}.html`, "https://example.com");
 
-    const res = await env.ASSETS.fetch(path);
+  const res = await env.ASSETS.fetch(new Request(url));
 
-    if (!res.ok) {
-      throw new Error(`layout missing: ${name}`);
-    }
-
-    return await res.text();
-
-  } catch (e) {
-    console.log("[LAYOUT ERROR]", e);
-
-    return `
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Layout error</title>
-<link rel="stylesheet" href="/styles/base.css">
-</head>
-<body>
-<h1>Missing layout: ${name}</h1>
-</body>
-</html>`;
+  if (!res.ok) {
+    return `<h1>Missing layout: ${name}</h1>`;
   }
+
+  return await res.text();
 }
