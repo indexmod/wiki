@@ -1,25 +1,18 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: api.js
-// PURPOSE: load page list from R2
+// PURPOSE: list pages from R2 bucket
 // ===============================
 
-export async function getIndexPages(env) {
+export async function listPages(env) {
   try {
-    const list = await env.PAGES.list();
+    const res = await env.PAGES.list();
 
-    const pages = await Promise.all(
-      list.keys.map(async (k) => {
-        try {
-          const obj = await env.PAGES.get(k.name);
-          return obj ? await obj.json() : null;
-        } catch {
-          return null;
-        }
-      })
-    );
+    if (!res || !res.objects) {
+      return [];
+    }
 
-    return pages.filter(Boolean);
+    return res.objects.map(obj => obj.key);
 
   } catch (e) {
     console.log("[INDEX API ERROR]", e);
