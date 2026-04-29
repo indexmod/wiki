@@ -4,7 +4,7 @@ export async function editorLayout(env) {
   );
 
   if (!res.ok) {
-    throw new Error("EDITOR_LAYOUT_MISSING");
+    throw new Error("editor layout missing");
   }
 
   return await res.text();

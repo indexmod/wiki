@@ -1,17 +1,16 @@
-.layout-editor .editor-wrap {
-  max-width: 900px;
-  margin: 0 auto;
+.editor-app {
+  font-family: Georgia, serif;
+  background: #fff;
 }
 
-.layout-editor .editor-content {
-  font-family: Georgia, "Times New Roman", serif;
+.editor-content {
   font-size: 18px;
   line-height: 1.6;
-
+  padding: 40px;
   outline: none;
-  white-space: pre-wrap;
 }
 
-.layout-editor .editor-toolbar {
-  margin-bottom: 20px;
+.editor-toolbar {
+  padding: 20px 40px;
+  border-bottom: 1px solid #eee;
 }
