@@ -1,5 +1,5 @@
-import { getPage } from "./state.js";
-import { renderMarkdown } from "./markdown.js";
+import { getPage } from "../core/state.js";
+import { renderMarkdown } from "../core/markdown.js";
 
 export async function pageRoute(env, slug) {
   const page = await getPage(env, slug);

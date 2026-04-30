@@ -1,4 +1,4 @@
-import { getPages } from "./state.js";
+import { getPages } from "../core/state.js";
 
 export async function indexRoute(env) {
   const pages = await getPages(env);
