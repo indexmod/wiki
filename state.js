@@ -9,6 +9,10 @@ export async function getPage(env, slug) {
   }
 }
 
+export async function savePage(env, slug, data) {
+  await env.PAGES.put(slug, JSON.stringify(data));
+}
+
 export async function getPages(env) {
   const list = await env.PAGES.list();
   return (list.keys || []).map(k => k.name).sort();
