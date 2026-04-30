@@ -56,11 +56,23 @@ export async function getPages(env) {
 export async function getTopics(env) {
   const pages = await getPages(env);
 
-  return [
-    {
-      id: "all",
-      title: "All Pages",
+  const groups = {};
+
+  for (const p of pages) {
+    const first = (p.slug || p.title || "?")
+      .charAt(0)
+      .toUpperCase();
+
+    if (!groups[first]) groups[first] = [];
+
+    groups[first].push(p);
+  }
+
+  return Object.entries(groups)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([letter, pages]) => ({
+      id: letter,
+      title: letter,
       pages
-    }
-  ];
+    }));
 }
