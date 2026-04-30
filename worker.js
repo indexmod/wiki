@@ -1,11 +1,30 @@
 import { getPage, getPages } from "./state.js";
 import { renderHTML } from "./render.js";
-import { toHTML } from "./markdown.js";
+import { toHTML } from "./markdownn.js";
 import { getNav } from "./actions.js";
 
-async function base(env) {
-  const res = await env.ASSETS.fetch("/base.html");
-  return await res.text();
+function layout(title, content, nav) {
+  return `
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${title}</title>
+      <link rel="stylesheet" href="/styles/base.css">
+    </head>
+    <body>
+
+      <header>
+        <nav>${nav}</nav>
+      </header>
+
+      <main>
+        ${content}
+      </main>
+
+    </body>
+    </html>
+  `;
 }
 
 export default {
@@ -13,48 +32,34 @@ export default {
     const url = new URL(req.url);
     const path = url.pathname;
 
-    const baseHTML = await base(env);
-
     // INDEX
-    if (path === "/" || path === "/index") {
+    if (path === "/") {
       const pages = await getPages(env);
 
       return new Response(
-        renderHTML(baseHTML, {
-          title: "Index",
-          nav: getNav(path),
-          content: pages
-            .map(p => `<div><a href="/${p}">${p}</a></div>`)
-            .join("")
-        }),
-        { headers: { "content-type": "text/html" } }
-      );
-    }
-
-    // EDITOR
-    if (path === "/editor") {
-      return new Response(
-        renderHTML(baseHTML, {
-          title: "Editor",
-          nav: getNav(path),
-          content: `<textarea style="width:100%;height:300px"></textarea>`
-        }),
+        layout(
+          "Index",
+          pages.map(p => `<a href="/${p}">${p}</a>`).join(""),
+          getNav(path)
+        ),
         { headers: { "content-type": "text/html" } }
       );
     }
 
     // PAGE
-    const slug = path.replace(/^\/+|\/+$/g, "");
+    const slug = path.replace("/", "");
     const page = await getPage(env, slug);
 
-    if (!page) return new Response("Not found", { status: 404 });
+    if (!page) {
+      return new Response("Not found", { status: 404 });
+    }
 
     return new Response(
-      renderHTML(baseHTML, {
-        title: page.title,
-        nav: getNav(path),
-        content: toHTML(page.content)
-      }),
+      layout(
+        page.title,
+        toHTML(page.content),
+        getNav(path)
+      ),
       { headers: { "content-type": "text/html" } }
     );
   }
