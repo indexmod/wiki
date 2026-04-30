@@ -5,10 +5,16 @@
 
 export async function getPage(env, slug) {
   const raw = await env.PAGES.get(slug);
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { title: "Untitled", content: raw };
+  }
 }
 
 export async function getPages(env) {
   const list = await env.PAGES.list();
-  return list.keys.map(k => k.name);
+  return list?.keys || [];
 }
