@@ -1,19 +1,58 @@
-export async function getPage(env, slug) {
-  const raw = await env.PAGES.get(slug);
+import { parseMD } from "./parser.js";
+
+
+function uid() {
+  return crypto.randomUUID();
+}
+
+// ================= SAVE =================
+
+export async function savePage(env, { id, title, slug, content }) {
+  if (!id) id = uid();
+
+  const data = `---
+id: ${id}
+title: ${title}
+slug: ${slug}
+---
+
+${content}
+`;
+
+  await env.PAGES.put(id, data);
+
+  return id;
+}
+
+// ================= GET BY ID =================
+
+export async function getPageById(env, id) {
+  const raw = await env.PAGES.get(id);
   if (!raw) return null;
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { title: slug, content: raw };
-  }
+  return parseMD(raw);
 }
 
-export async function savePage(env, slug, data) {
-  await env.PAGES.put(slug, JSON.stringify(data));
-}
+// ================= GET ALL =================
 
-export async function getPages(env) {
+export async function getAllPages(env) {
   const list = await env.PAGES.list();
-  return (list.keys || []).map(k => k.name).sort();
+
+  const pages = [];
+
+  for (const key of list.keys) {
+    const raw = await env.PAGES.get(key.name);
+    const parsed = parseMD(raw);
+
+    pages.push(parsed);
+  }
+
+  return pages;
+}
+
+// ================= FIND BY SLUG =================
+
+export async function findBySlug(env, slug) {
+  const pages = await getAllPages(env);
+  return pages.find(p => p.slug === slug);
 }
