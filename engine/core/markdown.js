@@ -1,8 +1,7 @@
-// ===============================
-// ENGINE: CORE
-// FILE: markdown.js
-// PURPOSE: safe HTTP response layer for Workers
-// ===============================
+// =========================================================
+// CORE: MARKDOWN RENDERER
+// ROLE: single markdown → HTML transformer
+// =========================================================
 
 import { marked } from "marked";
 

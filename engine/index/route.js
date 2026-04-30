@@ -1,22 +1,26 @@
-// ===============================
-// ENGINE: INDEX
-// FILE: route.js
-// ===============================
-
+import { getPages } from "../state.js";
 import { layout } from "./layout.js";
-import { renderIndex } from "./render.js";
-import { listPages } from "./api.js";
+
+function formatTitle(slug) {
+  return slug.replace(/-/g, " ");
+}
 
 export async function indexRoute(env) {
-  const tpl = await layout(env);
+  const pages = await getPages(env);
 
-  const pages = await listPages(env);
+  const html = `
+    <div class="index-wrap">
+      ${pages.map(p => `
+        <a class="index-item" href="/${p.name}">
+          ${formatTitle(p.name)}
+        </a>
+      `).join("")}
+    </div>
+  `;
 
-  const content = renderIndex(pages);
-
-  return tpl
-    .replaceAll("{{title}}", "Indexmod Fashion and Art")
-    .replaceAll("{{layout}}", "index")
-    .replaceAll("{{nav}}", `<a href="/editor" class="index-item index-nav-item">New</a>`)
-    .replaceAll("{{content}}", content);
+  return layout(env, {
+    title: "Index",
+    content: html,
+    layout: "index"
+  });
 }
