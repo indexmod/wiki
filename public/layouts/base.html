@@ -1,99 +1,50 @@
 /* =========================================================
-   BASE.CSS — GLOBAL LAYER
-
-   ROLE:
-   - defines global visual system
-   - provides layout skeleton styling
-   - establishes typography + reset
+   BASE LAYOUT
+   ROLE: global immutable shell (header / footer / mount point)
 
    CONTRACT:
-   - styles ONLY global elements
-   - MUST support:
-     .site-header
-     .site-main
-     .site-footer
-   - MUST NOT style engine-specific UI (index/page/editor)
-
-   GUARANTEES:
-   - stable spacing
-   - predictable typography
-   - consistent layout behavior
-
-   DOES NOT:
-   ✘ style .page / .index / .editor
-   ✘ override engine-specific CSS
+   - MUST contain {{content}}
+   - MUST contain {{styles}}
+   - DOES NOT render page logic
    ========================================================= */
 
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{title}}</title>
 
-/* ================= RESET ================= */
+<!-- ================= FAVICON ================= -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+<!-- ================= STYLES ================= -->
+<link rel="stylesheet" href="/styles/base.css">
+{{styles}}
 
+</head>
 
-/* ================= TYPOGRAPHY ================= */
+<body class="layout-{{layout}}">
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  color: #111;
-  background: #fff;
-}
+<header class="site-header">
+  <a href="/" class="logo-link">
+    <img src="/logo.png" class="logo" alt="IndexMod">
+  </a>
 
+  <nav class="site-nav">
+    {{nav}}
+  </nav>
+</header>
 
-/* ================= LAYOUT SHELL ================= */
+<main class="site-main">
+  {{content}}
+</main>
 
-.site-header {
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+<footer class="site-footer">
+  <a class="footer-link" href="https://mod.indexmod.press">
+    <span class="footer-dot"></span>
+    <span class="footer-text">Chat at Mod by Indexmod</span>
+  </a>
+</footer>
 
-.site-main {
-  padding: 40px 24px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.site-footer {
-  padding: 20px 24px;
-  font-size: 14px;
-}
-
-
-/* ================= LOGO ================= */
-
-.logo {
-  height: 28px;
-}
-
-
-/* ================= NAV ================= */
-
-.site-nav a {
-  margin-left: 16px;
-  text-decoration: none;
-  color: inherit;
-}
-
-
-/* ================= FOOTER ================= */
-
-.footer-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: purple;
-}
-
-.footer-dot {
-  width: 6px;
-  height: 6px;
-  background: purple;
-  border-radius: 50%;
-}
+</body>
+</html>
