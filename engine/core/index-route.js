@@ -1,15 +1,15 @@
-import { layout } from "./layout.js";
-import { getPages } from "./state.js";
-import { indexView } from "../../views/index.js";
+import { getPages } from "./core/state.js";
 
 export async function indexRoute(env) {
   const pages = await getPages(env);
 
-  const content = indexView(pages);
-
-  return layout(env, {
-    title: "Index",
-    content,
-    layout: "index"
-  });
+  return `
+    <div class="index-wrap">
+      ${pages.map(p => `
+        <a href="/${p.name}">
+          ${p.name}
+        </a>
+      `).join("")}
+    </div>
+  `;
 }

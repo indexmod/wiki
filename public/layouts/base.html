@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{title}}</title>
+
+<!-- ================= FAVICON ================= -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<!-- ================= STYLES ================= -->
+<link rel="stylesheet" href="/styles/base.css">
+{{styles}}
+
+</head>
+
+<body class="layout-{{layout}}">
+
+<header class="site-header">
+  <a href="/" class="logo-link">
+    <img src="/logo.png" class="logo" alt="IndexMod">
+  </a>
+
+  <nav class="site-nav">
+    {{nav}}
+  </nav>
+</header>
+
+<main class="site-main">
+  {{content}}
+</main>
+
+<footer class="site-footer">
+  <a class="footer-link" href="https://mod.indexmod.press">
+    <span class="footer-dot"></span>
+    <span class="footer-text">Chat at Mod by Indexmod</span>
+  </a>
+</footer>
+
+</body>
+</html>
