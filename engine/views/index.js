@@ -3,26 +3,16 @@
 // ROLE: format pages list into HTML fragment
 // =========================================================
 
-function formatTitle(slug) {
-  return slug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, l => l.toUpperCase());
-}
-
-export function viewIndex(pages = []) {
-  if (!pages.length) {
-    return `<div class="empty">No pages</div>`;
-  }
-
+export function indexView(content) {
   return `
-<div class="index-wrap">
+<section class="index">
+  <header class="index-header">
+    <h1>Index</h1>
+  </header>
 
-  ${pages.map(p => `
-    <a class="index-item" href="/${p.name}">
-      ${formatTitle(p.name)}
-    </a>
-  `).join("")}
-
-</div>
+  <div class="index-list">
+    ${content}
+  </div>
+</section>
 `;
 }
