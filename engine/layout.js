@@ -3,10 +3,9 @@
 // ROLE: single HTML shell injector
 // =========================================================
 
-export async function layout(env, { title, content, layout = "page", nav = "" }) {
-  const res = await env.ASSETS.fetch(
-    new Request("https://internal/layouts/base.html")
-  );
+export async function layout() {
+  return "<h1>LAYOUT HIT</h1>";
+}
 
   const html = await res.text();
 
