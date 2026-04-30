@@ -1,24 +1,15 @@
 // =========================================================
 // VIEW: PAGE
-// ROLE: format page content (markdown already rendered OR raw safe HTML)
+// ROLE: render single page
 // =========================================================
 
-export function viewPage(page) {
-  if (!page) {
-    return `<article class="page"><h1>Not Found</h1></article>`;
-  }
-
+export function pageView(title, content) {
   return `
 <article class="page">
-
-  <header class="page-header">
-    <h1>${page.title || "Untitled"}</h1>
-  </header>
-
-  <section class="page-content">
-    ${page.content || ""}
-  </section>
-
+  <h1>${title}</h1>
+  <div class="page-content">
+    ${content}
+  </div>
 </article>
 `;
 }

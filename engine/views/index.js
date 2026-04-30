@@ -1,18 +1,16 @@
 // =========================================================
 // VIEW: INDEX
-// ROLE: format pages list into HTML fragment
+// ROLE: render list of pages
 // =========================================================
 
-export function indexView(content) {
+export function indexView(pages) {
   return `
-<section class="index">
-  <header class="index-header">
-    <h1>Index</h1>
-  </header>
-
-  <div class="index-list">
-    ${content}
-  </div>
-</section>
+<div class="index-wrap">
+  ${pages.map(p => `
+    <a href="/${p}" class="index-item">
+      ${p.replace(/-/g, " ")}
+    </a>
+  `).join("")}
+</div>
 `;
 }

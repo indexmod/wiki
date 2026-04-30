@@ -1,21 +1,25 @@
+import { getPage } from "../core/state.js";
 import { renderMarkdown } from "../core/markdown.js";
-import { getPages } from "../state.js";
-import { layout } from "../layout.js";
+import { layout } from "../core/layout.js";
+import { pageView } from "../../views/page.js";
 
 export async function pageRoute(env, slug) {
   const page = await getPage(env, slug);
 
   if (!page) {
     return layout(env, {
-      title: "Not Found",
-      content: "<h1>404</h1><p>Page not found</p>",
+      title: "404",
+      content: "<h1>Not found</h1>",
       layout: "page"
     });
   }
 
   return layout(env, {
     title: page.title,
-    content: renderMarkdown(page.content),
+    content: pageView(
+      page.title,
+      renderMarkdown(page.content)
+    ),
     layout: "page"
   });
 }

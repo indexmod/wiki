@@ -1,24 +1,28 @@
 // =========================================================
 // VIEW: EDITOR
-// ROLE: minimal editor UI shell (no logic)
+// ROLE: simple markdown editor
 // =========================================================
 
-export function viewEditor(page = {}) {
+export function editorView() {
   return `
 <div class="editor">
+  <input id="title" placeholder="Title">
+  <textarea id="content" placeholder="Markdown..."></textarea>
+  <button onclick="save()">Save</button>
 
-  <h1>Editor</h1>
+  <script>
+    async function save() {
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
 
-  <input
-    id="title"
-    value="${page.title || ""}"
-    placeholder="Title"
-  />
+      await fetch('/api/save', {
+        method: 'POST',
+        body: JSON.stringify({ title, content })
+      });
 
-  <textarea id="content">${page.content || ""}</textarea>
-
-  <button id="saveBtn">Save</button>
-
+      location.href = '/';
+    }
+  </script>
 </div>
 `;
 }
