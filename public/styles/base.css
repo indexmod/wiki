@@ -23,6 +23,8 @@
   box-sizing: border-box;
 }
 
+
+
 html {
   font-size: 16px;
   margin: 0;
@@ -71,16 +73,9 @@ a {
 /* ================= GLOBAL LAYOUT CONTAINER ================= */
 /* только геометрия, без влияния на engines */
 
-.site-header,
-.site-main,
-.site-footer {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-
-  padding-left: 60px;
-  padding-right: 60px;
-}
+.site-header {}
+.site-main {}
+.site-footer {}
 
 
 /* ================= HEADER ================= */

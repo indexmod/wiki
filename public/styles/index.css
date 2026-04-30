@@ -1,54 +1,74 @@
 /* =========================================================
-   INDEX ENGINE — CURRENT STATE
+   INDEX.CSS — INDEX ENGINE LAYER
 
-   ✔ grouped by A–Z (no nav)
-   ✔ sections flow in columns (1 → 2 → 3)
-   ✔ larger typography
-   ✔ blue links, no underline
-   ✔ minimal layout, no cross-engine styles
+   ROLE:
+   - renders A–Z grouped page index
+   - visual navigation surface for all pages
 
-   NOTE:
-   grid is applied to sections (NOT items)
+   LAYOUT MODEL:
+   - grid is applied to SECTIONS (columns)
+   - items flow vertically inside each section
+
+   SCOPE:
+   - active ONLY under .layout-index
+
+   TARGET:
+   - .index-wrap
+   - .index-section
+   - .index-letter
+   - .index-list
+   - .index-item
+
+   GUARANTEES:
+   - no interference with page/editor styles
+   - predictable multi-column layout
+   - scalable for large datasets
+
+   DOES NOT:
+   ✘ style global layout (header/footer)
+   ✘ depend on external nav systems
 
    ========================================================= */
 
 
-/* ================= INDEX ENGINE ================= */
+/* ================= WRAP (GRID SYSTEM) ================= */
 
-.index-wrap {
+.layout-index .index-wrap {
   max-width: 1200px;
   margin: 80px auto;
   padding: 0 30px;
 
-  /* 🔥 ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 60px;
 }
 
-/* SECTIONS */
 
-.index-section {
-  /* теперь каждая секция — колонка */
+/* ================= SECTIONS (COLUMNS) ================= */
+
+.layout-index .index-section {
+  /* each section = one column block */
 }
 
-.index-letter {
+.layout-index .index-letter {
   font-size: 40px;
   font-weight: 600;
   margin-bottom: 20px;
 }
 
-/* LIST (ВНУТРИ — СТРОГО В СТОЛБИК) */
 
-.index-list {
+/* ================= LIST ================= */
+
+.layout-index .index-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* ITEM */
 
-.index-item {
+/* ================= ITEM ================= */
+
+.layout-index .index-item {
   font-size: 20px;
   line-height: 1.6;
 
@@ -56,7 +76,7 @@
   text-decoration: none;
 }
 
-.index-item:hover {
+.layout-index .index-item:hover {
   opacity: 0.6;
 }
 
@@ -64,17 +84,17 @@
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 1000px) {
-  .index-wrap {
+  .layout-index .index-wrap {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .index-wrap {
+  .layout-index .index-wrap {
     grid-template-columns: 1fr;
   }
 
-  .index-item {
+  .layout-index .index-item {
     font-size: 22px;
   }
 }

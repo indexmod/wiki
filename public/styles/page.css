@@ -1,20 +1,36 @@
+/* =========================================================
+   PAGE.CSS — PAGE ENGINE LAYER
+
+   ROLE:
+   - styles rendered markdown pages
+
+   SCOPE:
+   - active ONLY under .layout-page
+
+   TARGET:
+   - .page
+   - .page-header
+   - .page-content
+
+   DOES NOT:
+   ✘ affect index or editor
+   ✘ modify global layout
+   ========================================================= */
+
+
 .layout-page .page {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 40px 60px;
+  display: block;
 }
 
-.layout-page .page-title {
-  font-size: 42px;
+.layout-page .page-header {
   margin-bottom: 20px;
 }
 
-.layout-page .page-content {
-  font-size: 18px;
+.layout-page .page-content p {
+  margin-bottom: 16px;
 }
 
-/* ссылки только для страниц */
-.layout-page .page-content a {
-  color: #0b57d0;
-  text-decoration: underline;
+.layout-page .page-content h2 {
+  margin-top: 24px;
+  margin-bottom: 12px;
 }

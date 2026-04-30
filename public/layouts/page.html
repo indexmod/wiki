@@ -1,26 +1,21 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>{{title}}</title>
+/* =========================================================
+   PAGE LAYOUT
+   ROLE: render a single page view
+   INPUT:
+   - {{title}}
+   - {{content}} (HTML from markdown)
+   OUTPUT:
+   - semantic article block
+   NOTES:
+   - no <html>, no <body>
+   ========================================================= */
 
-<link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/page.css">
-</head>
+<article class="page">
+  <header class="page-header">
+    <h1>{{title}}</h1>
+  </header>
 
-<body class="layout-page">
-
-<header>
-  <a href="/">
-    <img src="/logo.png" class="logo">
-  </a>
-
-  <a href="/editor?slug={{slug}}">Edit</a>
-</header>
-
-<main>
-{{content}}
-</main>
-
-</body>
-</html>
+  <section class="page-content">
+    {{content}}
+  </section>
+</article>
