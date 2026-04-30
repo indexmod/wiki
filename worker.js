@@ -1,15 +1,5 @@
 // =========================================================
-// ENGINE STATE: CORE ROUTER
-// STATUS:
-// ✔ unified response pipeline
-// ✔ html normalization layer
-// ✔ Response/HTML safety guard added
-// ✔ index / page / editor routing stabilized
-//
-// NOTES:
-// - ALL engines may return string OR Response
-// - worker normalizes output into safe HTML
-// - prevents [object Response] regression
+// CORE ROUTER (FINALIZED WITH LAYOUT SYSTEM)
 // =========================================================
 
 import { indexRoute } from "./engine/index/route.js";
@@ -20,17 +10,38 @@ import { htmlResponse, errorResponse } from "./engine/core/response.js";
 
 
 // ===============================
-// OUTPUT NORMALIZER (CRITICAL LAYER)
+// LOAD BASE TEMPLATE (ONCE PER REQUEST)
+// ===============================
+async function loadBase(env) {
+  const res = await env.ASSETS.fetch(
+    new Request("https://internal/layouts/base.html")
+  );
+
+  return await res.text();
+}
+
+
+// ===============================
+// BUILD FINAL HTML
+// ===============================
+function buildPage({ base, content, title = "", layout, styles = "", nav = "" }) {
+  return base
+    .replace("{{title}}", title)
+    .replace("{{content}}", content)
+    .replace("{{styles}}", styles)
+    .replace("{{layout}}", layout)
+    .replace("{{nav}}", nav);
+}
+
+
+// ===============================
+// OUTPUT NORMALIZER
 // ===============================
 function normalizeOutput(result) {
   if (!result) return "<h1>EMPTY RESPONSE</h1>";
 
-  // if engine returned full Response (legacy-safe mode)
-  if (result instanceof Response) {
-    return result;
-  }
+  if (result instanceof Response) return result;
 
-  // enforce string contract
   if (typeof result !== "string") {
     return String(result);
   }
@@ -48,33 +59,69 @@ export default {
 
     try {
 
+      const base = await loadBase(env);
+
       // ===============================
-      // INDEX ENGINE
+      // INDEX
       // ===============================
       if (path === "/" || path === "/index") {
-        const html = normalizeOutput(await indexRoute(env));
+
+        const content = normalizeOutput(await indexRoute(env));
+
+        const html = buildPage({
+          base,
+          content,
+          title: "Index",
+          layout: "index",
+          styles: `<link rel="stylesheet" href="/styles/index.css">`
+        });
+
         return htmlResponse(html);
       }
 
+
       // ===============================
-      // EDITOR ENGINE
+      // EDITOR
       // ===============================
       if (path === "/editor") {
-        const html = normalizeOutput(await editorRoute(env));
+
+        const content = normalizeOutput(await editorRoute(env));
+
+        const html = buildPage({
+          base,
+          content,
+          title: "Editor",
+          layout: "editor",
+          styles: `<link rel="stylesheet" href="/styles/editor.css">`
+        });
+
         return htmlResponse(html);
       }
 
+
       // ===============================
-      // PAGE ENGINE (DYNAMIC ROUTES)
+      // PAGE
       // ===============================
       if (!path.startsWith("/api") && !path.includes(".")) {
+
         const slug = path.replace(/^\/+|\/+$/g, "");
-        const html = normalizeOutput(await pageRoute(env, slug));
+
+        const content = normalizeOutput(await pageRoute(env, slug));
+
+        const html = buildPage({
+          base,
+          content,
+          title: slug,
+          layout: "page",
+          styles: `<link rel="stylesheet" href="/styles/page.css">`
+        });
+
         return htmlResponse(html);
       }
 
+
       // ===============================
-      // STATIC ASSETS
+      // STATIC
       // ===============================
       return env.ASSETS.fetch(req);
 

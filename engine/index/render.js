@@ -1,7 +1,12 @@
 // ===============================
 // ENGINE: INDEX
 // FILE: render.js
-// PURPOSE: clean index list (no nav)
+// PURPOSE: build A–Z grouped index HTML
+//
+// CONTRACT:
+// - receives array of slugs
+// - returns pure HTML fragment
+// - DOES NOT include styles or layout
 // ===============================
 
 import { groupPages } from "./state.js";
@@ -20,8 +25,6 @@ export function renderIndex(pages = []) {
   }
 
   return `
-<link rel="stylesheet" href="/styles/index.css">
-
 <div class="index-wrap">
 
   ${groups.map(g => `

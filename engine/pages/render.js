@@ -1,12 +1,19 @@
 // ===============================
 // ENGINE: PAGES
 // FILE: render.js
-// PURPOSE: markdown page renderer
+// PURPOSE: render markdown page into HTML fragment
+//
+// CONTRACT:
+// - receives page object { title, content }
+// - converts markdown → HTML
+// - returns inner HTML (no layout)
 // ===============================
+
+import { marked } from "marked";
 
 
 /* ===============================
-   SIMPLE SANITIZER (LIGHTWEIGHT)
+   SIMPLE SANITIZER (TITLE ONLY)
 =============================== */
 
 function safeText(value) {
@@ -19,33 +26,27 @@ function safeText(value) {
 
 
 /* ===============================
-   RENDER PAGES
+   RENDER PAGE
 =============================== */
 
 export function renderPage(page) {
 
   const title = safeText(page?.title) || "Untitled page";
-  const content = page?.content || "";
+
+  // 🔥 markdown → HTML
+  const content = marked.parse(page?.content || "");
 
   return `
-<!-- ===============================
-     PAGE ENGINE START
-     =============================== -->
-
-<article class="page-wrap">
+<article class="page">
 
   <header class="page-header">
     <h1 class="page-title">${title}</h1>
   </header>
 
-  <div class="page-content">
+  <section class="page-content">
     ${content}
-  </div>
+  </section>
 
 </article>
-
-<!-- ===============================
-     PAGE ENGINE END
-     =============================== -->
 `;
 }
