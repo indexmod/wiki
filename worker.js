@@ -23,11 +23,13 @@ function render(base, { title, content, styles = "", nav = "" }) {
 }
 
 /* ================= NAV SYSTEM ================= */
-function buildNav() {
-  return `
-    <a href="/">Index</a>
-    <a href="/editor">Editor</a>
-  `;
+
+function getNav(path) {
+  if (path === "/editor") {
+    return `<a href="/save" class="ui-link">Save</a>`;
+  }
+
+  return `<a href="/editor" class="ui-link">New</a>`;
 }
 
 /* ================= ROUTER ================= */
