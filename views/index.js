@@ -9,3 +9,26 @@ export function indexView(pages) {
 </div>
 `;
 }
+import { getTopics } from "../core/state.js";
+
+export async function indexRoute(env) {
+  const topics = await getTopics(env);
+
+  return `
+    <div class="index">
+
+      ${topics.map(t => `
+        <section class="topic">
+          <h2>${t.name}</h2>
+
+          <div class="topic-list">
+            ${t.pages.map(p => `
+              <a href="/${p}">${p}</a>
+            `).join("")}
+          </div>
+        </section>
+      `).join("")}
+
+    </div>
+  `;
+}

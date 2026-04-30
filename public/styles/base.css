@@ -1,19 +1,5 @@
 /* =========================================================
-   BASE.CSS — GLOBAL LAYER
-
-   ✔ reset
-   ✔ typography
-   ✔ layout spacing system
-   ✔ ui-link system
-   ✔ header/footer geometry
-   ✔ logo animation (pure decoration)
-
-   DOES NOT:
-   ✘ style index/pages/editor logic
-   ✘ define content layout rules
-   ✘ interfere with engine rendering
-
-   base = structural + visual foundation only
+   BASE.CSS — GLOBAL LAYER (STABLE VERSION)
    ========================================================= */
 
 
@@ -23,113 +9,134 @@
   box-sizing: border-box;
 }
 
-
-
-html {
-  font-size: 16px;
-  margin: 0;
-  padding: 0;
-}
-
-body {
+html, body {
   margin: 0;
   padding: 0;
 }
 
 
-/* ================= BASE TYPOGRAPHY ================= */
+/* ================= TYPOGRAPHY ================= */
 
 body {
   font-family: Georgia, "Times New Roman", serif;
-  background: #ffffff;
+  background: #fff;
   color: #111;
   line-height: 1.6;
 }
 
 
-/* ================= LINKS (BASE FALLBACK ONLY) ================= */
+/* ================= SPACING SYSTEM ================= */
+/* ключ: это даёт “поля”, которых у тебя сейчас нет */
+
+.site-header,
+.site-main,
+.site-footer {
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+
+/* центрированный контент */
+.site-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+
+/* ================= LINKS ================= */
 
 a {
   color: inherit;
   text-decoration: none;
 }
 
-
-/* ================= UI LINK SYSTEM ================= */
-
-.ui-link {
-  font-size: 20px;
-  line-height: 1.6;
-
-  color: #1a5cff;
-  text-decoration: none;
+a:hover {
+  opacity: 0.7;
 }
-
-.ui-link:hover {
-  opacity: 0.6;
-}
-
-
-/* ================= GLOBAL LAYOUT CONTAINER ================= */
-/* только геометрия, без влияния на engines */
-
-.site-header {}
-.site-main {}
-.site-footer {}
 
 
 /* ================= HEADER ================= */
 
-header {
+.site-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 
-  margin-bottom: 40px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+
+  border-bottom: 1px solid #eee;
+}
+
+
+/* ================= NAV ================= */
+
+.site-nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.site-nav a {
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.site-nav a:hover {
+  opacity: 1;
 }
 
 
 /* ================= LOGO ================= */
 
 .logo {
-  height: 200px;
+  height: 42px;
   width: auto;
   display: block;
-
-  margin-top: 30px; /* воздух сверху */
-
-  animation: logoPulse 6s ease-in-out infinite;
-  transform-origin: center;
 }
 
 
-/* ================= LOGO ANIMATION ================= */
+/* ================= BUTTON SYSTEM ================= */
 
-@keyframes logoPulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.95;
-  }
+button,
+.index-create {
+  background: #111;
+  color: #fff;
 
-  50% {
-    transform: scale(1.03);
-    opacity: 1;
-  }
+  border: 0;
+  border-radius: 8px;
 
-  100% {
-    transform: scale(1);
-    opacity: 0.95;
-  }
+  padding: 8px 12px;
+
+  font-size: 13px;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover,
+.index-create:hover {
+  opacity: 0.85;
 }
 
 
 /* ================= FOOTER ================= */
 
 .site-footer {
-  margin-top: 80px;
-  margin-bottom: 40px;
+  max-width: 860px;
+  margin: 0 auto;
 
-  color: #a855f7; /* 💜 весь футер текст */
+  padding-top: 40px;
+  padding-bottom: 40px;
+
+  font-size: 13px;
+  color: #a855f7;
+  border-top: 1px solid #eee;
 }
 
 
@@ -139,26 +146,34 @@ header {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-
-  font-size: 16px;
-  color: inherit; /* наследует лиловый от footer */
+  color: inherit;
 }
 
 
-/* ================= FOOTER BULLET ================= */
+/* ================= FOOTER DOT ================= */
 
 .footer-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-
-  background: currentColor; /* синхронизируется с текстом */
+  background: currentColor;
 }
 
 
-/* ================= EDITOR ISOLATION ================= */
-/* hard boundary — base НЕ влияет */
+/* ================= LOGO ANIMATION (SAFE) ================= */
 
-.layout-editor main {
-  all: unset;
+.logo {
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.03);
+}
+
+
+/* ================= EDITOR SAFETY ================= */
+/* убрано all: unset — это ломало UI */
+
+.layout-editor {
+  /* только изоляция по желанию */
 }
