@@ -2,9 +2,9 @@
 // CORE ROUTER (FINALIZED WITH LAYOUT SYSTEM)
 // =========================================================
 
-import { indexRoute } from "./engine/index/route.js";
-import { pageRoute } from "./engine/pages/route.js";
-import { editorRoute } from "./engine/editor/route.js";
+import { indexRoute } from "./engine/core/index-route.js";
+import { pageRoute } from "./engine/core/pages-route.js";
+import { editorRoute } from "./engine/core/editor-route.js";
 
 import { htmlResponse, errorResponse } from "./engine/core/response.js";
 
