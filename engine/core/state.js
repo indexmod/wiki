@@ -1,36 +1,56 @@
+// =========================================================
+// STATE LAYER (CLEAN + PREDICTABLE)
+// ROLE: single source of truth for pages/topics
+// =========================================================
+
+/* ================= PAGE ================= */
+
 export async function getPage(env, slug) {
   const raw = await env.PAGES.get(slug);
 
   if (!raw) return null;
 
+  // нормализуем структуру ВСЕГДА одинаково
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+
+    return {
+      slug,
+      title: parsed.title || slug,
+      content: parsed.content || ""
+    };
   } catch {
     return {
+      slug,
       title: slug,
       content: raw
     };
   }
 }
 
-/* ================= PAGES ================= */
+/* ================= PAGES LIST ================= */
 
 export async function getPages(env) {
   const list = await env.PAGES.list();
 
   const pages = (list?.keys || [])
     .map(k => k.name)
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b));
+    .filter(Boolean);
 
-  return pages;
+  // важно: сортировка централизована здесь
+  pages.sort((a, b) => a.localeCompare(b));
+
+  // нормализуем формат (НЕ строки наружу)
+  return pages.map(slug => ({
+    slug,
+    title: slug
+  }));
 }
 
-/* ================= TOPICS (REAL VERSION v1) ================= */
+/* ================= TOPICS LAYER ================= */
 /*
-   Сейчас:
-   - один namespace (default)
-   - но структура уже готова под расширение
+   Сейчас: простая группировка
+   Позже: можно добавить категории, теги, AI clustering
 */
 
 export async function getTopics(env) {
@@ -38,7 +58,8 @@ export async function getTopics(env) {
 
   return [
     {
-      name: "all",
+      id: "all",
+      title: "All Pages",
       pages
     }
   ];
