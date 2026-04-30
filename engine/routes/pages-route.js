@@ -1,14 +1,23 @@
 import { getPage } from "../core/state.js";
 import { renderMarkdown } from "../core/markdown.js";
 
-export async function pageRoute(env, slug) {
+function escape(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+export async function pagesRoute(env, slug) {
   const page = await getPage(env, slug);
 
-  if (!page) return "<h1>Not found</h1>";
+  if (!page) {
+    return `<h1>Not found</h1>`;
+  }
 
   return `
-    <article>
-      <h1>${page.title}</h1>
+    <article class="page">
+      <h1>${escape(page.title)}</h1>
       ${renderMarkdown(page.content)}
     </article>
   `;
