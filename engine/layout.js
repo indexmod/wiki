@@ -3,7 +3,11 @@
 // =========================================================
 
 export async function layout(env, { title, content, layout = "page", nav = "" }) {
-  const res = await env.ASSETS.fetch("/layouts/base.html");
+
+  const res = await env.ASSETS.fetch(
+    new Request(new URL("/layouts/base.html", "http://internal"))
+  );
+
   const html = await res.text();
 
   return html
