@@ -1,4 +1,5 @@
-import { layout } from "./layout.js";
+import { getPages } from "../state.js";
+import { layout } from "../layout.js";
 
 export async function editorRoute(env) {
   return layout(env, {

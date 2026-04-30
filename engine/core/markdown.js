@@ -1,10 +1,13 @@
 // =========================================================
 // CORE: MARKDOWN RENDERER
-// ROLE: single markdown → HTML transformer
+// ROLE: zero-dependency markdown → HTML transformer
+// NOTE: avoids external packages (no build issues in Workers)
 // =========================================================
 
-import { marked } from "marked";
-
 export function renderMarkdown(md = "") {
-  return marked.parse(md);
+  return md
+    .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+    .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+    .replace(/\*\*(.*?)\*\*/gim, "<b>$1</b>")
+    .replace(/\n/g, "<br>");
 }

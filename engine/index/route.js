@@ -1,5 +1,5 @@
 import { getPages } from "../state.js";
-import { layout } from "./layout.js";
+import { layout } from "../layout.js";
 
 function formatTitle(slug) {
   return slug.replace(/-/g, " ");
