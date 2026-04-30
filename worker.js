@@ -1,82 +1,61 @@
-import { indexRoute } from "./engine/routes/index-route.js";
-import { pagesRoute } from "./engine/routes/pages-route.js";
-import { editorRoute } from "./engine/routes/editor-route.js";
-import { htmlResponse } from "./engine/core/response.js";
+import { getPage, getPages } from "./state.js";
+import { renderHTML } from "./render.js";
+import { toHTML } from "./markdown.js";
+import { getNav } from "./actions.js";
 
-async function loadBase(env) {
-  const res = await env.ASSETS.fetch(
-    new Request("https://internal/layouts/base.html")
-  );
+async function base(env) {
+  const res = await env.ASSETS.fetch("/base.html");
   return await res.text();
 }
 
-function safe(v) {
-  return typeof v === "string" ? v : (v ? String(v) : "");
-}
-
-function render(base, { title, content, styles = "", nav = "" }) {
-  return base
-    .replace("{{title}}", safe(title))
-    .replace("{{content}}", safe(content))
-    .replace("{{styles}}", styles)
-    .replace("{{nav}}", nav);
-}
-
-/* ================= NAV SYSTEM ================= */
-
-function getNav(path) {
-  if (path === "/editor") {
-    return `<a href="/save" class="ui-link">Save</a>`;
-  }
-
-  return `<a href="/editor" class="ui-link">New</a>`;
-}
-
-/* ================= ROUTER ================= */
 export default {
   async fetch(req, env) {
-    const path = new URL(req.url).pathname;
-    const base = await loadBase(env);
+    const url = new URL(req.url);
+    const path = url.pathname;
 
-    const nav = buildNav();
+    const baseHTML = await base(env);
 
-    /* ================= INDEX ================= */
+    // INDEX
     if (path === "/" || path === "/index") {
-      const content = await indexRoute(env);
+      const pages = await getPages(env);
 
-      return htmlResponse(render(base, {
-        title: "Index",
-        content,
-        nav,
-        styles: `<link rel="stylesheet" href="/styles/index.css">`
-      }));
+      return new Response(
+        renderHTML(baseHTML, {
+          title: "Index",
+          nav: getNav(path),
+          content: pages
+            .map(p => `<div><a href="/${p}">${p}</a></div>`)
+            .join("")
+        }),
+        { headers: { "content-type": "text/html" } }
+      );
     }
 
-    /* ================= EDITOR ================= */
+    // EDITOR
     if (path === "/editor") {
-      const content = await editorRoute(env);
-
-      return htmlResponse(render(base, {
-        title: "Editor",
-        content,
-        nav,
-        styles: `<link rel="stylesheet" href="/styles/editor.css">`
-      }));
+      return new Response(
+        renderHTML(baseHTML, {
+          title: "Editor",
+          nav: getNav(path),
+          content: `<textarea style="width:100%;height:300px"></textarea>`
+        }),
+        { headers: { "content-type": "text/html" } }
+      );
     }
 
-    /* ================= PAGE ================= */
-    if (!path.startsWith("/api") && !path.includes(".")) {
-      const slug = path.replace(/^\/+|\/+$/g, "");
-      const content = await pagesRoute(env, slug);
+    // PAGE
+    const slug = path.replace(/^\/+|\/+$/g, "");
+    const page = await getPage(env, slug);
 
-      return htmlResponse(render(base, {
-        title: slug,
-        content,
-        nav,
-        styles: `<link rel="stylesheet" href="/styles/page.css">`
-      }));
-    }
+    if (!page) return new Response("Not found", { status: 404 });
 
-    return env.ASSETS.fetch(req);
+    return new Response(
+      renderHTML(baseHTML, {
+        title: page.title,
+        nav: getNav(path),
+        content: toHTML(page.content)
+      }),
+      { headers: { "content-type": "text/html" } }
+    );
   }
 };
