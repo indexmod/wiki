@@ -2,16 +2,8 @@ name = "wiki"
 main = "worker.js"
 compatibility_date = "2026-04-25"
 
-# =========================
-# STATIC FRONTEND (Assets binding)
-# =========================
-[assets]
-directory = "./public"
-binding = "ASSETS"
+assets = { directory = "./public", binding = "ASSETS" }
 
-# =========================
-# R2 STORAGE (PAGES DB)
-# =========================
 [[r2_buckets]]
 binding = "PAGES"
 bucket_name = "indexmod-pages"
