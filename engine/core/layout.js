@@ -1,22 +1,37 @@
-// =========================================================
-// CORE: LAYOUT (SINGLE ENTRY POINT)
-// =========================================================
+export function layout(env, { title, content }) {
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
 
-export async function layout(env, { title, content, layout = "page" }) {
+<link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/index.css">
 
-  const res = await env.ASSETS.fetch(
-    new Request(new URL("/layouts/base.html", "http://internal"))
-  );
+</head>
 
-  const html = await res.text();
+<body>
 
-  return html
-    .replace("{{title}}", title || "")
-    .replace("{{content}}", content || "")
-    .replace("{{layout}}", layout)
-    .replace("{{styles}}", `<link rel="stylesheet" href="/styles/${layout}.css">`)
-    .replace("{{nav}}", layout === "index"
-      ? `<a href="/editor">+ New</a>`
-      : `<a href="/">← Index</a>`
-    );
+<header class="site-header">
+  <a href="/">
+    <img src="/logo.png" class="logo">
+  </a>
+
+  <nav class="site-nav">
+    <a href="/editor">Editor</a>
+  </nav>
+</header>
+
+<main class="site-main">
+  ${content}
+</main>
+
+<footer class="site-footer">
+  <a href="https://mod.indexmod.press">
+    Chat at Mod
+  </a>
+</footer>
+
+</body>
+</html>`;
 }
