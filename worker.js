@@ -1,26 +1,30 @@
 // =========================================================
-// WORKER — MINIMAL WIKI ENGINE (ПРОЗРАЧНАЯ ВЕРСИЯ)
+// WORKER — MINIMAL WIKI ENGINE (STABLE v2)
 // =========================================================
 
+
 // ================= IMPORTS =================
-// вся работа с данными
+
+// DATA LAYER (R2)
 import { getAllPages, savePage, findBySlug } from "./state.js";
 
-// рендер HTML оболочки
+// HTML SHELL
 import { renderHTML } from "./render.js";
 
-// markdown → html
+// MARKDOWN → HTML
 import { toHTML } from "./markdownn.js";
 
-// навигация (кнопка New / Save)
+// NAVIGATION
 import { getNav } from "./actions.js";
 
 
-// ================= HTML RESPONSE =================
-// единая функция ответа
+// =========================================================
+// RESPONSE HELPER
+// =========================================================
+
 function html(body) {
   return new Response(body, {
-    headers: { "content-type": "text/html" }
+    headers: { "content-type": "text/html; charset=utf-8" }
   });
 }
 
@@ -31,12 +35,13 @@ function html(body) {
 
 export default {
   async fetch(req, env) {
+
     const url = new URL(req.url);
     const path = url.pathname;
 
+
     // =====================================================
-    // INDEX PAGE (/)
-    // показывает список всех страниц
+    // INDEX (/)
     // =====================================================
     if (path === "/") {
 
@@ -46,58 +51,63 @@ export default {
         title: "Index",
         nav: getNav("/"),
 
-        // список страниц (title → slug)
-        content: pages
-          .map(p => `<a href="/${p.slug}">${p.title}</a>`)
-          .join("<br>")
+        content: pages.length
+          ? pages
+              .map(p => `<a href="/${p.slug}">${p.title}</a>`)
+              .join("<br>")
+          : `<p>No pages yet</p>`
       }));
     }
 
 
     // =====================================================
     // EDITOR (/editor)
-    // GET → форма
-    // POST → сохранение
     // =====================================================
     if (path === "/editor") {
 
-      // ---------- SAVE ----------
+      // ================= SAVE =================
       if (req.method === "POST") {
 
         const form = await req.formData();
 
         const title = form.get("title") || "Untitled";
-        const slug = form.get("slug");
+        let slug = form.get("slug");
         const content = form.get("content") || "";
 
-        // защита от пустого slug
+        // -------- slug sanitize --------
         if (!slug) {
           return new Response("Slug required", { status: 400 });
         }
 
-        // сохраняем страницу (с frontmatter)
+        slug = slug
+          .toString()
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "-");
+
+        // -------- SAVE --------
         await savePage(env, {
           title,
           slug,
           content
         });
 
-        // редирект на страницу
-        return Response.redirect(`/${slug}`);
+        // -------- REDIRECT --------
+        return Response.redirect(`${url.origin}/${slug}`, 302);
       }
 
-      // ---------- FORM ----------
+
+      // ================= FORM =================
       return html(renderHTML({
         title: "Editor",
         nav: getNav(path),
 
-        // 👇 ВОТ ТВОЯ ФОРМА
         content: `
           <form method="POST">
             <input name="title" placeholder="Title"><br><br>
             <input name="slug" placeholder="Slug" required><br><br>
             <textarea name="content" placeholder="Markdown..."></textarea><br><br>
-            <button>Save</button>
+            <button type="submit">Save</button>
           </form>
         `
       }));
@@ -105,22 +115,26 @@ export default {
 
 
     // =====================================================
+    // STATIC ASSETS (ВАЖНО)
+    // =====================================================
+    // чтобы стили реально работали
+    if (path.startsWith("/styles") || path.startsWith("/favicon")) {
+      return env.ASSETS.fetch(req);
+    }
+
+
+    // =====================================================
     // PAGE (/slug)
-    // рендер markdown страницы
     // =====================================================
 
-    // убираем /
     const slug = path.replace(/^\/+/, "");
 
-    // ищем страницу по slug
     const page = await findBySlug(env, slug);
 
-    // если не нашли
     if (!page) {
       return new Response("Not found", { status: 404 });
     }
 
-    // рендер страницы
     return html(renderHTML({
       title: page.title,
       nav: getNav(path),
