@@ -5,19 +5,25 @@
 import { parseMD } from "./parser.js";
 
 
-// ================= GET ALL =================
+// =========================================================
+// GET ALL PAGES (FIXED)
+// =========================================================
+
 export async function getAllPages(env) {
   const list = await env.PAGES.list();
 
   const pages = [];
 
-  for (const key of list.objects || list.keys || []) {
-    const name = key.name;
+  for (const obj of list.keys || []) {
 
-    const raw = await env.PAGES.get(name);
+    const filename = obj.name; // rosa.md
+
+    const raw = await env.PAGES.get(filename);
     if (!raw) continue;
 
-    const parsed = parseMD(raw);
+    const text = await raw.text();
+
+    const parsed = parseMD(text);
 
     pages.push({
       id: parsed.id,
@@ -29,7 +35,6 @@ export async function getAllPages(env) {
 
   return pages;
 }
-
 
 // ================= FIND BY SLUG =================
 export async function findBySlug(env, slug) {
