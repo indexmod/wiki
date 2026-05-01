@@ -38,22 +38,33 @@ export async function findBySlug(env, slug) {
 }
 
 
-// ================= SAVE =================
+/// =========================================================
+// SAVE PAGE (FIXED)
+// =========================================================
+
 export async function savePage(env, { title, slug, content }) {
 
+  // стабильный id
   const id = crypto.randomUUID();
+
+  // нормализуем slug
+  const cleanSlug = slug
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-");
 
   const md = `---
 id: ${id}
 title: ${title}
-slug: ${slug}
+slug: ${cleanSlug}
 ---
 
 ${content}
 `;
 
-  // сохраняем по id (а не slug!)
-  await env.PAGES.put(id, md);
+  // 🔥 КЛЮЧ = SLUG (а не id)
+  await env.PAGES.put(`${cleanSlug}.md`, md);
 
-  return { id, slug };
+  return { id, slug: cleanSlug };
 }
