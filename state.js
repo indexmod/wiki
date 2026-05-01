@@ -1,75 +1,51 @@
-// =========================================================
-// STATE — DATA LAYER (R2)
-// =========================================================
-
 import { parseMD } from "./parser.js";
 
-
-// =========================================================
-// GET ALL PAGES (FIXED)
-// =========================================================
-
+// ================= GET ALL =================
 export async function getAllPages(env) {
   const list = await env.PAGES.list();
 
   const pages = [];
 
-  for (const obj of list.keys || []) {
-
-    const filename = obj.name; // rosa.md
-
-    const raw = await env.PAGES.get(filename);
+  for (const item of list.keys || []) {
+    const raw = await env.PAGES.get(item.name);
     if (!raw) continue;
 
     const text = await raw.text();
-
     const parsed = parseMD(text);
 
-    pages.push({
-      id: parsed.id,
-      title: parsed.title,
-      slug: parsed.slug,
-      content: parsed.content
-    });
+    pages.push(parsed);
   }
 
   return pages;
 }
 
-// ================= FIND BY SLUG =================
+
+// ================= FIND BY SLUG (FIXED) =================
 export async function findBySlug(env, slug) {
-  const pages = await getAllPages(env);
-  return pages.find(p => p.slug === slug);
+  const raw = await env.PAGES.get(`${slug}.md`);
+  if (!raw) return null;
+
+  const text = await raw.text();
+  return parseMD(text);
 }
 
 
-/// =========================================================
-// SAVE PAGE (FIXED)
-// =========================================================
-
+// ================= SAVE (CRITICAL RULE) =================
 export async function savePage(env, { title, slug, content }) {
 
-  // стабильный id
   const id = crypto.randomUUID();
-
-  // нормализуем slug
-  const cleanSlug = slug
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-");
 
   const md = `---
 id: ${id}
 title: ${title}
-slug: ${cleanSlug}
+slug: ${slug}
 ---
 
 ${content}
 `;
 
-  // 🔥 КЛЮЧ = SLUG (а не id)
-  await env.PAGES.put(`${cleanSlug}.md`, md);
+  // ❗ ВСЕГДА КЛЮЧ = SLUG
+  await env.PAGES.put(`${slug}.md`, md);
 
-  return { id, slug: cleanSlug };
+  return { id, slug };
 }
